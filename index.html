@@ -169,15 +169,19 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
-<!-- 旧名称管理 -->
+<!-- キーワード管理 -->
 <div class="modal" id="aliasModal"><div class="modal-box">
-  <h3>旧名称を管理</h3>
+  <h3>マッチングキーワードを管理</h3>
   <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="aliasDesc"></p>
   <div id="aliasList" style="margin-bottom:14px"></div>
-  <div class="info-banner">CSV「掲載名」列に現在名か旧名称の<b>どちらかが部分一致</b>すれば自動割当されます。</div>
-  <label class="form-label">旧名称を追加</label>
+  <div class="info-banner">
+    CSV「リスティング」列にキーワードが<b>部分一致</b>すればこの物件に自動割当されます。<br>
+    例: 物件が「押上戸建」なら「浅草・押上」「押上エリア」などを登録。<br>
+    同じエリアの複数リスティングも同じキーワードで紐づけられます。
+  </div>
+  <label class="form-label">キーワードを追加（Airbnbのリスティングタイトルに含まれる文字列）</label>
   <div style="display:flex;gap:8px;margin-bottom:14px">
-    <input type="text" id="newAlias" placeholder="例: 東京・押上の一棟貸し" style="flex:1">
+    <input type="text" id="newAlias" placeholder="例: 浅草・押上エリア または 北池袋" style="flex:1">
     <button class="btn primary" onclick="addAlias()">追加</button>
   </div>
   <button class="btn primary" style="width:100%" onclick="closeModal('aliasModal')">完了</button>
@@ -521,16 +525,17 @@ function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').
 
 // ═══ CSV処理 ═══
 const COL_ALIASES={
-  cc:['確認コード','Confirmation Code','confirmation_code','Confirmation code'],
-  type:['タイプ','Type','type','Transaction Type'],
-  listing:['掲載名','Listing','listing','Listing name','物件名'],
-  guest:['ゲスト','Guest','guest','Guest name'],
-  ci:['チェックイン','Check-in','check_in','Start date'],
-  co:['チェックアウト','Check-out','check_out','End date'],
-  nights:['宿泊数','Nights','nights'],
-  payout:['精算額','Payout','payout','Net amount','受取金額','Host payout'],
-  amount:['金額','Amount','amount','Gross earnings'],
-  date:['日付','Date','date','Payout Date'],
+  cc:      ['確認コード','Confirmation Code','confirmation_code','Confirmation code'],
+  status:  ['ステータス','Status','status'],
+  type:    ['タイプ','Type','type','Transaction Type'],
+  listing: ['リスティング','掲載名','Listing','listing','Listing name','物件名'],
+  guest:   ['ゲスト名','ゲスト','Guest','guest','Guest name'],
+  ci:      ['開始日','チェックイン','Check-in','check_in','Start date'],
+  co:      ['終了日','チェックアウト','Check-out','check_out','End date'],
+  nights:  ['宿泊日数','宿泊数','Nights','nights'],
+  payout:  ['精算額','Payout','payout','Net amount','受取金額','Host payout'],
+  amount:  ['収入','金額','Amount','amount','Gross earnings'],
+  date:    ['予約済み','日付','Date','date','Payout Date'],
 };
 function getC(row,als){for(const a of als){if(row[a]!=null&&row[a]!=='')return row[a];}return '';}
 function toNum(s){const n=parseFloat(String(s||'').replace(/[¥$,\s]/g,'').replace(/[^\d.-]/g,''));return isNaN(n)?0:n;}
@@ -551,33 +556,76 @@ function parseCSV(text){
     return obj;
   });
 }
+
+// CSVフォーマット判定（予約CSV vs 取引履歴CSV）
+function detectCSVFormat(rows){
+  if(!rows.length)return 'reservation';
+  const keys=Object.keys(rows[0]);
+  // ステータス列があれば予約CSV
+  if(COL_ALIASES.status.some(k=>keys.includes(k)))return 'reservation';
+  // タイプ列があれば取引履歴CSV
+  if(COL_ALIASES.type.some(k=>keys.includes(k)))return 'transaction';
+  return 'reservation';
+}
+
 function matchProp(listing,aid){
   if(aid)return aid;
   const n=normStr(listing);
-  const m=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));
+  const m=properties.find(p=>{
+    const targets=[p.name,...(p.keywords||[]),...(p.aliases||[])];
+    return targets.some(x=>{
+      if(!x)return false;
+      const nn=normStr(x);
+      return n.includes(nn)||nn.includes(n);
+    });
+  });
   return m?m.id:'';
 }
+
 async function processCSV(text,fname,aid){
   const rows=parseCSV(text);
-  if(!rows.length)return{added:0,duplicate:0,skipped:0};
+  if(!rows.length)return{added:0,duplicate:0,skipped:0,fmt:'unknown'};
+  const fmt=detectCSVFormat(rows);
   const existing=new Set(airbnbRows.map(r=>r.cc?`cc::${r.cc}`:`cx::${r.listing}|${r.ci}|${r.guest}|${r.amount}`));
   const newRows=[];let dup=0,skip=0;
+
   for(const row of rows){
-    const cc=getC(row,COL_ALIASES.cc),type=getC(row,COL_ALIASES.type),listing=getC(row,COL_ALIASES.listing),guest=getC(row,COL_ALIASES.guest),ci=getC(row,COL_ALIASES.ci),co=getC(row,COL_ALIASES.co),nights=toNum(getC(row,COL_ALIASES.nights)),py=toNum(getC(row,COL_ALIASES.payout)),am=toNum(getC(row,COL_ALIASES.amount)),ds=getC(row,COL_ALIASES.date);
-    const net=py>0?py:am;
-    if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
+    const cc     =getC(row,COL_ALIASES.cc);
+    const listing=getC(row,COL_ALIASES.listing);
+    const guest  =getC(row,COL_ALIASES.guest);
+    const ci     =getC(row,COL_ALIASES.ci);
+    const co     =getC(row,COL_ALIASES.co);
+    const nights =toNum(getC(row,COL_ALIASES.nights));
+    const status =getC(row,COL_ALIASES.status);
+    const type   =getC(row,COL_ALIASES.type);
+
+    let net=0;
+    if(fmt==='reservation'){
+      // 予約CSV：キャンセル・保留はスキップ
+      if(/キャンセル|cancelled|pending|保留/i.test(status)){skip++;continue;}
+      net=toNum(getC(row,COL_ALIASES.amount));
+    } else {
+      // 取引履歴CSV：精算額 or 金額を使用
+      const py=toNum(getC(row,COL_ALIASES.payout));
+      const am=toNum(getC(row,COL_ALIASES.amount));
+      net=py>0?py:am;
+      if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
+    }
+    if(net<=0){skip++;continue;}
+
     const key=cc?`cc::${cc}`:`cx::${listing}|${ci}|${guest}|${net}`;
     if(existing.has(key)){dup++;continue;}
     existing.add(key);
-    const bd=ci||ds;const d=bd?new Date(bd.replace(/\//g,'-')):new Date();
+
+    const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
     const yr=isNaN(d.getTime())?new Date().getFullYear():d.getFullYear();
     const mo=isNaN(d.getTime())?new Date().getMonth()+1:d.getMonth()+1;
-    newRows.push({id:uid(),cc,propertyId:matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,type,src:fname,at:new Date().toISOString()});
+    newRows.push({id:uid(),cc,propertyId:matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()});
   }
   airbnbRows=[...airbnbRows,...newRows];
   await archiveCSV(fname,text);
   saveData();
-  return{added:newRows.length,duplicate:dup,skipped:skip};
+  return{added:newRows.length,duplicate:dup,skipped:skip,fmt};
 }
 async function onCsvChange(e){await handleCSVFiles(Array.from(e.target.files));e.target.value='';}
 async function onCsvDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag');await handleCSVFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.csv')));}
@@ -589,7 +637,7 @@ async function handleCSVFiles(files){
   for(const f of files){if(!f.name.toLowerCase().endsWith('.csv'))continue;const r=await processCSV(await f.text(),f.name,aid);logs.push({filename:f.name,...r,time:new Date().toLocaleString('ja-JP')});}
   importLog=[...logs,...importLog];saveData();
   document.getElementById('dropText').textContent='CSVをドロップ / クリックして選択';
-  document.getElementById('csvResult').innerHTML=logs.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename}</div><div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap"><span class="c-grn">✓ 新規: <b>${log.added}</b>件</span><span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span><span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span></div></div>`).join('');
+  document.getElementById('csvResult').innerHTML=logs.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename} <span style="font-size:11px;color:#888;font-weight:400">${log.fmt==='reservation'?'予約CSV':'取引履歴CSV'}</span></div><div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap"><span class="c-grn">✓ 新規: <b>${log.added}</b>件</span><span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span><span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span></div></div>`).join('');
   buildSelectors();render();
 }
 
@@ -717,12 +765,12 @@ function renderProps(year){
           <div style="font-size:12px;color:#aaa">自己資金 ${yen(p.selfFunding||0)} / 運営開始: ${p.startDate||'—'}</div>
           ${loanSummary?`<div style="font-size:12px;margin-top:3px">${loanSummary}</div>`:''}
           ${p.type==='sublease'?`<div style="font-size:12px;color:#7c3aed;margin-top:3px">家賃: ${yen(getRent(p,year,1))}/月〜</div>`:''}
-          ${aliases?`<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:11px;color:#ccc">旧名称:</span>${aliases}</div>`:''}
+          ${aliases?`<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:11px;color:#ccc">キーワード:</span>${aliases}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <div style="text-align:right"><div style="font-size:19px;font-weight:700;color:${pc(totPF)}">${yen(totPF)}</div><div style="font-size:11px;color:#aaa">${year}年純利益</div></div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn sm" onclick="openAliasModal('${p.id}')">旧名称</button>
+            <button class="btn sm" onclick="openAliasModal('${p.id}')">キーワード管理</button>
             ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
             <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン</button>
           </div>
@@ -902,8 +950,7 @@ function renderLoans(){
     html+=`<div style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:14px;font-weight:700">${p.name} <span class="type-badge-${p.type||'purchase'}" style="font-size:10px">${p.type==='sublease'?'転貸':'購入'}</span></div>
-        <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン追加</button>
-      </div>`;
+        <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン追加</button>      </div>`;
     if(loans.length===0){
       html+=`<div style="font-size:12px;color:#aaa;padding:8px 0">ローンなし</div>`;
     } else {
@@ -992,22 +1039,52 @@ function addCom(){
 }
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();render();}
 
-// 旧名称
+// キーワード管理（旧名称と統合）
 function openAliasModal(propId){
   aliasTargetId=propId;
   const p=properties.find(x=>x.id===propId);if(!p)return;
-  document.getElementById('aliasDesc').textContent=p.name+' の旧掲載名を登録します。';
+  document.getElementById('aliasDesc').textContent='物件名: '+p.name;
   document.getElementById('newAlias').value='';
   renderAliasList();openModal('aliasModal');
 }
 function renderAliasList(){
   const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
-  const aliases=p.aliases||[];
-  document.getElementById('aliasList').innerHTML=aliases.length===0?'<div style="font-size:13px;color:#ccc;padding:12px 0;text-align:center">旧名称は未登録です</div>':aliases.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f7f3;border-radius:7px;margin-bottom:6px;border:1px solid #e4e2dd"><span style="font-size:13px">${a}</span><button class="btn sm danger" onclick="delAlias('${a}')">削除</button></div>`).join('');
+  // keywords と aliases を統合して表示
+  const kws=[...(p.keywords||[]),...(p.aliases||[])];
+  document.getElementById('aliasList').innerHTML=kws.length===0
+    ?'<div style="font-size:13px;color:#ccc;padding:12px 0;text-align:center">キーワードは未登録です</div>'
+    :kws.map(k=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f7f3;border-radius:7px;margin-bottom:6px;border:1px solid #e4e2dd">
+      <span style="font-size:13px">${k}</span>
+      <button class="btn sm danger" onclick="delKeyword('${k}')">削除</button>
+    </div>`).join('');
 }
-function addAlias(){const a=document.getElementById('newAlias').value.trim();if(!a)return;const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;if(!(p.aliases||[]).includes(a)){p.aliases=[...(p.aliases||[]),a];saveData();}document.getElementById('newAlias').value='';renderAliasList();render();}
-function delAlias(a){const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;p.aliases=(p.aliases||[]).filter(x=>x!==a);saveData();renderAliasList();render();}
-function rematch(){let u=0;airbnbRows=airbnbRows.map(r=>{const n=normStr(r.listing||'');const match=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));if(match&&match.id!==r.propertyId){u++;return{...r,propertyId:match.id};}if(!r.propertyId&&match){u++;return{...r,propertyId:match.id};}return r;});saveData();render();alert('再マッチング完了: '+u+'件を更新しました');}
+function addAlias(){
+  const k=document.getElementById('newAlias').value.trim();
+  if(!k)return;
+  const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
+  if(!p.keywords)p.keywords=[];
+  if(!p.keywords.includes(k)&&!(p.aliases||[]).includes(k)){
+    p.keywords.push(k);saveData();
+  }
+  document.getElementById('newAlias').value='';
+  renderAliasList();render();
+}
+function delKeyword(k){
+  const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
+  p.keywords=(p.keywords||[]).filter(x=>x!==k);
+  p.aliases=(p.aliases||[]).filter(x=>x!==k);
+  saveData();renderAliasList();render();
+}
+function rematch(){
+  let u=0;
+  airbnbRows=airbnbRows.map(r=>{
+    const match=matchProp(r.listing||'','');
+    if(match&&match!==r.propertyId){u++;return{...r,propertyId:match};}
+    if(!r.propertyId&&match){u++;return{...r,propertyId:match};}
+    return r;
+  });
+  saveData();render();alert('再マッチング完了: '+u+'件を更新しました');
+}
 
 // 家賃履歴
 function openRentModal(propId){
