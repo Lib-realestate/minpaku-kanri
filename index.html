@@ -157,9 +157,8 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option value="purchase">購入</option>
       <option value="sublease">転貸（サブリース）</option>
     </select></div>
-  <div class="form-grid">
-    <div class="form-row"><label class="form-label">自己資金（円）</label><input type="number" id="np-self" placeholder="2000000"></div>
-    <div class="form-row"><label class="form-label">運営開始日</label><input type="date" id="np-start"></div>
+  <div class="form-row">
+    <label class="form-label">運営開始日</label><input type="date" id="np-start">
   </div>
   <!-- 転貸の場合：初期家賃 -->
   <div id="sublease-fields" style="display:none">
@@ -256,6 +255,10 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
   <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note" placeholder="清掃委託など"></div>
+  <div class="form-row" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff8e1;border-radius:8px;border:1px solid #f0d060">
+    <input type="checkbox" id="ae-initial" style="width:auto;margin:0">
+    <label for="ae-initial" style="font-size:13px;color:#b45309;font-weight:600;cursor:pointer;margin:0">初期費用として扱う（概要タブに集計）</label>
+  </div>
   <div style="display:flex;gap:8px">
     <button class="btn primary" onclick="addExp()">追加</button>
     <button class="btn" onclick="closeModal('addExpModal')">キャンセル</button>
@@ -702,36 +705,40 @@ function renderDash(year,propSel){
     <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${yen(v)}</div></div>`).join('')}
   </div>`;
 
-  html+=`<div class="card"><div class="sec-title">月次収支一覧 — ${year}年${propSel!=='all'?' / '+(properties.find(p=>p.id===propSel)?.name||''):' / 全物件'}</div>
+  html+=`<div class="card"><div class="sec-title">月次CF推移 — ${year}年${propSel!=='all'?' / '+(properties.find(p=>p.id===propSel)?.name||''):' / 全物件'}</div>
   <div class="scroll-x"><table class="mtbl">
-    <thead><tr><th class="l">月</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">家賃</th><th class="r">物件ローン</th><th class="r">共通経費</th><th class="r">運転資金</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
-    <tbody>${mdata.map(row=>{
-      const rate=row.R>0?(row.profit/row.R)*100:null,has=row.R>0||row.E>0;
-      return `<tr class="${has?'':'no-data'}">
-        <td class="l">${row.m}月</td>
-        <td class="r">${yenS(row.R)}</td>
-        <td class="r ${row.E>0?'c-red':''}">${yenS(row.E)}</td>
-        <td class="r ${row.rent>0?'c-pur':''}">${yenS(row.rent)}</td>
-        <td class="r ${row.propLoans>0?'c-org':''}">${yenS(row.propLoans)}</td>
-        <td class="r ${row.C>0?'c-pur':''}">${yenS(row.C)}</td>
-        <td class="r ${row.GL>0?'c-org':''}">${yenS(row.GL)}</td>
-        <td class="r fw7" style="color:${pc(row.profit)}">${has?yen(row.profit):'—'}</td>
-        <td class="r" style="color:${rate!==null?pc(rate):'#ccc'}">${rate!==null?rate.toFixed(1)+'%':'—'}</td>
-        <td class="r">${row.occ>0?row.occ.toFixed(0)+'%':'—'}</td>
-      </tr>`;
-    }).join('')}</tbody>
-    <tfoot><tr>
-      <td class="l">年間合計</td>
-      <td class="r">${yen(tot.R)}</td>
-      <td class="r c-red">${yen(tot.E)}</td>
-      <td class="r c-pur">${yen(tot.rent)}</td>
-      <td class="r c-org">${yen(tot.propLoans)}</td>
-      <td class="r c-pur">${yen(tot.C)}</td>
-      <td class="r c-org">${yen(tot.GL)}</td>
-      <td class="r fw7" style="color:${pc(tot.profit)}">${yen(tot.profit)}</td>
-      <td class="r">${tot.R>0?((tot.profit/tot.R)*100).toFixed(1)+'%':'—'}</td>
-      <td class="r">—</td>
-    </tr></tfoot>
+    <thead><tr>
+      <th class="l" style="min-width:90px">項目</th>
+      ${MONTHS.map(m=>`<th class="r">${m}月</th>`).join('')}
+      <th class="r">年間</th>
+    </tr></thead>
+    <tbody>
+      ${[
+        {label:'売上',       vals:mdata.map(r=>r.R),         cls:'c-grn',bold:true},
+        {label:'物件経費',   vals:mdata.map(r=>r.E),         cls:'c-red'},
+        {label:'家賃支払',   vals:mdata.map(r=>r.rent),      cls:'c-pur', hide:mdata.every(r=>r.rent===0)},
+        {label:'物件ローン', vals:mdata.map(r=>r.propLoans), cls:'c-org'},
+        {label:'共通経費',   vals:mdata.map(r=>r.C),         cls:'c-pur'},
+        {label:'運転資金',   vals:mdata.map(r=>r.GL),        cls:'c-org', hide:mdata.every(r=>r.GL===0)},
+        {label:'純利益',     vals:mdata.map(r=>r.profit),    cls:'',bold:true,isPL:true},
+        {label:'稼働率',     vals:mdata.map(r=>r.occ),       cls:'',isOcc:true},
+      ].filter(r=>!r.hide).map(row=>{
+        const tot=row.isOcc
+          ? (airbnbRows.filter(r=>r.year===year&&(propSel==='all'||r.propertyId===propSel)).reduce((s,r)=>s+(r.nights||0),0)/365*100)
+          : row.vals.reduce((s,v)=>s+v,0);
+        return `<tr>
+          <td class="l" style="${row.bold?'font-weight:700':'color:#666'}">${row.label}</td>
+          ${row.vals.map((v,i)=>{
+            const has=mdata[i].R>0||mdata[i].E>0;
+            if(row.isOcc)return `<td class="r" style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
+            return `<td class="r ${row.isPL?(v>0?'c-grn':v<0?'c-red':''):row.cls}" style="${row.bold?'font-weight:700':''}">${has||row.isPL?(v!==0?yenS(v):'—'):'—'}</td>`;
+          }).join('')}
+          <td class="r fw7 ${row.isPL?(tot>0?'c-grn':tot<0?'c-red':''):row.cls}">
+            ${row.isOcc?tot.toFixed(0)+'%':tot!==0?yen(tot):'—'}
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
   </table></div></div>`;
 
   if(propSel==='all'){
@@ -760,62 +767,205 @@ function renderDash(year,propSel){
 }
 
 // ─── 物件別 ───
+// 各物件ごとにサブタブ（概要 / CF推移 / 明細）を持つ
+// サブタブ状態はpropSubTab[propId]で管理
+const propSubTab={};
+
+function setPropSubTab(propId,tab){
+  propSubTab[propId]=tab;
+  render();
+}
+
 function renderProps(year){
+  const propSel=document.getElementById('selProp').value||'all';
+  const targets=propSel==='all'?properties:properties.filter(p=>p.id===propSel);
   let html='';
-  properties.forEach(p=>{
+
+  targets.forEach(p=>{
+    const subTab=propSubTab[p.id]||'overview';
     const mdata=mProp(p,year);
     const totR=mdata.reduce((s,r)=>s+r.R,0),totE=mdata.reduce((s,r)=>s+r.E,0);
     const totRent=mdata.reduce((s,r)=>s+r.rent,0),totL=mdata.reduce((s,r)=>s+r.loans,0);
     const totPF=totR-totE-totRent-totL,totN=mdata.reduce((s,r)=>s+r.nights,0);
-    const aliases=(p.aliases||[]).map(a=>`<span style="font-size:11px;padding:1px 6px;background:#f0eeea;border-radius:4px;color:#999;border:1px solid #e4e2dd">${a}</span>`).join('');
-    const loanSummary=(p.loans||[]).map(l=>`<span style="font-size:11px;color:#b45309">${l.name}: ${yen(calcML(l.principal,l.rate,l.years))}/月</span>`).join(' / ');
+    const kws=[...(p.keywords||[]),...(p.aliases||[])];
 
     html+=`<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <!-- 物件ヘッダー -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
             <span style="font-size:17px;font-weight:700">${p.name}</span>
             <span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span>
           </div>
-          <div style="font-size:12px;color:#aaa">自己資金 ${yen(p.selfFunding||0)} / 運営開始: ${p.startDate||'—'}</div>
-          ${loanSummary?`<div style="font-size:12px;margin-top:3px">${loanSummary}</div>`:''}
-          ${p.type==='sublease'?`<div style="font-size:12px;color:#7c3aed;margin-top:3px">家賃: ${yen(getRent(p,year,1))}/月〜</div>`:''}
-          ${aliases?`<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:11px;color:#ccc">キーワード:</span>${aliases}</div>`:''}
+          <div style="font-size:12px;color:#aaa">運営開始: ${p.startDate||'—'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          <div style="text-align:right"><div style="font-size:19px;font-weight:700;color:${pc(totPF)}">${yen(totPF)}</div><div style="font-size:11px;color:#aaa">${year}年純利益</div></div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="btn sm" onclick="openAliasModal('${p.id}')">キーワード管理</button>
-            ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
-            <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン</button>
-          </div>
+        <div style="text-align:right">
+          <div style="font-size:19px;font-weight:700;color:${pc(totPF)}">${yen(totPF)}</div>
+          <div style="font-size:11px;color:#aaa">${year}年純利益</div>
         </div>
       </div>
-      <div class="scroll-x"><table class="mtbl">
-        <thead><tr><th class="l">月</th><th class="r">泊数</th><th class="r">売上</th><th class="r">物件経費</th>${p.type==='sublease'?'<th class="r">家賃</th>':''}<th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
-        <tbody>${mdata.map(row=>{
-          const rate=row.R>0?(row.profit/row.R)*100:null,has=row.R>0||row.E>0;
-          return `<tr class="${has?'':'no-data'}">
-            <td class="l">${row.m}月</td><td class="r">${row.nights||'—'}</td><td class="r">${yenS(row.R)}</td>
-            <td class="r ${row.E>0?'c-red':''}">${yenS(row.E)}</td>
-            ${p.type==='sublease'?`<td class="r ${row.rent>0?'c-pur':''}">${yenS(row.rent)}</td>`:''}
-            <td class="r ${row.loans>0?'c-org':''}">${yenS(row.loans)}</td>
-            <td class="r fw7" style="color:${pc(row.profit)}">${yen(row.profit)}</td>
-            <td class="r" style="color:${rate!==null?pc(rate):'#ccc'}">${rate!==null?rate.toFixed(1)+'%':'—'}</td>
-            <td class="r">${row.occ>0?row.occ.toFixed(0)+'%':'—'}</td>
-          </tr>`;
-        }).join('')}</tbody>
-        <tfoot><tr>
-          <td class="l">年間合計</td><td class="r">${totN}泊</td><td class="r">${yen(totR)}</td>
-          <td class="r c-red">${yen(totE)}</td>
-          ${p.type==='sublease'?`<td class="r c-pur">${yen(totRent)}</td>`:''}
-          <td class="r c-org">${yen(totL)}</td>
-          <td class="r fw7" style="color:${pc(totPF)}">${yen(totPF)}</td>
-          <td class="r">${totR>0?((totPF/totR)*100).toFixed(1)+'%':'—'}</td><td class="r">—</td>
-        </tr></tfoot>
-      </table></div>
-    </div>`;
+
+      <!-- サブタブ -->
+      <div style="display:flex;gap:2px;border-bottom:1px solid #eee;margin-bottom:14px">
+        ${[['overview','概要'],['cf','CF推移'],['detail','明細']].map(([t,l])=>`
+        <button onclick="setPropSubTab('${p.id}','${t}')" style="padding:6px 14px;font-size:12px;font-weight:600;border:none;background:transparent;color:${subTab===t?'#111':'#aaa'};border-bottom:${subTab===t?'2px solid #111':'2px solid transparent'};cursor:pointer;font-family:inherit">${l}</button>`).join('')}
+        <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
+          <button class="btn sm" onclick="openAliasModal('${p.id}')">キーワード</button>
+          ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
+          <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ローン</button>
+        </div>
+      </div>`;
+
+    // ── 概要タブ ──
+    if(subTab==='overview'){
+      const initExps=expenses.filter(e=>e.propertyId===p.id&&e.isInitial);
+      const initTotal=initExps.reduce((s,e)=>s+e.amount,0);
+      const loanTotal=(p.loans||[]).reduce((s,l)=>s+l.principal,0);
+      const allProfit=Object.keys({}).length===0
+        ? [2023,2024,2025,2026].reduce((s,y)=>{
+            const md=mProp(p,y);
+            return s+md.reduce((ss,r)=>ss+r.profit,0);
+          },0)
+        : 0;
+      // 全期間累計
+      const allYearsList=[...new Set([...airbnbRows.filter(r=>r.propertyId===p.id).map(r=>r.year),...expenses.filter(e=>e.propertyId===p.id).map(e=>e.year)])].sort();
+      const lifetimePF=allYearsList.reduce((s,y)=>s+mProp(p,y).reduce((ss,r)=>ss+r.profit,0),0);
+
+      html+=`
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+          <div>
+            <div class="sec-title">基本情報</div>
+            <table style="width:100%;font-size:13px;border-collapse:collapse">
+              ${[
+                ['物件タイプ', p.type==='sublease'?'転貸（サブリース）':'購入'],
+                ['運営開始', p.startDate||'—'],
+                ['ローン総額', loanTotal>0?yen(loanTotal):'なし'],
+                ['月返済合計', (p.loans||[]).length>0?yen((p.loans||[]).reduce((s,l)=>s+calcML(l.principal,l.rate,l.years),0))+'/月':'なし'],
+                [p.type==='sublease'?'現在の家賃':'—', p.type==='sublease'?yen(getRent(p,year,1))+'/月':'—'],
+              ].filter(([l])=>l!=='—').map(([l,v])=>`<tr><td style="padding:5px 0;color:#888;width:40%">${l}</td><td style="padding:5px 0;font-weight:600">${v}</td></tr>`).join('')}
+            </table>
+          </div>
+          <div>
+            <div class="sec-title">収益サマリー</div>
+            <table style="width:100%;font-size:13px;border-collapse:collapse">
+              ${[
+                [`${year}年 売上`, yen(totR)],
+                [`${year}年 純利益`, yen(totPF)],
+                ['取得来 累計純利益', yen(lifetimePF)],
+                ['稼働率（年間）', ((totN/365)*100).toFixed(1)+'%'],
+              ].map(([l,v],i)=>`<tr><td style="padding:5px 0;color:#888;width:40%">${l}</td><td style="padding:5px 0;font-weight:600;color:${i===1?pc(totPF):i===2?pc(lifetimePF):'#111'}">${v}</td></tr>`).join('')}
+            </table>
+          </div>
+        </div>
+
+        <div class="sec-title">初期費用 <span style="font-weight:400;color:#aaa;font-size:10px">（経費明細で「初期費用」にチェックしたもの）</span></div>
+        ${initExps.length===0
+          ? `<div style="font-size:13px;color:#ccc;padding:10px 0">初期費用の登録がありません。経費追加時に「初期費用として扱う」にチェックを入れてください。</div>`
+          : `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px">
+              <thead><tr>
+                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">年月</th>
+                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">カテゴリ</th>
+                <th style="text-align:right;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">金額</th>
+                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">備考</th>
+                <th style="padding:5px 8px;border-bottom:2px solid #eee"></th>
+              </tr></thead>
+              <tbody>
+                ${initExps.map(e=>`<tr>
+                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb">${e.year}/${e.month}</td>
+                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb"><span class="bdg">${e.category}</span></td>
+                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb;text-align:right;color:#b71c1c;font-weight:700">${yen(e.amount)}</td>
+                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb;color:#aaa;font-size:12px">${e.note||''}</td>
+                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb">
+                    <button class="btn sm" style="font-size:10px;color:#888" onclick="toggleInitial('${e.id}')">解除</button>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+              <tfoot><tr>
+                <td colspan="2" style="padding:7px 8px;font-weight:700;border-top:2px solid #ddd;background:#f8f7f3">合計</td>
+                <td style="padding:7px 8px;text-align:right;font-weight:700;color:#b71c1c;border-top:2px solid #ddd;background:#f8f7f3">${yen(initTotal)}</td>
+                <td colspan="2" style="border-top:2px solid #ddd;background:#f8f7f3"></td>
+              </tr></tfoot>
+            </table>`
+        }
+
+        ${kws.length>0?`<div style="margin-top:12px"><span style="font-size:11px;color:#ccc">マッチングキーワード: </span>${kws.map(k=>`<span style="font-size:11px;padding:1px 7px;background:#f0eeea;border-radius:4px;color:#888;margin-right:4px">${k}</span>`).join('')}</div>`:''}
+      `;
+    }
+
+    // ── CF推移タブ（縦=項目、横=月） ──
+    if(subTab==='cf'){
+      const hasSublease=p.type==='sublease';
+      const rows=[
+        {label:'売上',          vals:mdata.map(m=>m.R),    cls:'c-grn', bold:true},
+        {label:'物件経費',      vals:mdata.map(m=>m.E),    cls:'c-red'},
+        ...(hasSublease?[{label:'家賃',vals:mdata.map(m=>m.rent),cls:'c-pur'}]:[]),
+        {label:'ローン返済',    vals:mdata.map(m=>m.loans), cls:'c-org'},
+        {label:'純利益',        vals:mdata.map(m=>m.profit),cls:'',bold:true,isPL:true},
+        {label:'稼働率',        vals:mdata.map(m=>m.occ),  cls:'',isOcc:true},
+        {label:'泊数',          vals:mdata.map(m=>m.nights),cls:'',isNights:true},
+      ];
+      html+=`<div class="scroll-x"><table class="mtbl">
+        <thead><tr>
+          <th class="l" style="min-width:80px">項目</th>
+          ${MONTHS.map(m=>`<th class="r">${m}月</th>`).join('')}
+          <th class="r">年間</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map(row=>{
+            const tot=row.isOcc
+              ? (mdata.reduce((s,m)=>s+m.nights,0)/365*100)
+              : row.isNights
+              ? mdata.reduce((s,m)=>s+m.nights,0)
+              : row.vals.reduce((s,v)=>s+v,0);
+            return `<tr>
+              <td class="l" style="${row.bold?'font-weight:700':'color:#666'}">${row.label}</td>
+              ${row.vals.map((v,i)=>{
+                const has=mdata[i].R>0||mdata[i].E>0;
+                if(row.isOcc) return `<td class="r" style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
+                if(row.isNights) return `<td class="r" style="color:#666">${v>0?v:'—'}</td>`;
+                return `<td class="r ${row.isPL?(v>0?'c-grn':v<0?'c-red':''):row.cls}" style="${row.bold?'font-weight:700':''}">${has||row.isPL?(v!==0?yenS(v):'—'):'—'}</td>`;
+              }).join('')}
+              <td class="r fw7 ${row.isPL?(tot>0?'c-grn':tot<0?'c-red':''):row.cls}">
+                ${row.isOcc?tot.toFixed(0)+'%':row.isNights?tot:tot!==0?yen(tot):'—'}
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table></div>`;
+    }
+
+    // ── 明細タブ ──
+    if(subTab==='detail'){
+      const propExps=expenses.filter(e=>e.propertyId===p.id&&e.year===year).sort((a,b)=>a.month-b.month);
+      html+=`
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn sm" onclick="openModal('addExpModal')">＋ 経費追加</button>
+        </div>
+        <div class="scroll-x"><table class="tbl">
+          <thead><tr>
+            <th>月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期費用</th><th></th>
+          </tr></thead>
+          <tbody>
+            ${propExps.length===0
+              ? `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">経費データがありません</td></tr>`
+              : propExps.map(e=>`<tr>
+                  <td>${e.month}月</td>
+                  <td><span class="bdg">${e.category}</span></td>
+                  <td style="text-align:right;color:#b71c1c;font-weight:700">${yen(e.amount)}</td>
+                  <td style="color:#aaa;font-size:12px">${e.note||''}</td>
+                  <td style="text-align:center">
+                    <input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める">
+                  </td>
+                  <td><button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
+                </tr>`).join('')
+            }
+          </tbody>
+        </table></div>`;
+    }
+
+    html+=`</div>`;
   });
+
   document.getElementById('tab-props').innerHTML=html||'<div class="card" style="color:#aaa;text-align:center;padding:40px">物件がありません。「＋ 物件追加」から追加してください。</div>';
 }
 
@@ -1026,7 +1176,7 @@ function addProp(){
   const name=document.getElementById('np-name').value.trim();
   if(!name)return;
   const type=document.getElementById('np-type').value;
-  const prop={id:uid(),name,type,aliases:[],loans:[],rentHistory:[],selfFunding:+document.getElementById('np-self').value||0,startDate:document.getElementById('np-start').value||''};
+  const prop={id:uid(),name,type,aliases:[],keywords:[],loans:[],rentHistory:[],startDate:document.getElementById('np-start').value||''};
   if(type==='sublease'){
     const rentAmt=+document.getElementById('np-rent').value||0;
     const rentFrom=document.getElementById('np-rent-from').value;
@@ -1034,16 +1184,21 @@ function addProp(){
   }
   properties.push(prop);
   saveData();buildSelectors();render();closeModal('addPropModal');
-  ['np-name','np-self','np-rent'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('np-start').value='';document.getElementById('np-rent-from').value='';
+  document.getElementById('np-name').value='';
+  document.getElementById('np-start').value='';
+  document.getElementById('np-rent').value='';
+  document.getElementById('np-rent-from').value='';
 }
 
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;
   if(!pid||!amount)return;
-  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value});
+  const isInitial=document.getElementById('ae-initial').checked;
+  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value,isInitial});
   saveData();render();closeModal('addExpModal');
-  document.getElementById('ae-amount').value='';document.getElementById('ae-note').value='';
+  document.getElementById('ae-amount').value='';
+  document.getElementById('ae-note').value='';
+  document.getElementById('ae-initial').checked=false;
 }
 function addCom(){
   const amount=+document.getElementById('ac-amount').value;
@@ -1053,6 +1208,12 @@ function addCom(){
   document.getElementById('ac-amount').value='';document.getElementById('ac-note').value='';
 }
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();render();}
+function toggleInitial(id){
+  const e=expenses.find(x=>x.id===id);
+  if(!e)return;
+  e.isInitial=!e.isInitial;
+  saveData();render();
+}
 
 // キーワード管理（旧名称と統合）
 function openAliasModal(propId){
