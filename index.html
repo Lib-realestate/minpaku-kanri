@@ -11,91 +11,72 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',sans-serif;font-size:14px;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
-/* ─── 認証画面 ─── */
 #authScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f4f0}
 .auth-box{background:#fff;border-radius:16px;padding:48px 40px;text-align:center;max-width:360px;width:100%;border:1px solid #e4e2dd;box-shadow:0 4px 24px rgba(0,0,0,.06)}
 .auth-box h1{font-size:22px;font-weight:700;margin-bottom:8px}
 .auth-box p{font-size:13px;color:#888;margin-bottom:32px;line-height:1.7}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .google-btn:hover{background:#333}
-/* ─── アプリ画面 ─── */
 #appScreen{display:none}
 .topbar{background:#111;color:#f5f4f0;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
-.topbar-left{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;letter-spacing:-.02em}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.sync-status{font-size:11px;color:#888}
+.topbar-left{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.sync-status{font-size:11px;color:#666}
 .nav{display:flex;gap:2px;padding:12px 16px 0;background:#f5f4f0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .nb{padding:8px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:#666;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;font-family:inherit}
 .nb.active{background:#111;color:#fff}
-.content{padding:16px 16px 60px;max-width:1020px;margin:0 auto}
-/* ─── 共通UI ─── */
+.content{padding:16px 16px 80px;max-width:1020px;margin:0 auto}
 .card{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:14px;border:1px solid #e4e2dd}
 .sec-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px}
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
 .metric{background:#f8f7f3;border-radius:8px;padding:12px 14px;border:1px solid #e4e2dd}
 .metric-label{font-size:11px;color:#888;font-weight:600;margin-bottom:4px;letter-spacing:.04em}
 .metric-val{font-size:20px;font-weight:700;letter-spacing:-.02em}
-/* ─── 月次テーブル ─── */
 .mtbl{width:100%;border-collapse:collapse;font-size:12px}
 .mtbl th{padding:6px 8px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;font-size:11px;white-space:nowrap}
-.mtbl th.l{text-align:left}
-.mtbl th.r{text-align:right}
+.mtbl th.l{text-align:left}.mtbl th.r{text-align:right}
 .mtbl td{padding:7px 8px;border-bottom:1px solid #f2f0eb;white-space:nowrap}
-.mtbl td.l{text-align:left;font-weight:600}
-.mtbl td.r{text-align:right}
+.mtbl td.l{text-align:left;font-weight:600}.mtbl td.r{text-align:right}
 .mtbl tfoot td{padding:8px;border-top:2px solid #ddd;font-weight:700;background:#f8f7f3}
 .mtbl tr.no-data{opacity:.3}
-/* ─── 汎用テーブル ─── */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{text-align:left;padding:7px 10px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;font-size:11px}
 .tbl td{padding:9px 10px;border-bottom:1px solid #f2f0eb;vertical-align:middle}
-/* ─── ボタン ─── */
 .btn{padding:8px 14px;font-size:13px;font-weight:500;border:1px solid #ddd;background:#fff;color:#333;border-radius:7px;cursor:pointer;font-family:inherit}
 .btn:hover{background:#f5f5f5}
 .btn.primary{border:none;background:#111;color:#fff}
 .btn.primary:hover{background:#333}
 .btn.sm{padding:4px 10px;font-size:11px}
 .btn.danger{color:#b71c1c;border-color:#f0c0c0}
-select,input[type=number],input[type=text],input[type=date]{border:.5px solid #d0d0c8;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff;width:100%}
-/* ─── バッジ ─── */
+select,input[type=number],input[type=text],input[type=date],input[type=month]{border:.5px solid #d0d0c8;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff;width:100%}
 .bdg{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700}
 .bdg.b{background:#e8f0fe;color:#1a56db}
 .bdg.g{background:#e6f4ea;color:#2e7d32}
 .bdg.y{background:#fff8e1;color:#b45309}
-/* ─── プログレスバー ─── */
+.bdg.p{background:#f3e8ff;color:#7c3aed}
 .pbar{height:8px;background:#eee;border-radius:4px;overflow:hidden}
 .pbar-fill{height:100%;border-radius:4px;transition:width .5s}
-/* ─── モーダル ─── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal.open{display:flex}
-.modal-box{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto}
+.modal-box{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto}
 .modal-box h3{font-size:16px;font-weight:700;margin-bottom:14px}
 .form-label{font-size:11px;color:#666;font-weight:700;display:block;margin-bottom:3px;letter-spacing:.03em}
 .form-row{margin-bottom:10px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-/* ─── ドロップゾーン ─── */
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .dropzone{border:2px dashed #ccc;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;background:#fafaf8;transition:all .15s}
 .dropzone.drag{border-color:#111;background:#f0efea}
-.dropzone-icon{font-size:32px;margin-bottom:8px}
-.dropzone-text{font-size:14px;font-weight:700;margin-bottom:4px}
-.dropzone-sub{font-size:11px;color:#aaa}
-/* ─── 色 ─── */
-.c-red{color:#b71c1c}
-.c-org{color:#b45309}
-.c-grn{color:#1a7a3c}
-.c-pur{color:#6d28d9}
-.c-gry{color:#aaa}
-.fw7{font-weight:700}
-/* ─── スクロール ─── */
-.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
-/* ─── 警告バナー ─── */
-.warn-banner{padding:10px 14px;background:#fff8e1;border-radius:8px;font-size:13px;margin-top:14px}
 .info-banner{padding:12px 14px;background:#e8f0fe;border-radius:8px;font-size:12px;color:#1a56db;line-height:1.7;margin-bottom:14px}
+.warn-banner{padding:10px 14px;background:#fff8e1;border-radius:8px;font-size:13px;margin-top:14px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.c-red{color:#b71c1c}.c-org{color:#b45309}.c-grn{color:#1a7a3c}.c-pur{color:#6d28d9}.c-gry{color:#aaa}.fw7{font-weight:700}
+.type-badge-purchase{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db}
+.type-badge-sublease{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#f3e8ff;color:#7c3aed}
+.section-divider{border:none;border-top:1px solid #f0eeea;margin:16px 0}
 </style>
 </head>
 <body>
 
-<!-- 認証画面 -->
 <div id="authScreen">
   <div class="auth-box">
     <div style="font-size:40px;margin-bottom:12px">🏠</div>
@@ -108,14 +89,13 @@ select,input[type=number],input[type=text],input[type=date]{border:.5px solid #d
   </div>
 </div>
 
-<!-- アプリ画面 -->
 <div id="appScreen">
   <div class="topbar">
     <div class="topbar-left">🏠 宿泊収支管理</div>
     <div class="topbar-right">
       <span class="sync-status" id="syncStatus"></span>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="manualSync()">↻ 更新</button>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('csvModal')">▲ CSV取込</button>
+      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="manualSync()">↻</button>
+      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('csvModal')">▲ CSV</button>
       <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('cfgModal')">設定</button>
     </div>
   </div>
@@ -124,187 +104,212 @@ select,input[type=number],input[type=text],input[type=date]{border:.5px solid #d
     <button class="nb" onclick="showTab('props')">物件別</button>
     <button class="nb" onclick="showTab('csv')">取込データ</button>
     <button class="nb" onclick="showTab('exp')">経費</button>
-    <button class="nb" onclick="showTab('loan')">融資・回収率</button>
+    <button class="nb" onclick="showTab('loans')">借入管理</button>
   </nav>
   <div class="content">
-    <!-- フィルター -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
       <select id="selYear" style="width:auto" onchange="render()"></select>
-      <select id="selProp" style="width:auto" onchange="render()">
-        <option value="all">全物件</option>
-      </select>
+      <select id="selProp" style="width:auto" onchange="render()"><option value="all">全物件</option></select>
       <button class="btn sm" onclick="openModal('addExpModal')">＋ 物件経費</button>
       <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
       <button class="btn sm primary" onclick="openModal('addPropModal')">＋ 物件追加</button>
     </div>
-    <!-- タブコンテンツ -->
     <div id="tab-dash"></div>
-    <div id="tab-props" style="display:none"></div>
-    <div id="tab-csv"  style="display:none"></div>
-    <div id="tab-exp"  style="display:none"></div>
-    <div id="tab-loan" style="display:none"></div>
+    <div id="tab-props"  style="display:none"></div>
+    <div id="tab-csv"   style="display:none"></div>
+    <div id="tab-exp"   style="display:none"></div>
+    <div id="tab-loans" style="display:none"></div>
   </div>
 </div>
 
-<!-- CSV取込モーダル -->
-<div class="modal" id="csvModal">
-  <div class="modal-box">
-    <h3>Airbnb CSV 取込</h3>
-    <p style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">
-      Airbnb ホスト管理 →「取引履歴」→「CSVでダウンロード」で取得したファイルを読み込みます。<br>
-      <b>確認コード</b>を一意キーとして重複を自動排除します。取込後CSVはドライブに自動保存されます。
-    </p>
-    <div class="form-row">
-      <label class="form-label">物件を事前指定（空欄=掲載名から自動判定）</label>
-      <select id="csvPropSel"><option value="">自動判定</option></select>
-    </div>
-    <div class="dropzone" id="dropzone" onclick="document.getElementById('csvFile').click()"
-      ondragover="event.preventDefault();this.classList.add('drag')"
-      ondragleave="this.classList.remove('drag')"
-      ondrop="onCsvDrop(event)">
-      <input type="file" id="csvFile" accept=".csv" multiple style="display:none" onchange="onCsvChange(event)">
-      <div class="dropzone-icon">📊</div>
-      <div class="dropzone-text" id="dropText">CSVをドロップ / クリックして選択</div>
-      <div class="dropzone-sub">複数ファイル可 · 重複は自動スキップ · 日英両対応</div>
-    </div>
-    <div id="csvResult" style="margin-top:14px"></div>
-    <button class="btn" style="margin-top:12px;width:100%" onclick="closeModal('csvModal')">閉じる</button>
+<!-- CSV取込 -->
+<div class="modal" id="csvModal"><div class="modal-box">
+  <h3>Airbnb CSV 取込</h3>
+  <p style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">確認コードで重複を自動排除。取込後CSVはドライブに自動保存されます。</p>
+  <div class="form-row"><label class="form-label">物件を事前指定（空欄=掲載名から自動判定）</label>
+    <select id="csvPropSel"><option value="">自動判定</option></select></div>
+  <div class="dropzone" id="dropzone" onclick="document.getElementById('csvFile').click()"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')" ondrop="onCsvDrop(event)">
+    <input type="file" id="csvFile" accept=".csv" multiple style="display:none" onchange="onCsvChange(event)">
+    <div style="font-size:32px;margin-bottom:8px">📊</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px" id="dropText">CSVをドロップ / クリックして選択</div>
+    <div style="font-size:11px;color:#aaa">複数ファイル可 · 重複は自動スキップ</div>
   </div>
-</div>
+  <div id="csvResult" style="margin-top:14px"></div>
+  <button class="btn" style="margin-top:12px;width:100%" onclick="closeModal('csvModal')">閉じる</button>
+</div></div>
 
-<!-- 物件追加モーダル -->
-<div class="modal" id="addPropModal">
-  <div class="modal-box">
-    <h3>物件を追加</h3>
-    <div class="form-row"><label class="form-label">物件名（現在の掲載名）</label><input type="text" id="np-name" placeholder="押上戸建"></div>
+<!-- 物件追加 -->
+<div class="modal" id="addPropModal"><div class="modal-box">
+  <h3>物件を追加</h3>
+  <div class="form-row"><label class="form-label">物件名</label><input type="text" id="np-name" placeholder="押上戸建"></div>
+  <div class="form-row"><label class="form-label">物件タイプ</label>
+    <select id="np-type" onchange="toggleSubleaseFields()">
+      <option value="purchase">購入</option>
+      <option value="sublease">転貸（サブリース）</option>
+    </select></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">自己資金（円）</label><input type="number" id="np-self" placeholder="2000000"></div>
+    <div class="form-row"><label class="form-label">運営開始日</label><input type="date" id="np-start"></div>
+  </div>
+  <!-- 転貸の場合：初期家賃 -->
+  <div id="sublease-fields" style="display:none">
+    <hr class="section-divider">
+    <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:10px">転貸設定</div>
     <div class="form-grid">
-      <div class="form-row"><label class="form-label">購入価格（円）</label><input type="number" id="np-price" placeholder="8000000"></div>
-      <div class="form-row"><label class="form-label">自己資金（円）</label><input type="number" id="np-self" placeholder="2000000"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">融資額（円）</label><input type="number" id="np-loan" placeholder="6000000"></div>
-      <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="np-rate" value="1.8" step="0.1"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="np-years" value="20"></div>
-      <div class="form-row"><label class="form-label">運営開始日</label><input type="date" id="np-start"></div>
-    </div>
-    <p style="font-size:11px;color:#aaa;margin-bottom:14px">※ 旧名称は追加後に「旧名称を管理」から設定できます</p>
-    <div style="display:flex;gap:8px">
-      <button class="btn primary" onclick="addProp()">追加</button>
-      <button class="btn" onclick="closeModal('addPropModal')">キャンセル</button>
+      <div class="form-row"><label class="form-label">初期家賃（円/月）</label><input type="number" id="np-rent" placeholder="150000"></div>
+      <div class="form-row"><label class="form-label">開始年月</label><input type="month" id="np-rent-from"></div>
     </div>
   </div>
-</div>
+  <p style="font-size:11px;color:#aaa;margin-bottom:14px">※ ローンは追加後に「借入管理」タブから登録できます</p>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="addProp()">追加</button>
+    <button class="btn" onclick="closeModal('addPropModal')">キャンセル</button>
+  </div>
+</div></div>
 
-<!-- 旧名称管理モーダル -->
-<div class="modal" id="aliasModal">
-  <div class="modal-box">
-    <h3>旧名称を管理</h3>
-    <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="aliasDesc"></p>
-    <div id="aliasList" style="margin-bottom:14px"></div>
-    <div class="info-banner">
-      CSV「掲載名」列に現在名か旧名称の<b>どちらかが部分一致</b>すれば自動割当されます。
-    </div>
-    <label class="form-label">旧名称を追加（Airbnb掲載名と一致する文字列）</label>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <input type="text" id="newAlias" placeholder="例: 東京・押上の一棟貸し" style="flex:1">
-      <button class="btn primary" onclick="addAlias()">追加</button>
-    </div>
-    <button class="btn primary" style="width:100%" onclick="closeModal('aliasModal')">完了</button>
+<!-- 旧名称管理 -->
+<div class="modal" id="aliasModal"><div class="modal-box">
+  <h3>旧名称を管理</h3>
+  <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="aliasDesc"></p>
+  <div id="aliasList" style="margin-bottom:14px"></div>
+  <div class="info-banner">CSV「掲載名」列に現在名か旧名称の<b>どちらかが部分一致</b>すれば自動割当されます。</div>
+  <label class="form-label">旧名称を追加</label>
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <input type="text" id="newAlias" placeholder="例: 東京・押上の一棟貸し" style="flex:1">
+    <button class="btn primary" onclick="addAlias()">追加</button>
   </div>
-</div>
+  <button class="btn primary" style="width:100%" onclick="closeModal('aliasModal')">完了</button>
+</div></div>
 
-<!-- 物件経費追加モーダル -->
-<div class="modal" id="addExpModal">
-  <div class="modal-box">
-    <h3>物件経費を追加</h3>
-    <div class="form-row"><label class="form-label">物件</label>
-      <select id="ae-prop"><option value="">選択してください</option></select></div>
+<!-- 家賃履歴管理 -->
+<div class="modal" id="rentModal"><div class="modal-box">
+  <h3>家賃履歴を管理</h3>
+  <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="rentModalDesc"></p>
+  <div id="rentHistoryList" style="margin-bottom:16px"></div>
+  <div style="padding:14px;background:#f8f7f3;border-radius:8px;margin-bottom:14px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:10px">新しい家賃を追加</div>
     <div class="form-grid">
-      <div class="form-row"><label class="form-label">年</label><input type="number" id="ae-year" value="2024"></div>
-      <div class="form-row"><label class="form-label">月</label><input type="number" id="ae-month" value="1" min="1" max="12"></div>
+      <div class="form-row"><label class="form-label">開始年月</label><input type="month" id="rent-from"></div>
+      <div class="form-row"><label class="form-label">終了年月（空欄=永続）</label><input type="month" id="rent-to"></div>
     </div>
-    <div class="form-row"><label class="form-label">カテゴリ</label>
-      <select id="ae-cat">
-        <option>清掃費</option><option>水道光熱費</option><option>修繕費</option>
-        <option>消耗品費</option><option>プラットフォーム手数料</option><option>管理費</option><option>その他経費</option>
-      </select></div>
-    <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
-    <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note" placeholder="清掃委託など"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn primary" onclick="addExp()">追加</button>
-      <button class="btn" onclick="closeModal('addExpModal')">キャンセル</button>
-    </div>
+    <div class="form-row"><label class="form-label">月額家賃（円）</label><input type="number" id="rent-amount" placeholder="150000"></div>
+    <button class="btn primary" onclick="addRentHistory()">追加</button>
   </div>
-</div>
+  <div class="info-banner">終了年月を空欄にすると、開始年月以降は永続的にその金額が適用されます。</div>
+  <button class="btn primary" style="width:100%" onclick="closeModal('rentModal')">完了</button>
+</div></div>
 
-<!-- 共通経費追加モーダル -->
-<div class="modal" id="addComModal">
-  <div class="modal-box">
-    <h3>共通経費を追加</h3>
-    <div class="form-grid">
-      <div class="form-row"><label class="form-label">年</label><input type="number" id="ac-year" value="2024"></div>
-      <div class="form-row"><label class="form-label">月</label><input type="number" id="ac-month" value="1" min="1" max="12"></div>
-    </div>
-    <div class="form-row"><label class="form-label">カテゴリ</label>
-      <select id="ac-cat">
-        <option>税理士費用</option><option>保険料</option><option>通信費</option><option>交通費</option><option>その他共通経費</option>
-      </select></div>
-    <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ac-amount" placeholder="30000"></div>
-    <div class="form-row"><label class="form-label">備考</label><input type="text" id="ac-note" placeholder="月次顧問料など"></div>
-    <div style="display:flex;gap:8px">
-      <button class="btn primary" onclick="addCom()">追加</button>
-      <button class="btn" onclick="closeModal('addComModal')">キャンセル</button>
-    </div>
+<!-- 借入追加 -->
+<div class="modal" id="addLoanModal"><div class="modal-box">
+  <h3>借入を追加</h3>
+  <div class="form-row"><label class="form-label">借入種別</label>
+    <select id="loan-scope" onchange="toggleLoanScope()">
+      <option value="property">物件個別（特定物件に紐づく）</option>
+      <option value="overall">全体（運転資金など）</option>
+    </select></div>
+  <div class="form-row" id="loan-prop-row">
+    <label class="form-label">対象物件</label>
+    <select id="loan-prop"><option value="">選択してください</option></select>
   </div>
-</div>
+  <div class="form-row"><label class="form-label">借入名称</label><input type="text" id="loan-name" placeholder="購入ローン / リフォームローン / 運転資金など"></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">借入金額（円）</label><input type="number" id="loan-principal" placeholder="5000000"></div>
+    <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="loan-rate" value="1.8" step="0.1"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="loan-years" value="20"></div>
+    <div class="form-row"><label class="form-label">返済開始日</label><input type="date" id="loan-start"></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="addLoan()">追加</button>
+    <button class="btn" onclick="closeModal('addLoanModal')">キャンセル</button>
+  </div>
+</div></div>
 
-<!-- 設定モーダル -->
-<div class="modal" id="cfgModal">
-  <div class="modal-box">
-    <h3>設定</h3>
-    <div style="padding:12px 14px;background:#f8f7f3;border-radius:8px;margin-bottom:14px;font-size:13px">
-      <div style="font-weight:700;margin-bottom:4px">保存先</div>
-      <div style="color:#666">📁 Googleドライブ / 宿泊収支管理 / appdata.json</div>
-      <div style="color:#aaa;font-size:11px;margin-top:6px" id="lastSavedText"></div>
-    </div>
-    <div style="padding:12px 14px;background:#e8f0fe;border-radius:8px;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:700;color:#1a56db;margin-bottom:6px">旧名称で再マッチング</div>
-      <div style="font-size:12px;color:#555;margin-bottom:8px">旧名称を追加した後、過去のデータを再判定して物件を割当直します。</div>
-      <button class="btn" style="color:#1a56db;border-color:#a8c4f5;font-size:12px" onclick="rematch()">今すぐ再マッチング実行</button>
-    </div>
-    <div style="padding:12px 14px;background:#fce8e8;border-radius:8px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:#b71c1c;margin-bottom:6px">ログアウト</div>
-      <button class="btn danger" style="font-size:12px" onclick="handleSignOut()">Googleアカウントからログアウト</button>
-    </div>
-    <button class="btn primary" style="width:100%" onclick="closeModal('cfgModal')">閉じる</button>
+<!-- 物件経費追加 -->
+<div class="modal" id="addExpModal"><div class="modal-box">
+  <h3>物件経費を追加</h3>
+  <div class="form-row"><label class="form-label">物件</label>
+    <select id="ae-prop"><option value="">選択してください</option></select></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">年</label><input type="number" id="ae-year" value="2024"></div>
+    <div class="form-row"><label class="form-label">月</label><input type="number" id="ae-month" value="1" min="1" max="12"></div>
   </div>
-</div>
+  <div class="form-row"><label class="form-label">カテゴリ</label>
+    <select id="ae-cat">
+      <option>清掃費</option><option>水道光熱費</option><option>修繕費</option>
+      <option>消耗品費</option><option>プラットフォーム手数料</option><option>管理費</option><option>その他経費</option>
+    </select></div>
+  <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
+  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note" placeholder="清掃委託など"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="addExp()">追加</button>
+    <button class="btn" onclick="closeModal('addExpModal')">キャンセル</button>
+  </div>
+</div></div>
+
+<!-- 共通経費追加 -->
+<div class="modal" id="addComModal"><div class="modal-box">
+  <h3>共通経費を追加</h3>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">年</label><input type="number" id="ac-year" value="2024"></div>
+    <div class="form-row"><label class="form-label">月</label><input type="number" id="ac-month" value="1" min="1" max="12"></div>
+  </div>
+  <div class="form-row"><label class="form-label">カテゴリ</label>
+    <select id="ac-cat">
+      <option>税理士費用</option><option>保険料</option><option>通信費</option><option>交通費</option><option>その他共通経費</option>
+    </select></div>
+  <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ac-amount" placeholder="30000"></div>
+  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ac-note" placeholder="月次顧問料など"></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn primary" onclick="addCom()">追加</button>
+    <button class="btn" onclick="closeModal('addComModal')">キャンセル</button>
+  </div>
+</div></div>
+
+<!-- 設定 -->
+<div class="modal" id="cfgModal"><div class="modal-box">
+  <h3>設定</h3>
+  <div style="padding:12px 14px;background:#f8f7f3;border-radius:8px;margin-bottom:14px;font-size:13px">
+    <div style="font-weight:700;margin-bottom:4px">保存先</div>
+    <div style="color:#666">📁 Googleドライブ / appdata.json</div>
+    <div style="color:#aaa;font-size:11px;margin-top:6px" id="lastSavedText"></div>
+  </div>
+  <div style="padding:12px 14px;background:#e8f0fe;border-radius:8px;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:700;color:#1a56db;margin-bottom:6px">旧名称で再マッチング</div>
+    <button class="btn" style="color:#1a56db;border-color:#a8c4f5;font-size:12px" onclick="rematch()">今すぐ再マッチング実行</button>
+  </div>
+  <div style="padding:12px 14px;background:#fce8e8;border-radius:8px;margin-bottom:14px">
+    <div style="font-size:13px;font-weight:700;color:#b71c1c;margin-bottom:6px">ログアウト</div>
+    <button class="btn danger" style="font-size:12px" onclick="handleSignOut()">Googleアカウントからログアウト</button>
+  </div>
+  <button class="btn primary" style="width:100%" onclick="closeModal('cfgModal')">閉じる</button>
+</div></div>
 
 <script>
 // ═══ 設定 ═══
-const CLIENT_ID   = '467615685674-njvnd3fgio14jcqb4qobbif4jtiabogb.apps.googleusercontent.com';
-const API_KEY     = 'AIzaSyA0xQ__9nR829v-HDJeH0gd6fSsg_9DDHk';
-const FOLDER_ID   = '13OYTFTW75UEU9St1w4LBHQz63Y8xQxas';
-const SCOPES      = 'https://www.googleapis.com/auth/drive';
-const TOKEN_KEY   = 'mp_gtoken';
-const TOKEN_EXP   = 'mp_gtoken_exp';
-const MONTHS      = [1,2,3,4,5,6,7,8,9,10,11,12];
-const EXP_CATS    = ['清掃費','水道光熱費','修繕費','消耗品費','プラットフォーム手数料','管理費','その他経費'];
-const COM_CATS    = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
+const CLIENT_ID = '467615685674-njvnd3fgio14jcqb4qobbif4jtiabogb.apps.googleusercontent.com';
+const API_KEY   = 'AIzaSyA0xQ__9nR829v-HDJeH0gd6fSsg_9DDHk';
+const FOLDER_ID = '13OYTFTW75UEU9St1w4LBHQz63Y8xQxas';
+const SCOPES    = 'https://www.googleapis.com/auth/drive';
+const TOKEN_KEY = 'mp_gtoken', TOKEN_EXP = 'mp_gtoken_exp';
+const MONTHS    = [1,2,3,4,5,6,7,8,9,10,11,12];
+const EXP_CATS  = ['清掃費','水道光熱費','修繕費','消耗品費','プラットフォーム手数料','管理費','その他経費'];
+const COM_CATS  = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
 
 // ═══ 状態 ═══
-let properties   = [];
-let airbnbRows   = [];
-let expenses     = [];
-let commonExps   = [];
-let importLog    = [];
+// properties: [{id, name, type('purchase'|'sublease'), aliases[], selfFunding, startDate,
+//               rentHistory:[{id,from,to,amount}],   ← 転貸のみ
+//               loans:[{id,name,principal,rate,years,startDate,scope:'property'}] }]
+// globalLoans: [{id,name,principal,rate,years,startDate,scope:'overall'}]
+let properties=[], airbnbRows=[], expenses=[], commonExps=[], importLog=[], globalLoans=[];
 let tokenClient, gapiInited=false, gisInited=false, accessToken=null;
 let _fileId=null, _savePending=false, _lastSaved=null;
-let currentTab='dash', aliasTargetId=null;
+let currentTab='dash', aliasTargetId=null, rentTargetId=null;
 
-// ═══ Google API 初期化 ═══
+// ═══ Google API ═══
 function gapiLoaded(){
   gapi.load('client',async()=>{
     await gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
@@ -313,7 +318,7 @@ function gapiLoaded(){
 }
 function gisLoaded(){
   tokenClient=google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID, scope:SCOPES,
+    client_id:CLIENT_ID,scope:SCOPES,
     callback:async(resp)=>{
       if(resp.error)return;
       accessToken=resp.access_token;
@@ -331,18 +336,16 @@ function maybeInit(){
   const saved=localStorage.getItem(TOKEN_KEY);
   const exp=parseInt(localStorage.getItem(TOKEN_EXP)||'0');
   if(saved&&Date.now()<exp){
-    accessToken=saved;
-    gapi.client.setToken({access_token:accessToken});
-    onSignedIn();
+    accessToken=saved; gapi.client.setToken({access_token:accessToken}); onSignedIn();
   } else {
     document.getElementById('authScreen').style.display='flex';
   }
 }
-function handleAuth(){ tokenClient.requestAccessToken({prompt:'consent'}); }
+function handleAuth(){tokenClient.requestAccessToken({prompt:'consent'});}
 function handleSignOut(){
   google.accounts.oauth2.revoke(accessToken,()=>{});
   accessToken=null;
-  localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(TOKEN_EXP);
+  localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(TOKEN_EXP);
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authScreen').style.display='flex';
   closeModal('cfgModal');
@@ -350,12 +353,10 @@ function handleSignOut(){
 async function onSignedIn(){
   document.getElementById('authScreen').style.display='none';
   document.getElementById('appScreen').style.display='block';
-  await loadData();
-  buildSelectors();
-  render();
+  await loadData(); buildSelectors(); render();
 }
 
-// ═══ Drive操作 ═══
+// ═══ Drive ═══
 async function findOrCreateFile(){
   if(_fileId)return _fileId;
   const r=await gapi.client.drive.files.list({
@@ -371,44 +372,30 @@ async function syncFromDrive(){
   try{
     await findOrCreateFile();
     if(!_fileId){render();setSyncStatus('');return;}
-    const r=await fetch(
-      `https://www.googleapis.com/drive/v3/files/${_fileId}?alt=media`,
-      {headers:{Authorization:'Bearer '+accessToken}}
-    );
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${_fileId}?alt=media`,{headers:{Authorization:'Bearer '+accessToken}});
     if(!r.ok){render();setSyncStatus('');return;}
     const json=await r.json();
     const driveTime=new Date(json.savedAt||0).getTime();
     const localTime=new Date(localStorage.getItem('mp_saved_at')||0).getTime();
-    if(driveTime>=localTime){
-      if(json.properties)    properties  = json.properties;
-      if(json.airbnbRows)    airbnbRows  = json.airbnbRows;
-      if(json.expenses)      expenses    = json.expenses;
-      if(json.commonExps)    commonExps  = json.commonExps;
-      if(json.importLog)     importLog   = json.importLog;
-    } else {
-      loadLocal();
-    }
-    buildSelectors();
-    render();
+    if(driveTime>=localTime){applyData(json);}else{loadLocal();}
+    buildSelectors();render();
     setSyncStatus(_lastSaved?'最終保存: '+_lastSaved:'');
   }catch(e){console.error(e);setSyncStatus('同期エラー');}
 }
-async function loadData(){
-  loadLocal();
-  await syncFromDrive();
+function applyData(d){
+  if(d.properties)  properties  = d.properties;
+  if(d.airbnbRows)  airbnbRows  = d.airbnbRows;
+  if(d.expenses)    expenses    = d.expenses;
+  if(d.commonExps)  commonExps  = d.commonExps;
+  if(d.importLog)   importLog   = d.importLog;
+  if(d.globalLoans) globalLoans = d.globalLoans;
 }
+async function loadData(){loadLocal();await syncFromDrive();}
 function loadLocal(){
-  try{
-    const d=JSON.parse(localStorage.getItem('mp_data')||'{}');
-    if(d.properties) properties = d.properties;
-    if(d.airbnbRows) airbnbRows = d.airbnbRows;
-    if(d.expenses)   expenses   = d.expenses;
-    if(d.commonExps) commonExps = d.commonExps;
-    if(d.importLog)  importLog  = d.importLog;
-  }catch(e){}
+  try{const d=JSON.parse(localStorage.getItem('mp_data')||'{}');applyData(d);}catch(e){}
 }
 function saveData(){
-  const d={properties,airbnbRows,expenses,commonExps,importLog};
+  const d={properties,airbnbRows,expenses,commonExps,importLog,globalLoans};
   localStorage.setItem('mp_data',JSON.stringify(d));
   localStorage.setItem('mp_saved_at',new Date().toISOString());
   saveToDrive().catch(()=>{});
@@ -417,28 +404,22 @@ async function saveToDrive(){
   if(!accessToken||_savePending)return;
   _savePending=true;
   try{
-    const data=JSON.stringify({properties,airbnbRows,expenses,commonExps,importLog,savedAt:new Date().toISOString()});
+    const data=JSON.stringify({properties,airbnbRows,expenses,commonExps,importLog,globalLoans,savedAt:new Date().toISOString()});
     const blob=new Blob([data],{type:'application/json'});
     if(_fileId){
       await fetch(`https://www.googleapis.com/upload/drive/v3/files/${_fileId}?uploadType=media`,{
-        method:'PATCH',
-        headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},
-        body:blob
+        method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:blob
       });
-    } else {
+    }else{
       const form=new FormData();
       form.append('metadata',new Blob([JSON.stringify({name:'appdata.json',parents:[FOLDER_ID]})],{type:'application/json'}));
       form.append('file',blob);
-      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-        method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form
-      });
-      const j=await r.json();
-      _fileId=j.id;
+      const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
+      _fileId=(await r.json()).id;
     }
     _lastSaved=new Date().toLocaleString('ja-JP');
     setSyncStatus('最終保存: '+_lastSaved);
-    const el=document.getElementById('lastSavedText');
-    if(el)el.textContent='最終保存: '+_lastSaved;
+    const el=document.getElementById('lastSavedText');if(el)el.textContent='最終保存: '+_lastSaved;
   }finally{_savePending=false;}
 }
 async function archiveCSV(filename,text){
@@ -446,37 +427,113 @@ async function archiveCSV(filename,text){
   const form=new FormData();
   form.append('metadata',new Blob([JSON.stringify({name:filename,parents:[FOLDER_ID]})],{type:'application/json'}));
   form.append('file',new Blob([text],{type:'text/csv'}));
-  await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
-    method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form
-  }).catch(()=>{});
+  await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form}).catch(()=>{});
 }
-async function manualSync(){
-  if(!accessToken)return;
-  setSyncStatus('更新中...');
-  await syncFromDrive();
+async function manualSync(){setSyncStatus('更新中...');await syncFromDrive();}
+function setSyncStatus(t){const el=document.getElementById('syncStatus');if(el)el.textContent=t;}
+
+// ═══ 集計ヘルパー ═══
+function calcML(principal,rate,years){
+  const m=rate/100/12,n=years*12;
+  if(!m)return Math.round(principal/n);
+  return Math.round(principal*m*Math.pow(1+m,n)/(Math.pow(1+m,n)-1));
 }
-function setSyncStatus(t){
-  const el=document.getElementById('syncStatus');
-  if(el)el.textContent=t;
+
+// 物件の月返済合計（複数ローン対応）
+function propLoanRepay(prop,year,month){
+  return (prop.loans||[]).reduce((s,loan)=>{
+    if(!loan.startDate)return s;
+    const start=new Date(loan.startDate);
+    const ym=year*12+month;
+    const startYM=start.getFullYear()*12+(start.getMonth()+1);
+    const endYM=startYM+loan.years*12-1;
+    if(ym>=startYM&&ym<=endYM) s+=calcML(loan.principal,loan.rate,loan.years);
+    return s;
+  },0);
 }
+
+// 全体ローンの月返済合計
+function globalLoanRepay(year,month){
+  return globalLoans.reduce((s,loan)=>{
+    if(!loan.startDate)return s;
+    const start=new Date(loan.startDate);
+    const ym=year*12+month;
+    const startYM=start.getFullYear()*12+(start.getMonth()+1);
+    const endYM=startYM+loan.years*12-1;
+    if(ym>=startYM&&ym<=endYM) s+=calcML(loan.principal,loan.rate,loan.years);
+    return s;
+  },0);
+}
+
+// 転貸家賃（指定年月に適用される金額）
+function getRent(prop,year,month){
+  if(prop.type!=='sublease')return 0;
+  const history=prop.rentHistory||[];
+  const ym=ymStr(year,month);
+  // 適用期間内のものを探す（複数あれば最後に登録したものを優先）
+  const matched=history.filter(h=>{
+    if(h.from>ym)return false;
+    if(h.to&&h.to<ym)return false;
+    return true;
+  });
+  if(!matched.length)return 0;
+  return matched[matched.length-1].amount||0;
+}
+function ymStr(y,m){return y+'-'+(String(m).padStart(2,'0'));}
+
+function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
+function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
+function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
+function ni(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.nights||0),0);}
+function oc(pid,y,m){const n=ni(pid,y,m),days=new Date(y,m,0).getDate(),cnt=pid==='all'?properties.length:1;return days*cnt>0?(n/(days*cnt))*100:0;}
+
+// 全体月次データ
+function mAll(y){
+  return MONTHS.map(m=>{
+    const R=properties.reduce((s,p)=>s+rv(p.id,y,m),0);
+    const E=properties.reduce((s,p)=>s+ex(p.id,y,m),0);
+    const rent=properties.reduce((s,p)=>s+getRent(p,y,m),0);
+    const propLoans=properties.reduce((s,p)=>s+propLoanRepay(p,y,m),0);
+    const C=cm(y,m);
+    const GL=globalLoanRepay(y,m);
+    return{m,R,E,rent,propLoans,C,GL,profit:R-E-rent-propLoans-C-GL,occ:oc('all',y,m)};
+  });
+}
+
+// 個別物件月次データ
+function mProp(p,y){
+  return MONTHS.map(m=>{
+    const R=rv(p.id,y,m),E=ex(p.id,y,m);
+    const rent=getRent(p,y,m);
+    const loans=propLoanRepay(p,y,m);
+    return{m,R,E,rent,loans,profit:R-E-rent-loans,nights:ni(p.id,y,m),occ:oc(p.id,y,m)};
+  });
+}
+
+function yTot(y){return mAll(y).reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,rent:a.rent+r.rent,propLoans:a.propLoans+r.propLoans,C:a.C+r.C,GL:a.GL+r.GL,profit:a.profit+r.profit}),{R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0});}
+
+// ═══ フォーマット ═══
+function yen(v){return '¥'+Math.round(v).toLocaleString();}
+function yenS(v){return v===0?'—':'¥'+Math.round(v).toLocaleString();}
+function pc(v){return v>0?'#1a7a3c':v<0?'#b71c1c':'#aaa';}
+function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').toLowerCase();}
 
 // ═══ CSV処理 ═══
 const COL_ALIASES={
-  cc:     ['確認コード','Confirmation Code','confirmation_code','Confirmation code'],
-  type:   ['タイプ','Type','type','Transaction Type'],
+  cc:['確認コード','Confirmation Code','confirmation_code','Confirmation code'],
+  type:['タイプ','Type','type','Transaction Type'],
   listing:['掲載名','Listing','listing','Listing name','物件名'],
-  guest:  ['ゲスト','Guest','guest','Guest name'],
-  ci:     ['チェックイン','Check-in','check_in','Start date'],
-  co:     ['チェックアウト','Check-out','check_out','End date'],
-  nights: ['宿泊数','Nights','nights'],
-  payout: ['精算額','Payout','payout','Net amount','受取金額','Host payout'],
-  amount: ['金額','Amount','amount','Gross earnings'],
-  date:   ['日付','Date','date','Payout Date'],
+  guest:['ゲスト','Guest','guest','Guest name'],
+  ci:['チェックイン','Check-in','check_in','Start date'],
+  co:['チェックアウト','Check-out','check_out','End date'],
+  nights:['宿泊数','Nights','nights'],
+  payout:['精算額','Payout','payout','Net amount','受取金額','Host payout'],
+  amount:['金額','Amount','amount','Gross earnings'],
+  date:['日付','Date','date','Payout Date'],
 };
 function getC(row,als){for(const a of als){if(row[a]!=null&&row[a]!=='')return row[a];}return '';}
 function toNum(s){const n=parseFloat(String(s||'').replace(/[¥$,\s]/g,'').replace(/[^\d.-]/g,''));return isNaN(n)?0:n;}
-function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').toLowerCase();}
-
 function parseCSV(text){
   const s=text.charCodeAt(0)===0xFEFF?text.slice(1):text;
   const lines=s.split(/\r?\n/).filter(l=>l.trim());
@@ -494,28 +551,19 @@ function parseCSV(text){
     return obj;
   });
 }
-
 function matchProp(listing,aid){
   if(aid)return aid;
   const n=normStr(listing);
-  const m=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{
-    const nn=normStr(x);return n.includes(nn)||nn.includes(n);
-  }));
+  const m=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));
   return m?m.id:'';
 }
-
 async function processCSV(text,fname,aid){
   const rows=parseCSV(text);
   if(!rows.length)return{added:0,duplicate:0,skipped:0};
   const existing=new Set(airbnbRows.map(r=>r.cc?`cc::${r.cc}`:`cx::${r.listing}|${r.ci}|${r.guest}|${r.amount}`));
   const newRows=[];let dup=0,skip=0;
   for(const row of rows){
-    const cc=getC(row,COL_ALIASES.cc),type=getC(row,COL_ALIASES.type),
-      listing=getC(row,COL_ALIASES.listing),guest=getC(row,COL_ALIASES.guest),
-      ci=getC(row,COL_ALIASES.ci),co=getC(row,COL_ALIASES.co),
-      nights=toNum(getC(row,COL_ALIASES.nights)),
-      py=toNum(getC(row,COL_ALIASES.payout)),am=toNum(getC(row,COL_ALIASES.amount)),
-      ds=getC(row,COL_ALIASES.date);
+    const cc=getC(row,COL_ALIASES.cc),type=getC(row,COL_ALIASES.type),listing=getC(row,COL_ALIASES.listing),guest=getC(row,COL_ALIASES.guest),ci=getC(row,COL_ALIASES.ci),co=getC(row,COL_ALIASES.co),nights=toNum(getC(row,COL_ALIASES.nights)),py=toNum(getC(row,COL_ALIASES.payout)),am=toNum(getC(row,COL_ALIASES.amount)),ds=getC(row,COL_ALIASES.date);
     const net=py>0?py:am;
     if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
     const key=cc?`cc::${cc}`:`cx::${listing}|${ci}|${guest}|${net}`;
@@ -531,88 +579,41 @@ async function processCSV(text,fname,aid){
   saveData();
   return{added:newRows.length,duplicate:dup,skipped:skip};
 }
-
-async function onCsvChange(e){
-  await handleCSVFiles(Array.from(e.target.files));
-  e.target.value='';
-}
-async function onCsvDrop(e){
-  e.preventDefault();
-  document.getElementById('dropzone').classList.remove('drag');
-  await handleCSVFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.csv')));
-}
+async function onCsvChange(e){await handleCSVFiles(Array.from(e.target.files));e.target.value='';}
+async function onCsvDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag');await handleCSVFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.csv')));}
 async function handleCSVFiles(files){
   if(!files.length)return;
   document.getElementById('dropText').textContent='解析中...';
   const aid=document.getElementById('csvPropSel').value;
   const logs=[];
-  for(const f of files){
-    if(!f.name.toLowerCase().endsWith('.csv'))continue;
-    const r=await processCSV(await f.text(),f.name,aid);
-    logs.push({filename:f.name,...r,time:new Date().toLocaleString('ja-JP')});
-  }
-  importLog=[...logs,...importLog];
-  saveData();
+  for(const f of files){if(!f.name.toLowerCase().endsWith('.csv'))continue;const r=await processCSV(await f.text(),f.name,aid);logs.push({filename:f.name,...r,time:new Date().toLocaleString('ja-JP')});}
+  importLog=[...logs,...importLog];saveData();
   document.getElementById('dropText').textContent='CSVをドロップ / クリックして選択';
-  let html='';
-  for(const log of logs){
-    html+=`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename}</div>
-      <div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap">
-        <span class="c-grn">✓ 新規: <b>${log.added}</b>件</span>
-        <span class="c-org">↩ 重複スキップ: <b>${log.duplicate}</b>件</span>
-        <span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span>
-      </div></div>`;
-  }
-  document.getElementById('csvResult').innerHTML=html;
+  document.getElementById('csvResult').innerHTML=logs.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename}</div><div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap"><span class="c-grn">✓ 新規: <b>${log.added}</b>件</span><span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span><span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span></div></div>`).join('');
   buildSelectors();render();
 }
 
-// ═══ 集計 ═══
-function calcML(p,r,y){const m=r/100/12,n=y*12;if(!m)return Math.round(p/n);return Math.round(p*m*Math.pow(1+m,n)/(Math.pow(1+m,n)-1));}
-function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
-function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
-function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
-function ni(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.nights||0),0);}
-function oc(pid,y,m){const n=ni(pid,y,m),days=new Date(y,m,0).getDate(),cnt=pid==='all'?properties.length:1;return days*cnt>0?(n/(days*cnt))*100:0;}
-function mAll(y){return MONTHS.map(m=>{const R=properties.reduce((s,p)=>s+rv(p.id,y,m),0),E=properties.reduce((s,p)=>s+ex(p.id,y,m),0),L=properties.reduce((s,p)=>s+calcML(p.loan,p.loanRate,p.loanYears),0),C=cm(y,m);return{m,R,E,L,C,profit:R-E-L-C,occ:oc('all',y,m)};});}
-function mProp(p,y){return MONTHS.map(m=>{const ml=calcML(p.loan,p.loanRate,p.loanYears),R=rv(p.id,y,m),E=ex(p.id,y,m);return{m,R,E,L:ml,profit:R-E-ml,nights:ni(p.id,y,m),occ:oc(p.id,y,m)};});}
-function yTot(y){return mAll(y).reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,L:a.L+r.L,C:a.C+r.C,profit:a.profit+r.profit}),{R:0,E:0,L:0,C:0,profit:0});}
-
-// ═══ フォーマット ═══
-function yen(v){return '¥'+Math.round(v).toLocaleString();}
-function yenS(v){return v===0?'—':'¥'+Math.round(v).toLocaleString();}
-function pc(v){return v>0?'#1a7a3c':v<0?'#b71c1c':'#aaa';}
-function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,6);}
-
 // ═══ セレクター構築 ═══
 function buildSelectors(){
-  // 年
   const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])].sort((a,b)=>b-a);
-  const curYear=+document.getElementById('selYear').value||2024;
-  document.getElementById('selYear').innerHTML=allYears.map(y=>`<option value="${y}"${y===curYear?'selected':''}>${y}年</option>`).join('');
-  // 物件
-  const curProp=document.getElementById('selProp').value||'all';
-  document.getElementById('selProp').innerHTML='<option value="all">全物件</option>'+properties.map(p=>`<option value="${p.id}"${p.id===curProp?'selected':''}>${p.name}</option>`).join('');
-  // CSVモーダル内物件
+  const cy=+document.getElementById('selYear').value||2024;
+  document.getElementById('selYear').innerHTML=allYears.map(y=>`<option value="${y}"${y===cy?'selected':''}>${y}年</option>`).join('');
+  const cp=document.getElementById('selProp').value||'all';
+  document.getElementById('selProp').innerHTML='<option value="all">全物件</option>'+properties.map(p=>`<option value="${p.id}"${p.id===cp?'selected':''}>${p.name}</option>`).join('');
   document.getElementById('csvPropSel').innerHTML='<option value="">自動判定</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  // 経費追加モーダル内物件
   document.getElementById('ae-prop').innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('loan-prop').innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
 }
 
 // ═══ タブ切替 ═══
 function showTab(name){
   currentTab=name;
-  ['dash','props','csv','exp','loan'].forEach(t=>{
-    document.getElementById('tab-'+t).style.display=t===name?'':'none';
-  });
-  document.querySelectorAll('.nb').forEach((b,i)=>{
-    b.classList.toggle('active',['dash','props','csv','exp','loan'][i]===name);
-  });
+  ['dash','props','csv','exp','loans'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'':'none');
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',['dash','props','csv','exp','loans'][i]===name));
   render();
 }
 
-// ═══ メインレンダリング ═══
+// ═══ レンダリング ═══
 function render(){
   const year=+document.getElementById('selYear').value||2024;
   const propSel=document.getElementById('selProp').value||'all';
@@ -620,35 +621,37 @@ function render(){
   if(currentTab==='props') renderProps(year);
   if(currentTab==='csv')   renderCSV(year);
   if(currentTab==='exp')   renderExp(year,propSel);
-  if(currentTab==='loan')  renderLoan();
+  if(currentTab==='loans') renderLoans();
 }
 
 // ─── ダッシュボード ───
 function renderDash(year,propSel){
   const mdata=propSel==='all'?mAll(year):MONTHS.map(m=>{
     const p=properties.find(x=>x.id===propSel);
-    if(!p)return{m,R:0,E:0,L:0,C:0,profit:0,occ:0};
-    const ml=calcML(p.loan,p.loanRate,p.loanYears),R=rv(p.id,year,m),E=ex(p.id,year,m),C=cm(year,m);
-    return{m,R,E,L:ml,C,profit:R-E-ml-C,occ:oc(p.id,year,m)};
+    if(!p)return{m,R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0,occ:0};
+    const R=rv(p.id,year,m),E=ex(p.id,year,m),rent=getRent(p,year,m),loans=propLoanRepay(p,year,m),C=cm(year,m),GL=globalLoanRepay(year,m);
+    return{m,R,E,rent,propLoans:loans,C,GL,profit:R-E-rent-loans-C-GL,occ:oc(p.id,year,m)};
   });
-  const tot=mdata.reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,L:a.L+r.L,C:a.C+r.C,profit:a.profit+r.profit}),{R:0,E:0,L:0,C:0,profit:0});
+  const tot=mdata.reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,rent:a.rent+r.rent,propLoans:a.propLoans+r.propLoans,C:a.C+r.C,GL:a.GL+r.GL,profit:a.profit+r.profit}),{R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0});
 
   let html=`<div class="metric-grid">
-    ${[['総売上',tot.R,'#111'],['物件経費',tot.E,'#b71c1c'],['ローン返済',tot.L,'#b45309'],['共通経費',tot.C,'#6d28d9'],['年間純利益',tot.profit,pc(tot.profit)]].map(([l,v,c])=>`
+    ${[['総売上',tot.R,'#111'],['物件経費',tot.E,'#b71c1c'],['家賃支払',tot.rent,'#7c3aed'],['ローン返済',tot.propLoans,'#b45309'],['共通経費',tot.C,'#6d28d9'],['運転資金返済',tot.GL,'#b45309'],['年間純利益',tot.profit,pc(tot.profit)]].map(([l,v,c])=>`
     <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${yen(v)}</div></div>`).join('')}
   </div>`;
 
-  html+=`<div class="card"><div class="sec-title">月次収支一覧 — ${year}年${propSel!=='all'?' / '+(properties.find(p=>p.id===propSel)?.name||''):'/ 全物件'}</div>
+  html+=`<div class="card"><div class="sec-title">月次収支一覧 — ${year}年${propSel!=='all'?' / '+(properties.find(p=>p.id===propSel)?.name||''):' / 全物件'}</div>
   <div class="scroll-x"><table class="mtbl">
-    <thead><tr><th class="l">月</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">ローン</th><th class="r">共通経費</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
+    <thead><tr><th class="l">月</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">家賃</th><th class="r">物件ローン</th><th class="r">共通経費</th><th class="r">運転資金</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
     <tbody>${mdata.map(row=>{
       const rate=row.R>0?(row.profit/row.R)*100:null,has=row.R>0||row.E>0;
       return `<tr class="${has?'':'no-data'}">
         <td class="l">${row.m}月</td>
         <td class="r">${yenS(row.R)}</td>
         <td class="r ${row.E>0?'c-red':''}">${yenS(row.E)}</td>
-        <td class="r ${row.L>0?'c-org':''}">${yenS(row.L)}</td>
+        <td class="r ${row.rent>0?'c-pur':''}">${yenS(row.rent)}</td>
+        <td class="r ${row.propLoans>0?'c-org':''}">${yenS(row.propLoans)}</td>
         <td class="r ${row.C>0?'c-pur':''}">${yenS(row.C)}</td>
+        <td class="r ${row.GL>0?'c-org':''}">${yenS(row.GL)}</td>
         <td class="r fw7" style="color:${pc(row.profit)}">${has?yen(row.profit):'—'}</td>
         <td class="r" style="color:${rate!==null?pc(rate):'#ccc'}">${rate!==null?rate.toFixed(1)+'%':'—'}</td>
         <td class="r">${row.occ>0?row.occ.toFixed(0)+'%':'—'}</td>
@@ -658,8 +661,10 @@ function renderDash(year,propSel){
       <td class="l">年間合計</td>
       <td class="r">${yen(tot.R)}</td>
       <td class="r c-red">${yen(tot.E)}</td>
-      <td class="r c-org">${yen(tot.L)}</td>
+      <td class="r c-pur">${yen(tot.rent)}</td>
+      <td class="r c-org">${yen(tot.propLoans)}</td>
       <td class="r c-pur">${yen(tot.C)}</td>
+      <td class="r c-org">${yen(tot.GL)}</td>
       <td class="r fw7" style="color:${pc(tot.profit)}">${yen(tot.profit)}</td>
       <td class="r">${tot.R>0?((tot.profit/tot.R)*100).toFixed(1)+'%':'—'}</td>
       <td class="r">—</td>
@@ -669,13 +674,22 @@ function renderDash(year,propSel){
   if(propSel==='all'){
     html+=`<div class="card"><div class="sec-title">物件別サマリー — ${year}年</div>
     <div class="scroll-x"><table class="mtbl">
-      <thead><tr><th class="l">物件</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
+      <thead><tr><th class="l">物件</th><th class="l">タイプ</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">家賃</th><th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
       <tbody>${properties.map(p=>{
-        const R=MONTHS.reduce((s,m)=>s+rv(p.id,year,m),0),E=MONTHS.reduce((s,m)=>s+ex(p.id,year,m),0),L=calcML(p.loan,p.loanRate,p.loanYears)*12,pf=R-E-L,o=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
-        return `<tr><td class="l">${p.name}</td><td class="r">${yen(R)}</td><td class="r c-red">${yen(E)}</td><td class="r c-org">${yen(L)}</td>
+        const R=MONTHS.reduce((s,m)=>s+rv(p.id,year,m),0),E=MONTHS.reduce((s,m)=>s+ex(p.id,year,m),0);
+        const rent=MONTHS.reduce((s,m)=>s+getRent(p,year,m),0),L=MONTHS.reduce((s,m)=>s+propLoanRepay(p,year,m),0);
+        const pf=R-E-rent-L,o=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
+        return `<tr>
+          <td class="l">${p.name}</td>
+          <td class="l"><span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span></td>
+          <td class="r">${yen(R)}</td>
+          <td class="r c-red">${yen(E)}</td>
+          <td class="r ${rent>0?'c-pur':''}">${rent>0?yen(rent):'—'}</td>
+          <td class="r c-org">${yen(L)}</td>
           <td class="r fw7" style="color:${pc(pf)}">${yen(pf)}</td>
           <td class="r" style="color:${pc(R>0?(pf/R)*100:0)}">${R>0?((pf/R)*100).toFixed(1)+'%':'—'}</td>
-          <td class="r">${((o/365)*100).toFixed(0)}%</td></tr>`;
+          <td class="r">${((o/365)*100).toFixed(0)}%</td>
+        </tr>`;
       }).join('')}</tbody>
     </table></div></div>`;
   }
@@ -686,37 +700,56 @@ function renderDash(year,propSel){
 function renderProps(year){
   let html='';
   properties.forEach(p=>{
-    const ml=calcML(p.loan,p.loanRate,p.loanYears),mdata=mProp(p,year);
-    const totR=mdata.reduce((s,r)=>s+r.R,0),totE=mdata.reduce((s,r)=>s+r.E,0),totL=ml*12,totPF=totR-totE-totL,totN=mdata.reduce((s,r)=>s+r.nights,0);
+    const mdata=mProp(p,year);
+    const totR=mdata.reduce((s,r)=>s+r.R,0),totE=mdata.reduce((s,r)=>s+r.E,0);
+    const totRent=mdata.reduce((s,r)=>s+r.rent,0),totL=mdata.reduce((s,r)=>s+r.loans,0);
+    const totPF=totR-totE-totRent-totL,totN=mdata.reduce((s,r)=>s+r.nights,0);
     const aliases=(p.aliases||[]).map(a=>`<span style="font-size:11px;padding:1px 6px;background:#f0eeea;border-radius:4px;color:#999;border:1px solid #e4e2dd">${a}</span>`).join('');
+    const loanSummary=(p.loans||[]).map(l=>`<span style="font-size:11px;color:#b45309">${l.name}: ${yen(calcML(l.principal,l.rate,l.years))}/月</span>`).join(' / ');
+
     html+=`<div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div>
-          <div style="font-size:17px;font-weight:700">${p.name}</div>
-          <div style="font-size:12px;color:#aaa;margin-top:3px">購入 ${yen(p.purchasePrice)} / 自己資金 ${yen(p.selfFunding)} / 融資 ${yen(p.loan)} @ ${p.loanRate}% ${p.loanYears}年 / 月返済 ${yen(ml)}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:17px;font-weight:700">${p.name}</span>
+            <span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span>
+          </div>
+          <div style="font-size:12px;color:#aaa">自己資金 ${yen(p.selfFunding||0)} / 運営開始: ${p.startDate||'—'}</div>
+          ${loanSummary?`<div style="font-size:12px;margin-top:3px">${loanSummary}</div>`:''}
+          ${p.type==='sublease'?`<div style="font-size:12px;color:#7c3aed;margin-top:3px">家賃: ${yen(getRent(p,year,1))}/月〜</div>`:''}
           ${aliases?`<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;align-items:center"><span style="font-size:11px;color:#ccc">旧名称:</span>${aliases}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <div style="text-align:right"><div style="font-size:19px;font-weight:700;color:${pc(totPF)}">${yen(totPF)}</div><div style="font-size:11px;color:#aaa">${year}年純利益</div></div>
-          <button class="btn sm" onclick="openAliasModal('${p.id}')">旧名称を管理</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+            <button class="btn sm" onclick="openAliasModal('${p.id}')">旧名称</button>
+            ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
+            <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン</button>
+          </div>
         </div>
       </div>
       <div class="scroll-x"><table class="mtbl">
-        <thead><tr><th class="l">月</th><th class="r">泊数</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
+        <thead><tr><th class="l">月</th><th class="r">泊数</th><th class="r">売上</th><th class="r">物件経費</th>${p.type==='sublease'?'<th class="r">家賃</th>':''}<th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
         <tbody>${mdata.map(row=>{
           const rate=row.R>0?(row.profit/row.R)*100:null,has=row.R>0||row.E>0;
           return `<tr class="${has?'':'no-data'}">
             <td class="l">${row.m}月</td><td class="r">${row.nights||'—'}</td><td class="r">${yenS(row.R)}</td>
             <td class="r ${row.E>0?'c-red':''}">${yenS(row.E)}</td>
-            <td class="r c-org">${yen(ml)}</td>
+            ${p.type==='sublease'?`<td class="r ${row.rent>0?'c-pur':''}">${yenS(row.rent)}</td>`:''}
+            <td class="r ${row.loans>0?'c-org':''}">${yenS(row.loans)}</td>
             <td class="r fw7" style="color:${pc(row.profit)}">${yen(row.profit)}</td>
             <td class="r" style="color:${rate!==null?pc(rate):'#ccc'}">${rate!==null?rate.toFixed(1)+'%':'—'}</td>
             <td class="r">${row.occ>0?row.occ.toFixed(0)+'%':'—'}</td>
           </tr>`;
         }).join('')}</tbody>
-        <tfoot><tr><td class="l">年間合計</td><td class="r">${totN}泊</td><td class="r">${yen(totR)}</td><td class="r c-red">${yen(totE)}</td><td class="r c-org">${yen(totL)}</td>
+        <tfoot><tr>
+          <td class="l">年間合計</td><td class="r">${totN}泊</td><td class="r">${yen(totR)}</td>
+          <td class="r c-red">${yen(totE)}</td>
+          ${p.type==='sublease'?`<td class="r c-pur">${yen(totRent)}</td>`:''}
+          <td class="r c-org">${yen(totL)}</td>
           <td class="r fw7" style="color:${pc(totPF)}">${yen(totPF)}</td>
-          <td class="r">${totR>0?((totPF/totR)*100).toFixed(1)+'%':'—'}</td><td class="r">—</td></tr></tfoot>
+          <td class="r">${totR>0?((totPF/totR)*100).toFixed(1)+'%':'—'}</td><td class="r">—</td>
+        </tr></tfoot>
       </table></div>
     </div>`;
   });
@@ -754,16 +787,15 @@ function renderCSV(year){
         </tr>`;
       }).join('')}</tbody>
     </table></div>
-    ${airbnbRows.some(r=>!r.propertyId)?'<div class="warn-banner"><b style="color:#b45309">⚠ 物件未割当のデータがあります</b><div style="color:#888;font-size:12px;margin-top:4px">「設定」→「再マッチング実行」を試してください。</div></div>':''}
+    ${airbnbRows.some(r=>!r.propertyId)?'<div class="warn-banner"><b style="color:#b45309">⚠ 物件未割当のデータがあります</b></div>':''}
   </div>`;
-
   if(importLog.length){
     html+=`<div class="card"><div class="sec-title">取込履歴</div>
     ${importLog.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
       <div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename}</div>
       <div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap">
         <span class="c-grn">✓ 新規: <b>${log.added}</b>件</span>
-        <span class="c-org">↩ 重複スキップ: <b>${log.duplicate}</b>件</span>
+        <span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span>
         <span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span>
         <span class="c-gry" style="margin-left:auto">${log.time||''}</span>
       </div></div>`).join('')}
@@ -778,8 +810,7 @@ function renderExp(year,propSel){
   <div class="scroll-x"><table class="mtbl">
     <thead><tr><th class="l">月</th>${EXP_CATS.map(c=>`<th class="r">${c}</th>`).join('')}<th class="r">合計</th></tr></thead>
     <tbody>${MONTHS.map(m=>{
-      const bc={};
-      expenses.filter(r=>r.year===year&&r.month===m&&(propSel==='all'||r.propertyId===propSel)).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
+      const bc={};expenses.filter(r=>r.year===year&&r.month===m&&(propSel==='all'||r.propertyId===propSel)).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
       const t=Object.values(bc).reduce((s,v)=>s+v,0);
       return `<tr class="${t>0?'':'no-data'}"><td class="l">${m}月</td>${EXP_CATS.map(c=>`<td class="r ${bc[c]?'c-red':''}">${bc[c]?yen(bc[c]):'—'}</td>`).join('')}<td class="r fw7 ${t>0?'c-red':''}">${t>0?yen(t):'—'}</td></tr>`;
     }).join('')}</tbody>
@@ -790,8 +821,7 @@ function renderExp(year,propSel){
   <div class="scroll-x"><table class="mtbl">
     <thead><tr><th class="l">月</th>${COM_CATS.map(c=>`<th class="r">${c}</th>`).join('')}<th class="r">合計</th></tr></thead>
     <tbody>${MONTHS.map(m=>{
-      const bc={};
-      commonExps.filter(r=>r.year===year&&r.month===m).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
+      const bc={};commonExps.filter(r=>r.year===year&&r.month===m).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
       const t=Object.values(bc).reduce((s,v)=>s+v,0);
       return `<tr class="${t>0?'':'no-data'}"><td class="l">${m}月</td>${COM_CATS.map(c=>`<td class="r ${bc[c]?'c-pur':''}">${bc[c]?yen(bc[c]):'—'}</td>`).join('')}<td class="r fw7 ${t>0?'c-pur':''}">${t>0?yen(t):'—'}</td></tr>`;
     }).join('')}</tbody>
@@ -810,72 +840,149 @@ function renderExp(year,propSel){
   document.getElementById('tab-exp').innerHTML=html;
 }
 
-// ─── 融資・回収率 ───
-function renderLoan(){
+// ─── 借入管理 ───
+function renderLoans(){
   const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])];
-  const totalSelf=properties.reduce((s,p)=>s+p.selfFunding,0);
+  const totalSelf=properties.reduce((s,p)=>s+(p.selfFunding||0),0);
   const totalProfit=allYears.reduce((s,y)=>s+yTot(y).profit,0);
   const recRate=totalSelf>0?Math.max(totalProfit,0)/totalSelf*100:0;
 
-  let html=`<div class="metric-grid">
-    ${[['総自己資金',yen(totalSelf),'#111'],['累計純利益',yen(Math.max(totalProfit,0)),'#1a7a3c'],['自己資金回収率',recRate.toFixed(1)+'%',recRate>=100?'#1a7a3c':'#b45309']].map(([l,v,c])=>`
-    <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${v}</div></div>`).join('')}
-  </div>
-  <div style="margin-bottom:18px">
-    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>自己資金回収進捗</span><span class="fw7">${recRate.toFixed(1)}%</span></div>
+  let html=`<div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="btn primary" onclick="openAddLoanModal('')">＋ 借入を追加</button>
+  </div>`;
+
+  // 自己資金回収率
+  html+=`<div class="card">
+    <div class="sec-title">自己資金回収状況</div>
+    <div class="metric-grid">
+      ${[['総自己資金',yen(totalSelf),'#111'],['累計純利益',yen(Math.max(totalProfit,0)),'#1a7a3c'],['回収率',recRate.toFixed(1)+'%',recRate>=100?'#1a7a3c':'#b45309']].map(([l,v,c])=>`
+      <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${v}</div></div>`).join('')}
+    </div>
+    <div style="font-size:12px;color:#aaa;display:flex;justify-content:space-between;margin-bottom:5px"><span>回収進捗</span><span>${recRate.toFixed(1)}%</span></div>
     <div class="pbar"><div class="pbar-fill" style="width:${Math.min(Math.max(recRate,0),100)}%;background:${recRate>=100?'#4caf50':'#ff9800'}"></div></div>
   </div>`;
 
-  properties.forEach(p=>{
-    const ml=calcML(p.loan,p.loanRate,p.loanYears);
-    const start=new Date(p.startDate||'2023-01-01'),now=new Date();
-    const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
-    const rem=Math.max(p.loan-ml*elapsed,0);
-    const payoff=new Date(start);payoff.setMonth(payoff.getMonth()+p.loanYears*12);
-    html+=`<div class="card">
-      <div style="display:flex;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:16px;font-weight:700">${p.name}</div>
-        <span style="font-size:13px;color:#888">月返済 ${yen(ml)}</span>
-      </div>
-      <div class="metric-grid">
-        ${[['購入価格',yen(p.purchasePrice),'#111'],['自己資金',yen(p.selfFunding),'#6d28d9'],['融資額',yen(p.loan),'#b45309'],['金利/年数',p.loanRate+'%/'+p.loanYears+'年','#111'],['完済予定',payoff.toLocaleDateString('ja-JP',{year:'numeric',month:'short'}),'#1a7a3c']].map(([l,v,c])=>`
-        <div class="metric"><div class="metric-label">${l}</div><div style="font-size:13px;font-weight:700;color:${c}">${v}</div></div>`).join('')}
-      </div>
-      <div style="font-size:12px;color:#aaa;display:flex;justify-content:space-between;margin-bottom:4px">
-        <span>返済進捗 (${elapsed}ヶ月/${p.loanYears*12}ヶ月)</span><span>残債 ${yen(rem)}</span>
-      </div>
-      <div class="pbar"><div class="pbar-fill" style="width:${(elapsed/(p.loanYears*12))*100}%;background:#4caf50"></div></div>
+  // 全体借入
+  html+=`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:0">全体借入（運転資金等）</div>
+      <button class="btn sm primary" onclick="openAddLoanModal('overall')">＋ 追加</button>
     </div>`;
+  if(globalLoans.length===0){
+    html+=`<div style="font-size:13px;color:#aaa;text-align:center;padding:20px 0">全体借入はありません</div>`;
+  } else {
+    globalLoans.forEach(loan=>{
+      const ml=calcML(loan.principal,loan.rate,loan.years);
+      const start=new Date(loan.startDate||'2023-01-01'),now=new Date();
+      const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
+      const rem=Math.max(loan.principal-ml*elapsed,0);
+      const payoff=new Date(start);payoff.setMonth(payoff.getMonth()+loan.years*12);
+      html+=`<div style="padding:12px 14px;background:#f8f7f3;border-radius:8px;margin-bottom:10px;border:1px solid #e4e2dd">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-size:14px;font-weight:700">${loan.name}</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:12px;color:#b45309">月返済 ${yen(ml)}</span>
+            <button class="btn sm danger" onclick="delGlobalLoan('${loan.id}')">削除</button>
+          </div>
+        </div>
+        <div class="metric-grid" style="margin-bottom:8px">
+          ${[['借入額',yen(loan.principal),'#111'],['金利/年数',loan.rate+'%/'+loan.years+'年','#111'],['残債（概算）',yen(rem),'#b45309'],['完済予定',payoff.toLocaleDateString('ja-JP',{year:'numeric',month:'short'}),'#1a7a3c']].map(([l,v,c])=>`
+          <div class="metric"><div class="metric-label">${l}</div><div style="font-size:13px;font-weight:700;color:${c}">${v}</div></div>`).join('')}
+        </div>
+        <div class="pbar"><div class="pbar-fill" style="width:${(elapsed/(loan.years*12))*100}%;background:#4caf50"></div></div>
+      </div>`;
+    });
+  }
+  html+=`</div>`;
+
+  // 物件別借入
+  html+=`<div class="card"><div class="sec-title">物件別借入</div>`;
+  properties.forEach(p=>{
+    const loans=p.loans||[];
+    html+=`<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700">${p.name} <span class="type-badge-${p.type||'purchase'}" style="font-size:10px">${p.type==='sublease'?'転貸':'購入'}</span></div>
+        <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン追加</button>
+      </div>`;
+    if(loans.length===0){
+      html+=`<div style="font-size:12px;color:#aaa;padding:8px 0">ローンなし</div>`;
+    } else {
+      loans.forEach(loan=>{
+        const ml=calcML(loan.principal,loan.rate,loan.years);
+        const start=new Date(loan.startDate||'2023-01-01'),now=new Date();
+        const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
+        const rem=Math.max(loan.principal-ml*elapsed,0);
+        const payoff=new Date(start);payoff.setMonth(payoff.getMonth()+loan.years*12);
+        html+=`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:13px;font-weight:600">${loan.name}</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-size:11px;color:#b45309">月返済 ${yen(ml)}</span>
+              <button class="btn sm danger" onclick="delPropLoan('${p.id}','${loan.id}')">削除</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap;color:#666">
+            <span>借入 ${yen(loan.principal)}</span>
+            <span>${loan.rate}% / ${loan.years}年</span>
+            <span>残債 ${yen(rem)}</span>
+            <span>完済 ${payoff.toLocaleDateString('ja-JP',{year:'numeric',month:'short'})}</span>
+          </div>
+          <div class="pbar" style="margin-top:6px"><div class="pbar-fill" style="width:${(elapsed/(loan.years*12))*100}%;background:#4caf50"></div></div>
+        </div>`;
+      });
+    }
+    // 転貸の場合は家賃履歴も表示
+    if(p.type==='sublease'){
+      html+=`<div style="margin-top:8px">
+        <div style="font-size:11px;color:#7c3aed;font-weight:700;margin-bottom:6px">家賃履歴</div>`;
+      const history=p.rentHistory||[];
+      if(history.length===0){
+        html+=`<div style="font-size:12px;color:#aaa">家賃履歴なし</div>`;
+      } else {
+        history.forEach(h=>{
+          html+=`<div style="font-size:12px;color:#555;padding:4px 0;border-bottom:1px solid #f0eeea">
+            ${h.from} 〜 ${h.to||'（永続）'} ： <b style="color:#7c3aed">${yen(h.amount)}/月</b>
+          </div>`;
+        });
+      }
+      html+=`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe;margin-top:6px" onclick="openRentModal('${p.id}')">家賃履歴を編集</button>`;
+      html+=`</div>`;
+    }
+    html+=`</div><hr class="section-divider">`;
   });
-  document.getElementById('tab-loan').innerHTML=html;
+  html+=`</div>`;
+
+  document.getElementById('tab-loans').innerHTML=html;
 }
 
-// ═══ CRUD操作 ═══
+// ═══ CRUD ═══
+function toggleSubleaseFields(){
+  const t=document.getElementById('np-type').value;
+  document.getElementById('sublease-fields').style.display=t==='sublease'?'':'none';
+}
 function addProp(){
   const name=document.getElementById('np-name').value.trim();
   if(!name)return;
-  properties.push({
-    id:uid(),name,aliases:[],
-    purchasePrice:+document.getElementById('np-price').value||0,
-    selfFunding:+document.getElementById('np-self').value||0,
-    loan:+document.getElementById('np-loan').value||0,
-    loanRate:+document.getElementById('np-rate').value||1.8,
-    loanYears:+document.getElementById('np-years').value||20,
-    startDate:document.getElementById('np-start').value||''
-  });
+  const type=document.getElementById('np-type').value;
+  const prop={id:uid(),name,type,aliases:[],loans:[],rentHistory:[],selfFunding:+document.getElementById('np-self').value||0,startDate:document.getElementById('np-start').value||''};
+  if(type==='sublease'){
+    const rentAmt=+document.getElementById('np-rent').value||0;
+    const rentFrom=document.getElementById('np-rent-from').value;
+    if(rentAmt&&rentFrom) prop.rentHistory=[{id:uid(),from:rentFrom,to:null,amount:rentAmt}];
+  }
+  properties.push(prop);
   saveData();buildSelectors();render();closeModal('addPropModal');
-  ['np-name','np-price','np-self','np-loan'].forEach(id=>document.getElementById(id).value='');
+  ['np-name','np-self','np-rent'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('np-start').value='';document.getElementById('np-rent-from').value='';
 }
 
 function addExp(){
-  const pid=document.getElementById('ae-prop').value;
-  const amount=+document.getElementById('ae-amount').value;
+  const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;
   if(!pid||!amount)return;
   expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value});
   saveData();render();closeModal('addExpModal');
   document.getElementById('ae-amount').value='';document.getElementById('ae-note').value='';
 }
-
 function addCom(){
   const amount=+document.getElementById('ac-amount').value;
   if(!amount)return;
@@ -883,64 +990,117 @@ function addCom(){
   saveData();render();closeModal('addComModal');
   document.getElementById('ac-amount').value='';document.getElementById('ac-note').value='';
 }
-
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();render();}
 
-// ─── 旧名称管理 ───
+// 旧名称
 function openAliasModal(propId){
   aliasTargetId=propId;
-  const p=properties.find(x=>x.id===propId);
-  if(!p)return;
+  const p=properties.find(x=>x.id===propId);if(!p)return;
   document.getElementById('aliasDesc').textContent=p.name+' の旧掲載名を登録します。';
   document.getElementById('newAlias').value='';
-  renderAliasList();
-  openModal('aliasModal');
+  renderAliasList();openModal('aliasModal');
 }
 function renderAliasList(){
-  const p=properties.find(x=>x.id===aliasTargetId);
-  if(!p)return;
+  const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
   const aliases=p.aliases||[];
-  document.getElementById('aliasList').innerHTML=aliases.length===0
-    ?'<div style="font-size:13px;color:#ccc;padding:12px 0;text-align:center">旧名称は未登録です</div>'
-    :aliases.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f7f3;border-radius:7px;margin-bottom:6px;border:1px solid #e4e2dd">
-      <span style="font-size:13px">${a}</span>
-      <button class="btn sm danger" onclick="delAlias('${a}')">削除</button>
+  document.getElementById('aliasList').innerHTML=aliases.length===0?'<div style="font-size:13px;color:#ccc;padding:12px 0;text-align:center">旧名称は未登録です</div>':aliases.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f7f3;border-radius:7px;margin-bottom:6px;border:1px solid #e4e2dd"><span style="font-size:13px">${a}</span><button class="btn sm danger" onclick="delAlias('${a}')">削除</button></div>`).join('');
+}
+function addAlias(){const a=document.getElementById('newAlias').value.trim();if(!a)return;const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;if(!(p.aliases||[]).includes(a)){p.aliases=[...(p.aliases||[]),a];saveData();}document.getElementById('newAlias').value='';renderAliasList();render();}
+function delAlias(a){const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;p.aliases=(p.aliases||[]).filter(x=>x!==a);saveData();renderAliasList();render();}
+function rematch(){let u=0;airbnbRows=airbnbRows.map(r=>{const n=normStr(r.listing||'');const match=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));if(match&&match.id!==r.propertyId){u++;return{...r,propertyId:match.id};}if(!r.propertyId&&match){u++;return{...r,propertyId:match.id};}return r;});saveData();render();alert('再マッチング完了: '+u+'件を更新しました');}
+
+// 家賃履歴
+function openRentModal(propId){
+  rentTargetId=propId;
+  const p=properties.find(x=>x.id===propId);if(!p)return;
+  document.getElementById('rentModalDesc').textContent=p.name+' の家賃履歴を管理します。';
+  document.getElementById('rent-from').value='';
+  document.getElementById('rent-to').value='';
+  document.getElementById('rent-amount').value='';
+  renderRentHistory();openModal('rentModal');
+}
+function renderRentHistory(){
+  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
+  const history=p.rentHistory||[];
+  document.getElementById('rentHistoryList').innerHTML=history.length===0
+    ?'<div style="font-size:13px;color:#ccc;text-align:center;padding:12px 0">家賃履歴はありません</div>'
+    :history.map(h=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#7c3aed">${yen(h.amount)}/月</div>
+        <div style="font-size:12px;color:#888">${h.from} 〜 ${h.to||'（永続）'}</div>
+      </div>
+      <button class="btn sm danger" onclick="delRentHistory('${h.id}')">削除</button>
     </div>`).join('');
 }
-function addAlias(){
-  const a=document.getElementById('newAlias').value.trim();
-  if(!a)return;
-  const p=properties.find(x=>x.id===aliasTargetId);
-  if(!p)return;
-  if(!(p.aliases||[]).includes(a)){p.aliases=[...(p.aliases||[]),a];saveData();}
-  document.getElementById('newAlias').value='';
-  renderAliasList();render();
+function addRentHistory(){
+  const from=document.getElementById('rent-from').value;
+  const to=document.getElementById('rent-to').value||null;
+  const amount=+document.getElementById('rent-amount').value;
+  if(!from||!amount)return;
+  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
+  p.rentHistory=[...(p.rentHistory||[]),{id:uid(),from,to,amount}];
+  p.rentHistory.sort((a,b)=>a.from.localeCompare(b.from));
+  saveData();renderRentHistory();render();
+  document.getElementById('rent-from').value='';document.getElementById('rent-to').value='';document.getElementById('rent-amount').value='';
 }
-function delAlias(a){
-  const p=properties.find(x=>x.id===aliasTargetId);
-  if(!p)return;
-  p.aliases=(p.aliases||[]).filter(x=>x!==a);
-  saveData();renderAliasList();render();
+function delRentHistory(hid){
+  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
+  p.rentHistory=(p.rentHistory||[]).filter(h=>h.id!==hid);
+  saveData();renderRentHistory();render();
 }
-function rematch(){
-  let u=0;
-  airbnbRows=airbnbRows.map(r=>{
-    const n=normStr(r.listing||'');
-    const match=properties.find(p=>[p.name,...(p.aliases||[])].some(x=>{const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));
-    if(match&&match.id!==r.propertyId){u++;return{...r,propertyId:match.id};}
-    if(!r.propertyId&&match){u++;return{...r,propertyId:match.id};}
-    return r;
-  });
+
+// ローン
+function toggleLoanScope(){
+  const scope=document.getElementById('loan-scope').value;
+  document.getElementById('loan-prop-row').style.display=scope==='overall'?'none':'';
+}
+function openAddLoanModal(propIdOrScope){
+  if(propIdOrScope==='overall'){
+    document.getElementById('loan-scope').value='overall';
+    document.getElementById('loan-prop-row').style.display='none';
+  } else {
+    document.getElementById('loan-scope').value='property';
+    document.getElementById('loan-prop-row').style.display='';
+    if(propIdOrScope) document.getElementById('loan-prop').value=propIdOrScope;
+  }
+  ['loan-name','loan-principal','loan-start'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loan-rate').value='1.8';
+  document.getElementById('loan-years').value='20';
+  openModal('addLoanModal');
+}
+function addLoan(){
+  const scope=document.getElementById('loan-scope').value;
+  const name=document.getElementById('loan-name').value.trim();
+  const principal=+document.getElementById('loan-principal').value;
+  const rate=+document.getElementById('loan-rate').value;
+  const years=+document.getElementById('loan-years').value;
+  const startDate=document.getElementById('loan-start').value;
+  if(!name||!principal||!startDate)return;
+  const loan={id:uid(),name,principal,rate,years,startDate};
+  if(scope==='overall'){
+    globalLoans=[...globalLoans,loan];
+  } else {
+    const pid=document.getElementById('loan-prop').value;
+    if(!pid)return;
+    const p=properties.find(x=>x.id===pid);if(!p)return;
+    p.loans=[...(p.loans||[]),loan];
+  }
+  saveData();buildSelectors();render();closeModal('addLoanModal');
+}
+function delPropLoan(propId,loanId){
+  const p=properties.find(x=>x.id===propId);if(!p)return;
+  p.loans=(p.loans||[]).filter(l=>l.id!==loanId);
   saveData();render();
-  alert('再マッチング完了: '+u+'件を更新しました');
+}
+function delGlobalLoan(loanId){
+  globalLoans=globalLoans.filter(l=>l.id!==loanId);
+  saveData();render();
 }
 
 // ═══ モーダル ═══
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.addEventListener('click',e=>{
-  if(e.target.classList.contains('modal'))e.target.classList.remove('open');
-});
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.classList.remove('open');});
 </script>
 
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
