@@ -18,9 +18,9 @@ body{font-family:'Noto Sans JP',sans-serif;font-size:14px;background:#f5f4f0;col
 .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .google-btn:hover{background:#333}
 #appScreen{display:none}
-.topbar{background:#111;color:#f5f4f0;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
-.topbar-left{font-size:15px;font-weight:700;letter-spacing:-.02em}
-.topbar-right{display:flex;align-items:center;gap:6px}
+.topbar{background:#111;color:#f5f4f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;gap:8px}
+.topbar-left{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .sync-status{font-size:11px;color:#666}
 .nav{display:flex;gap:2px;padding:12px 16px 0;background:#f5f4f0;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .nb{padding:8px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:#666;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;font-family:inherit}
@@ -90,29 +90,37 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 </div>
 
 <div id="appScreen">
+  <!-- トップバー：左=物件セレクター+年セレクター、右=ボタン群 -->
   <div class="topbar">
-    <div class="topbar-left">🏠 宿泊収支管理</div>
+    <div class="topbar-left">
+      <select id="selProp" onchange="render()" style="background:#222;color:#f5f4f0;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit;max-width:160px">
+        <option value="all">全物件</option>
+      </select>
+      <select id="selYear" onchange="render()" style="background:#222;color:#f5f4f0;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit;width:90px"></select>
+    </div>
     <div class="topbar-right">
       <span class="sync-status" id="syncStatus"></span>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="manualSync()">↻</button>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('csvModal')">▲ CSV</button>
+      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="manualSync()" title="更新">↻</button>
+      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('csvModal')">▲ 取込</button>
+      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="showTab('csv')">📄 一覧</button>
       <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('cfgModal')">設定</button>
     </div>
   </div>
+  <!-- ナビゲーション -->
   <nav class="nav">
-    <button class="nb active" onclick="showTab('dash')">ダッシュボード</button>
+    <button class="nb active" onclick="showTab('dash')">収支</button>
     <button class="nb" onclick="showTab('props')">物件別</button>
-    <button class="nb" onclick="showTab('csv')">取込データ</button>
     <button class="nb" onclick="showTab('exp')">経費</button>
     <button class="nb" onclick="showTab('loans')">借入管理</button>
+    <button class="nb" onclick="showTab('csv')" id="nb-csv" style="display:none">取込データ</button>
   </nav>
   <div class="content">
+    <!-- サブアクションバー：物件追加・経費追加など -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
-      <select id="selYear" style="width:auto" onchange="render()"></select>
-      <select id="selProp" style="width:auto" onchange="render()"><option value="all">全物件</option></select>
+      <button class="btn sm primary" onclick="openModal('addPropModal')">＋ 物件</button>
       <button class="btn sm" onclick="openModal('addExpModal')">＋ 物件経費</button>
       <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
-      <button class="btn sm primary" onclick="openModal('addPropModal')">＋ 物件追加</button>
+      <button class="btn sm" onclick="openAddLoanModal('')">＋ 借入</button>
     </div>
     <div id="tab-dash"></div>
     <div id="tab-props"  style="display:none"></div>
@@ -657,13 +665,20 @@ function buildSelectors(){
 function showTab(name){
   currentTab=name;
   ['dash','props','csv','exp','loans'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'':'none');
-  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('active',['dash','props','csv','exp','loans'][i]===name));
+  // ナビボタンのactive制御（csvタブはナビに通常表示しない）
+  document.querySelectorAll('.nb').forEach(b=>{
+    const t=b.getAttribute('onclick')?.match(/showTab\('(\w+)'\)/)?.[1];
+    if(t)b.classList.toggle('active',t===name);
+  });
+  // 取込データタブを開いた時はナビに表示
+  const nbCsv=document.getElementById('nb-csv');
+  if(nbCsv) nbCsv.style.display=name==='csv'?'':'none';
   render();
 }
 
 // ═══ レンダリング ═══
 function render(){
-  const year=+document.getElementById('selYear').value||2024;
+  const year=+document.getElementById('selYear').value||new Date().getFullYear();
   const propSel=document.getElementById('selProp').value||'all';
   if(currentTab==='dash')  renderDash(year,propSel);
   if(currentTab==='props') renderProps(year);
