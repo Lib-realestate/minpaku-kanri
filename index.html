@@ -10,73 +10,134 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans JP',sans-serif;font-size:14px;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
-#authScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f5f4f0}
-.auth-box{background:#fff;border-radius:16px;padding:48px 40px;text-align:center;max-width:360px;width:100%;border:1px solid #e4e2dd;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+body{font-family:'Noto Sans JP',sans-serif;font-size:14px;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+
+/* ─── 認証画面 ─── */
+#authScreen{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.auth-box{background:#fff;border-radius:16px;padding:48px 40px;text-align:center;max-width:360px;width:100%;border:1px solid #e0e0d8;box-shadow:0 4px 24px rgba(0,0,0,.06)}
 .auth-box h1{font-size:22px;font-weight:700;margin-bottom:8px}
 .auth-box p{font-size:13px;color:#888;margin-bottom:32px;line-height:1.7}
 .google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:#111;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-.google-btn:hover{background:#333}
-#appScreen{display:none}
-.topbar{background:#111;color:#f5f4f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100;gap:8px}
-.topbar-left{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+/* ─── トップバー（黒帯） ─── */
+.topbar{background:#111;border-bottom:none;padding:6px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-left{display:flex;align-items:center;gap:4px;flex:1;min-width:0}
 .topbar-right{display:flex;align-items:center;gap:4px;flex-shrink:0}
-.sync-status{font-size:11px;color:#666}
-.nav{display:flex;gap:2px;padding:12px 16px 0;background:#f5f4f0;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.nb{padding:8px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:#666;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;font-family:inherit}
-.nb.active{background:#111;color:#fff}
-.content{padding:16px 16px 80px;max-width:1020px;margin:0 auto}
-.card{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:14px;border:1px solid #e4e2dd}
-.sec-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:12px}
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
-.metric{background:#f8f7f3;border-radius:8px;padding:12px 14px;border:1px solid #e4e2dd}
-.metric-label{font-size:11px;color:#888;font-weight:600;margin-bottom:4px;letter-spacing:.04em}
-.metric-val{font-size:20px;font-weight:700;letter-spacing:-.02em}
-.mtbl{width:100%;border-collapse:collapse;font-size:12px}
-.mtbl th{padding:6px 8px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;font-size:11px;white-space:nowrap}
-.mtbl th.l{text-align:left}.mtbl th.r{text-align:right}
-.mtbl td{padding:7px 8px;border-bottom:1px solid #f2f0eb;white-space:nowrap}
-.mtbl td.l{text-align:left;font-weight:600}.mtbl td.r{text-align:right}
-.mtbl tfoot td{padding:8px;border-top:2px solid #ddd;font-weight:700;background:#f8f7f3}
-.mtbl tr.no-data{opacity:.3}
+#propSel,#yearSel{background:#222;color:#f5f4f0;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit}
+#propSel{min-width:80px;max-width:140px}
+#yearSel{min-width:74px}
+.icon-btn{width:32px;height:32px;border-radius:6px;border:1px solid #444;background:transparent;color:#eee;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.icon-btn:hover{background:#333}
+.icon-btn.active-page{background:#1a56db;border-color:#1a56db}
+select,input[type=number],input[type=text],input[type=date],input[type=month]{border:.5px solid #d0d0c8;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff}
+.drive-bar{background:#f5f5f0;border-bottom:.5px solid #e0e0d8;padding:4px 10px;display:flex;align-items:center;gap:6px;font-size:11px;color:#666}
+.drive-dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0}
+.drive-dot.ok{background:#4caf50}
+.drive-dot.ng{background:#f44336}
+.drive-dot.syncing{background:#ff9800}
+#syncBtn{padding:2px 8px;font-size:11px;border:.5px solid #d0d0c8;border-radius:4px;background:#fff;cursor:pointer;margin-left:4px}
+
+/* ─── アイコンボタン（不動産アプリと同一） ─── */
+.icon-btn{width:32px;height:32px;border-radius:6px;border:.5px solid #d0d0c8;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px}
+.icon-btn:hover{background:#f5f5f0;color:#333}
+.icon-btn.active-page{background:#dbeafe;border-color:#93c5fd}
+
+/* ─── ナビ ─── */
+.nav{display:flex;gap:2px;background:#fff;border-bottom:.5px solid #e0e0d8;padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nb{padding:9px 14px;font-size:13px;font-weight:500;border:none;background:transparent;color:#666;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;font-family:inherit}
+.nb:hover:not(.active){color:#333}
+.nb.active{color:#2563eb;border-bottom-color:#2563eb;font-weight:600}
+
+/* ─── コンテンツ ─── */
+.content{padding:12px;max-width:100%;margin:0 auto}
+@media(min-width:768px){.content{max-width:1020px;margin:0 auto;padding:16px}}
+
+/* ─── カード ─── */
+.card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:12px;border:.5px solid #e0e0d8}
+.card-title{font-size:11px;font-weight:700;color:#aaa;letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px}
+
+/* ─── サマリーグリッド ─── */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+@media(min-width:480px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:768px){.summary-grid{grid-template-columns:repeat(5,1fr)}}
+.summary-item{background:#f9f9f7;border-radius:8px;padding:10px 12px;border:.5px solid #e0e0d8}
+.summary-label{font-size:10px;color:#999;font-weight:600;margin-bottom:3px;letter-spacing:.04em}
+.summary-val{font-size:18px;font-weight:700;letter-spacing:-.02em}
+
+/* ─── CF推移テーブル（縦=項目、横=月） ─── */
+.cf-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.cf-tbl th{padding:5px 6px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;white-space:nowrap;text-align:right}
+.cf-tbl th.item-col{text-align:left;min-width:80px}
+.cf-tbl td{padding:5px 6px;border-bottom:1px solid #f0efeb;white-space:nowrap;text-align:right}
+.cf-tbl td.item-col{text-align:left;color:#555}
+.cf-tbl td.val-bold{font-weight:700}
+.cf-tbl tr.cf-section td{background:#f5f5f0;font-weight:700;font-size:11px;color:#333}
+.cf-tbl tr.cf-profit td{background:#e8f5e9}
+.cf-tbl tr.cf-profit td.item-col{color:#1a7a3c}
+.cf-tbl tr.cf-profit td{color:#1a7a3c}
+.cf-tbl tr.cf-minus td{background:#fce8e8}
+.cf-tbl tr.cf-minus td.item-col{color:#b71c1c}
+.cf-tbl tr.cf-minus td{color:#b71c1c}
+.cf-tbl tr.cf-sub td.item-col{padding-left:16px;color:#888;font-size:11px}
+.cf-tbl tr.dim td{opacity:.35}
+
+/* ─── 汎用テーブル ─── */
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{text-align:left;padding:7px 10px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;font-size:11px}
-.tbl td{padding:9px 10px;border-bottom:1px solid #f2f0eb;vertical-align:middle}
-.btn{padding:8px 14px;font-size:13px;font-weight:500;border:1px solid #ddd;background:#fff;color:#333;border-radius:7px;cursor:pointer;font-family:inherit}
+.tbl td{padding:9px 10px;border-bottom:1px solid #f0efeb;vertical-align:middle}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ─── ボタン ─── */
+.btn{padding:8px 14px;font-size:13px;font-weight:500;border:.5px solid #d0d0c8;background:#fff;color:#333;border-radius:7px;cursor:pointer;font-family:inherit}
 .btn:hover{background:#f5f5f5}
 .btn.primary{border:none;background:#111;color:#fff}
 .btn.primary:hover{background:#333}
 .btn.sm{padding:4px 10px;font-size:11px}
 .btn.danger{color:#b71c1c;border-color:#f0c0c0}
-select,input[type=number],input[type=text],input[type=date],input[type=month]{border:.5px solid #d0d0c8;border-radius:6px;padding:7px 10px;font-size:13px;font-family:inherit;background:#fff;width:100%}
+
+/* ─── バッジ ─── */
 .bdg{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700}
 .bdg.b{background:#e8f0fe;color:#1a56db}
 .bdg.g{background:#e6f4ea;color:#2e7d32}
 .bdg.y{background:#fff8e1;color:#b45309}
 .bdg.p{background:#f3e8ff;color:#7c3aed}
-.pbar{height:8px;background:#eee;border-radius:4px;overflow:hidden}
-.pbar-fill{height:100%;border-radius:4px;transition:width .5s}
+
+/* ─── プログレスバー ─── */
+.pbar{height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.pbar-fill{height:100%;border-radius:3px}
+
+/* ─── モーダル ─── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:16px}
 .modal.open{display:flex}
 .modal-box{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto}
 .modal-box h3{font-size:16px;font-weight:700;margin-bottom:14px}
-.form-label{font-size:11px;color:#666;font-weight:700;display:block;margin-bottom:3px;letter-spacing:.03em}
-.form-row{margin-bottom:10px}
+.form-label{font-size:11px;color:#666;font-weight:700;display:block;margin-bottom:3px}
+.form-row{margin-bottom:10px;width:100%}
+.form-row select,.form-row input{width:100%}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.dropzone{border:2px dashed #ccc;border-radius:12px;padding:32px 20px;text-align:center;cursor:pointer;background:#fafaf8;transition:all .15s}
+
+/* ─── ドロップゾーン ─── */
+.dropzone{border:2px dashed #ccc;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer;background:#fafaf8;transition:all .15s}
 .dropzone.drag{border-color:#111;background:#f0efea}
-.info-banner{padding:12px 14px;background:#e8f0fe;border-radius:8px;font-size:12px;color:#1a56db;line-height:1.7;margin-bottom:14px}
-.warn-banner{padding:10px 14px;background:#fff8e1;border-radius:8px;font-size:13px;margin-top:14px}
-.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+/* ─── 色 ─── */
 .c-red{color:#b71c1c}.c-org{color:#b45309}.c-grn{color:#1a7a3c}.c-pur{color:#6d28d9}.c-gry{color:#aaa}.fw7{font-weight:700}
-.type-badge-purchase{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db}
-.type-badge-sublease{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#f3e8ff;color:#7c3aed}
-.section-divider{border:none;border-top:1px solid #f0eeea;margin:16px 0}
+.type-badge-purchase{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;background:#e8f0fe;color:#1a56db}
+.type-badge-sublease{display:inline-block;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;background:#f3e8ff;color:#7c3aed}
+.info-banner{padding:10px 12px;background:#e8f0fe;border-radius:8px;font-size:12px;color:#1a56db;line-height:1.7;margin-bottom:12px}
+.warn-banner{padding:10px 12px;background:#fff8e1;border-radius:8px;font-size:13px;margin-top:12px}
+
+/* ─── 稼働カレンダー的な表示 ─── */
+.occ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+.occ-item{background:#f9f9f7;border-radius:8px;padding:10px 12px;border:.5px solid #e0e0d8;text-align:center}
+.occ-month{font-size:11px;color:#999;margin-bottom:4px}
+.occ-rate{font-size:18px;font-weight:700}
+.occ-nights{font-size:11px;color:#aaa}
 </style>
 </head>
 <body>
 
+<!-- 認証画面 -->
 <div id="authScreen">
   <div class="auth-box">
     <div style="font-size:40px;margin-bottom:12px">🏠</div>
@@ -89,63 +150,43 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div>
 
-<div id="appScreen">
-  <!-- トップバー：左=物件セレクター+年セレクター、右=ボタン群 -->
+<!-- アプリ画面 -->
+<div id="appScreen" style="display:none">
+  <!-- トップバー（不動産アプリ準拠） -->
   <div class="topbar">
     <div class="topbar-left">
-      <select id="selProp" onchange="render()" style="background:#222;color:#f5f4f0;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit;max-width:160px">
-        <option value="all">全物件</option>
-      </select>
-      <select id="selYear" onchange="render()" style="background:#222;color:#f5f4f0;border:1px solid #444;border-radius:6px;padding:5px 10px;font-size:13px;font-family:inherit;width:90px"></select>
+      <select id="propSel" onchange="switchProp()"></select>
+      <select id="yearSel" onchange="renderCurrent()"></select>
     </div>
     <div class="topbar-right">
-      <span class="sync-status" id="syncStatus"></span>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="manualSync()" title="更新">↻</button>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('csvModal')">▲ 取込</button>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="showTab('csv')">📄 一覧</button>
-      <button class="btn sm" style="background:transparent;border-color:#444;color:#eee" onclick="openModal('cfgModal')">設定</button>
+      <button class="icon-btn" id="iconUpload"   onclick="showIconPage('upload')"  title="取込">📤</button>
+      <button class="icon-btn" id="iconFiles"    onclick="showIconPage('files')"   title="ファイル一覧">📁</button>
+      <button class="icon-btn" id="iconSettings" onclick="showIconPage('settings')" title="設定">⚙️</button>
     </div>
   </div>
-  <!-- ナビゲーション -->
-  <nav class="nav">
-    <button class="nb active" onclick="showTab('dash')">収支</button>
-    <button class="nb" onclick="showTab('props')">物件別</button>
-    <button class="nb" onclick="showTab('exp')">経費</button>
-    <button class="nb" onclick="showTab('loans')">借入管理</button>
-    <button class="nb" onclick="showTab('csv')" id="nb-csv" style="display:none">取込データ</button>
-  </nav>
-  <div class="content">
-    <!-- サブアクションバー：物件追加・経費追加など -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
-      <button class="btn sm primary" onclick="openModal('addPropModal')">＋ 物件</button>
-      <button class="btn sm" onclick="openModal('addExpModal')">＋ 物件経費</button>
-      <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
-      <button class="btn sm" onclick="openAddLoanModal('')">＋ 借入</button>
-    </div>
-    <div id="tab-dash"></div>
-    <div id="tab-props"  style="display:none"></div>
-    <div id="tab-csv"   style="display:none"></div>
-    <div id="tab-exp"   style="display:none"></div>
-    <div id="tab-loans" style="display:none"></div>
+  <!-- ドライブバー -->
+  <div class="drive-bar">
+    <div class="drive-dot" id="driveDot"></div>
+    <span id="driveStatus">未接続</span>
+    <span id="lastSyncTime" style="font-size:10px;color:#aaa;margin-left:8px"></span>
+    <button id="syncBtn" onclick="manualSync()">↻ 更新</button>
   </div>
+  <!-- ナビ -->
+  <div class="nav" id="mainNav"></div>
+  <!-- コンテンツ -->
+  <div class="content" id="pages"></div>
 </div>
 
-<!-- CSV取込 -->
-<div class="modal" id="csvModal"><div class="modal-box">
-  <h3>Airbnb CSV 取込</h3>
-  <p style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.7">確認コードで重複を自動排除。取込後CSVはドライブに自動保存されます。</p>
-  <div class="form-row"><label class="form-label">物件を事前指定（空欄=掲載名から自動判定）</label>
-    <select id="csvPropSel"><option value="">自動判定</option></select></div>
-  <div class="dropzone" id="dropzone" onclick="document.getElementById('csvFile').click()"
-    ondragover="event.preventDefault();this.classList.add('drag')"
-    ondragleave="this.classList.remove('drag')" ondrop="onCsvDrop(event)">
-    <input type="file" id="csvFile" accept=".csv" multiple style="display:none" onchange="onCsvChange(event)">
-    <div style="font-size:32px;margin-bottom:8px">📊</div>
-    <div style="font-size:14px;font-weight:700;margin-bottom:4px" id="dropText">CSVをドロップ / クリックして選択</div>
-    <div style="font-size:11px;color:#aaa">複数ファイル可 · 重複は自動スキップ</div>
+<!-- ─── モーダル群 ─── -->
+
+<!-- PDF解析結果・振り分け確認モーダル -->
+<div class="modal" id="uploadResultModal"><div class="modal-box" style="max-width:560px">
+  <h3>📄 解析結果・振り分け確認</h3>
+  <div id="uploadResultBody"></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn primary" onclick="confirmUploadResult()">この内容で登録</button>
+    <button class="btn" onclick="closeModal('uploadResultModal')">キャンセル</button>
   </div>
-  <div id="csvResult" style="margin-top:14px"></div>
-  <button class="btn" style="margin-top:12px;width:100%" onclick="closeModal('csvModal')">閉じる</button>
 </div></div>
 
 <!-- 物件追加 -->
@@ -157,19 +198,15 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option value="purchase">購入</option>
       <option value="sublease">転貸（サブリース）</option>
     </select></div>
-  <div class="form-row">
-    <label class="form-label">運営開始日</label><input type="date" id="np-start">
-  </div>
-  <!-- 転貸の場合：初期家賃 -->
+  <div class="form-row"><label class="form-label">運営開始日</label><input type="date" id="np-start"></div>
   <div id="sublease-fields" style="display:none">
-    <hr class="section-divider">
-    <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:10px">転貸設定</div>
+    <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:8px;margin-top:4px">転貸設定</div>
     <div class="form-grid">
       <div class="form-row"><label class="form-label">初期家賃（円/月）</label><input type="number" id="np-rent" placeholder="150000"></div>
       <div class="form-row"><label class="form-label">開始年月</label><input type="month" id="np-rent-from"></div>
     </div>
   </div>
-  <p style="font-size:11px;color:#aaa;margin-bottom:14px">※ ローンは追加後に「借入管理」タブから登録できます</p>
+  <p style="font-size:11px;color:#aaa;margin-bottom:12px">※ ローンは「借入管理」から登録できます</p>
   <div style="display:flex;gap:8px">
     <button class="btn primary" onclick="addProp()">追加</button>
     <button class="btn" onclick="closeModal('addPropModal')">キャンセル</button>
@@ -179,28 +216,24 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 <!-- キーワード管理 -->
 <div class="modal" id="aliasModal"><div class="modal-box">
   <h3>マッチングキーワードを管理</h3>
-  <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="aliasDesc"></p>
-  <div id="aliasList" style="margin-bottom:14px"></div>
-  <div class="info-banner">
-    CSV「リスティング」列にキーワードが<b>部分一致</b>すればこの物件に自動割当されます。<br>
-    例: 物件が「押上戸建」なら「浅草・押上」「押上エリア」などを登録。<br>
-    同じエリアの複数リスティングも同じキーワードで紐づけられます。
-  </div>
-  <label class="form-label">キーワードを追加（Airbnbのリスティングタイトルに含まれる文字列）</label>
-  <div style="display:flex;gap:8px;margin-bottom:14px">
-    <input type="text" id="newAlias" placeholder="例: 浅草・押上エリア または 北池袋" style="flex:1">
+  <p style="font-size:13px;color:#888;margin-bottom:12px;line-height:1.7" id="aliasDesc"></p>
+  <div id="aliasList" style="margin-bottom:12px"></div>
+  <div class="info-banner">CSV「リスティング」列にキーワードが<b>部分一致</b>すればこの物件に自動割当されます。</div>
+  <label class="form-label">キーワードを追加</label>
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <input type="text" id="newAlias" placeholder="例: 浅草・押上エリア" style="flex:1">
     <button class="btn primary" onclick="addAlias()">追加</button>
   </div>
   <button class="btn primary" style="width:100%" onclick="closeModal('aliasModal')">完了</button>
 </div></div>
 
-<!-- 家賃履歴管理 -->
+<!-- 家賃履歴 -->
 <div class="modal" id="rentModal"><div class="modal-box">
   <h3>家賃履歴を管理</h3>
-  <p style="font-size:13px;color:#888;margin-bottom:14px;line-height:1.7" id="rentModalDesc"></p>
-  <div id="rentHistoryList" style="margin-bottom:16px"></div>
-  <div style="padding:14px;background:#f8f7f3;border-radius:8px;margin-bottom:14px">
-    <div style="font-size:12px;font-weight:700;margin-bottom:10px">新しい家賃を追加</div>
+  <p style="font-size:13px;color:#888;margin-bottom:12px" id="rentModalDesc"></p>
+  <div id="rentHistoryList" style="margin-bottom:14px"></div>
+  <div style="padding:12px;background:#f9f9f7;border-radius:8px;margin-bottom:12px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:8px">新しい家賃を追加</div>
     <div class="form-grid">
       <div class="form-row"><label class="form-label">開始年月</label><input type="month" id="rent-from"></div>
       <div class="form-row"><label class="form-label">終了年月（空欄=永続）</label><input type="month" id="rent-to"></div>
@@ -208,7 +241,6 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     <div class="form-row"><label class="form-label">月額家賃（円）</label><input type="number" id="rent-amount" placeholder="150000"></div>
     <button class="btn primary" onclick="addRentHistory()">追加</button>
   </div>
-  <div class="info-banner">終了年月を空欄にすると、開始年月以降は永続的にその金額が適用されます。</div>
   <button class="btn primary" style="width:100%" onclick="closeModal('rentModal')">完了</button>
 </div></div>
 
@@ -217,14 +249,12 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <h3>借入を追加</h3>
   <div class="form-row"><label class="form-label">借入種別</label>
     <select id="loan-scope" onchange="toggleLoanScope()">
-      <option value="property">物件個別（特定物件に紐づく）</option>
-      <option value="overall">全体（運転資金など）</option>
+      <option value="property">物件個別</option>
+      <option value="overall">全体（運転資金等）</option>
     </select></div>
-  <div class="form-row" id="loan-prop-row">
-    <label class="form-label">対象物件</label>
-    <select id="loan-prop"><option value="">選択してください</option></select>
-  </div>
-  <div class="form-row"><label class="form-label">借入名称</label><input type="text" id="loan-name" placeholder="購入ローン / リフォームローン / 運転資金など"></div>
+  <div class="form-row" id="loan-prop-row"><label class="form-label">対象物件</label>
+    <select id="loan-prop"><option value="">選択してください</option></select></div>
+  <div class="form-row"><label class="form-label">借入名称</label><input type="text" id="loan-name" placeholder="購入ローン / リフォームローン 等"></div>
   <div class="form-grid">
     <div class="form-row"><label class="form-label">借入金額（円）</label><input type="number" id="loan-principal" placeholder="5000000"></div>
     <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="loan-rate" value="1.8" step="0.1"></div>
@@ -239,9 +269,9 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
-<!-- 物件経費追加 -->
+<!-- 経費追加 -->
 <div class="modal" id="addExpModal"><div class="modal-box">
-  <h3>物件経費を追加</h3>
+  <h3>経費を追加</h3>
   <div class="form-row"><label class="form-label">物件</label>
     <select id="ae-prop"><option value="">選択してください</option></select></div>
   <div class="form-grid">
@@ -254,12 +284,12 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option>消耗品費</option><option>プラットフォーム手数料</option><option>管理費</option><option>その他経費</option>
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
-  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note" placeholder="清掃委託など"></div>
-  <div class="form-row" style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff8e1;border-radius:8px;border:1px solid #f0d060">
+  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note"></div>
+  <div class="form-row" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff8e1;border-radius:8px">
     <input type="checkbox" id="ae-initial" style="width:auto;margin:0">
-    <label for="ae-initial" style="font-size:13px;color:#b45309;font-weight:600;cursor:pointer;margin:0">初期費用として扱う（概要タブに集計）</label>
+    <label for="ae-initial" style="font-size:13px;color:#b45309;font-weight:600;cursor:pointer;margin:0">初期費用として扱う</label>
   </div>
-  <div style="display:flex;gap:8px">
+  <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="addExp()">追加</button>
     <button class="btn" onclick="closeModal('addExpModal')">キャンセル</button>
   </div>
@@ -277,30 +307,11 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option>税理士費用</option><option>保険料</option><option>通信費</option><option>交通費</option><option>その他共通経費</option>
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ac-amount" placeholder="30000"></div>
-  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ac-note" placeholder="月次顧問料など"></div>
-  <div style="display:flex;gap:8px">
+  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ac-note"></div>
+  <div style="display:flex;gap:8px;margin-top:4px">
     <button class="btn primary" onclick="addCom()">追加</button>
     <button class="btn" onclick="closeModal('addComModal')">キャンセル</button>
   </div>
-</div></div>
-
-<!-- 設定 -->
-<div class="modal" id="cfgModal"><div class="modal-box">
-  <h3>設定</h3>
-  <div style="padding:12px 14px;background:#f8f7f3;border-radius:8px;margin-bottom:14px;font-size:13px">
-    <div style="font-weight:700;margin-bottom:4px">保存先</div>
-    <div style="color:#666">📁 Googleドライブ / appdata.json</div>
-    <div style="color:#aaa;font-size:11px;margin-top:6px" id="lastSavedText"></div>
-  </div>
-  <div style="padding:12px 14px;background:#e8f0fe;border-radius:8px;margin-bottom:12px">
-    <div style="font-size:13px;font-weight:700;color:#1a56db;margin-bottom:6px">旧名称で再マッチング</div>
-    <button class="btn" style="color:#1a56db;border-color:#a8c4f5;font-size:12px" onclick="rematch()">今すぐ再マッチング実行</button>
-  </div>
-  <div style="padding:12px 14px;background:#fce8e8;border-radius:8px;margin-bottom:14px">
-    <div style="font-size:13px;font-weight:700;color:#b71c1c;margin-bottom:6px">ログアウト</div>
-    <button class="btn danger" style="font-size:12px" onclick="handleSignOut()">Googleアカウントからログアウト</button>
-  </div>
-  <button class="btn primary" style="width:100%" onclick="closeModal('cfgModal')">閉じる</button>
 </div></div>
 
 <script>
@@ -315,20 +326,17 @@ const EXP_CATS  = ['清掃費','水道光熱費','修繕費','消耗品費','プ
 const COM_CATS  = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
 
 // ═══ 状態 ═══
-// properties: [{id, name, type('purchase'|'sublease'), aliases[], selfFunding, startDate,
-//               rentHistory:[{id,from,to,amount}],   ← 転貸のみ
-//               loans:[{id,name,principal,rate,years,startDate,scope:'property'}] }]
-// globalLoans: [{id,name,principal,rate,years,startDate,scope:'overall'}]
 let properties=[], airbnbRows=[], expenses=[], commonExps=[], importLog=[], globalLoans=[];
 let tokenClient, gapiInited=false, gisInited=false, accessToken=null;
-let _fileId=null, _savePending=false, _lastSaved=null;
-let currentTab='dash', aliasTargetId=null, rentTargetId=null;
+let _fileId=null, _savePending=false;
+let currentProp='all', currentTabId='cashflow', iconPageActive=null;
+let aliasTargetId=null, rentTargetId=null;
 
-// ═══ Google API ═══
+// ═══ Google API（不動産アプリと同一方式） ═══
 function gapiLoaded(){
   gapi.load('client',async()=>{
     await gapi.client.init({apiKey:API_KEY,discoveryDocs:['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']});
-    gapiInited=true; maybeInit();
+    gapiInited=true;maybeInit();
   });
 }
 function gisLoaded(){
@@ -344,15 +352,15 @@ function gisLoaded(){
       await onSignedIn();
     }
   });
-  gisInited=true; maybeInit();
+  gisInited=true;maybeInit();
 }
 function maybeInit(){
   if(!gapiInited||!gisInited)return;
   const saved=localStorage.getItem(TOKEN_KEY);
   const exp=parseInt(localStorage.getItem(TOKEN_EXP)||'0');
   if(saved&&Date.now()<exp){
-    accessToken=saved; gapi.client.setToken({access_token:accessToken}); onSignedIn();
-  } else {
+    accessToken=saved;gapi.client.setToken({access_token:accessToken});onSignedIn();
+  }else{
     document.getElementById('authScreen').style.display='flex';
   }
 }
@@ -363,47 +371,56 @@ function handleSignOut(){
   localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(TOKEN_EXP);
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authScreen').style.display='flex';
-  closeModal('cfgModal');
 }
 async function onSignedIn(){
   document.getElementById('authScreen').style.display='none';
   document.getElementById('appScreen').style.display='block';
-  await loadData(); buildSelectors(); render();
+  setDriveStatus('syncing');
+  await loadData();
+  buildPropSelector();buildYearSel();
+  buildNav();showTab('cashflow');
 }
 
 // ═══ Drive ═══
+function setDriveStatus(s){
+  const dot=document.getElementById('driveDot');
+  const txt=document.getElementById('driveStatus');
+  if(!dot)return;
+  dot.className='drive-dot '+(s==='ok'?'ok':s==='ng'?'ng':s==='syncing'?'syncing':'');
+  txt.textContent=s==='ok'?'同期済み':s==='ng'?'エラー':s==='syncing'?'同期中...':'未接続';
+}
+function setSyncTime(){
+  const el=document.getElementById('lastSyncTime');
+  if(el)el.textContent=new Date().toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
 async function findOrCreateFile(){
   if(_fileId)return _fileId;
-  const r=await gapi.client.drive.files.list({
-    q:`'${FOLDER_ID}' in parents and name='appdata.json' and trashed=false`,
-    fields:'files(id)',pageSize:1
-  });
+  const r=await gapi.client.drive.files.list({q:`'${FOLDER_ID}' in parents and name='appdata.json' and trashed=false`,fields:'files(id)',pageSize:1});
   if(r.result.files.length>0){_fileId=r.result.files[0].id;return _fileId;}
   return null;
 }
 async function syncFromDrive(){
   if(!accessToken)return;
-  setSyncStatus('同期中...');
+  setDriveStatus('syncing');
   try{
     await findOrCreateFile();
-    if(!_fileId){render();setSyncStatus('');return;}
+    if(!_fileId){setDriveStatus('ok');return;}
     const r=await fetch(`https://www.googleapis.com/drive/v3/files/${_fileId}?alt=media`,{headers:{Authorization:'Bearer '+accessToken}});
-    if(!r.ok){render();setSyncStatus('');return;}
+    if(!r.ok){setDriveStatus('ng');return;}
     const json=await r.json();
     const driveTime=new Date(json.savedAt||0).getTime();
     const localTime=new Date(localStorage.getItem('mp_saved_at')||0).getTime();
-    if(driveTime>=localTime){applyData(json);}else{loadLocal();}
-    buildSelectors();render();
-    setSyncStatus(_lastSaved?'最終保存: '+_lastSaved:'');
-  }catch(e){console.error(e);setSyncStatus('同期エラー');}
+    if(driveTime>=localTime)applyData(json);else loadLocal();
+    setDriveStatus('ok');setSyncTime();
+  }catch(e){console.error(e);setDriveStatus('ng');}
 }
 function applyData(d){
-  if(d.properties)  properties  = d.properties;
-  if(d.airbnbRows)  airbnbRows  = d.airbnbRows;
-  if(d.expenses)    expenses    = d.expenses;
-  if(d.commonExps)  commonExps  = d.commonExps;
-  if(d.importLog)   importLog   = d.importLog;
-  if(d.globalLoans) globalLoans = d.globalLoans;
+  if(d.properties)  properties  =d.properties;
+  if(d.airbnbRows)  airbnbRows  =d.airbnbRows;
+  if(d.expenses)    expenses    =d.expenses;
+  if(d.commonExps)  commonExps  =d.commonExps;
+  if(d.importLog)   importLog   =d.importLog;
+  if(d.globalLoans) globalLoans =d.globalLoans;
 }
 async function loadData(){loadLocal();await syncFromDrive();}
 function loadLocal(){
@@ -418,13 +435,12 @@ function saveData(){
 async function saveToDrive(){
   if(!accessToken||_savePending)return;
   _savePending=true;
+  setDriveStatus('syncing');
   try{
     const data=JSON.stringify({properties,airbnbRows,expenses,commonExps,importLog,globalLoans,savedAt:new Date().toISOString()});
     const blob=new Blob([data],{type:'application/json'});
     if(_fileId){
-      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${_fileId}?uploadType=media`,{
-        method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:blob
-      });
+      await fetch(`https://www.googleapis.com/upload/drive/v3/files/${_fileId}?uploadType=media`,{method:'PATCH',headers:{Authorization:'Bearer '+accessToken,'Content-Type':'application/json'},body:blob});
     }else{
       const form=new FormData();
       form.append('metadata',new Blob([JSON.stringify({name:'appdata.json',parents:[FOLDER_ID]})],{type:'application/json'}));
@@ -432,10 +448,9 @@ async function saveToDrive(){
       const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
       _fileId=(await r.json()).id;
     }
-    _lastSaved=new Date().toLocaleString('ja-JP');
-    setSyncStatus('最終保存: '+_lastSaved);
-    const el=document.getElementById('lastSavedText');if(el)el.textContent='最終保存: '+_lastSaved;
-  }finally{_savePending=false;}
+    setDriveStatus('ok');setSyncTime();
+  }catch(e){setDriveStatus('ng');}
+  finally{_savePending=false;}
 }
 async function archiveCSV(filename,text){
   if(!accessToken)return;
@@ -444,98 +459,146 @@ async function archiveCSV(filename,text){
   form.append('file',new Blob([text],{type:'text/csv'}));
   await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form}).catch(()=>{});
 }
-async function manualSync(){setSyncStatus('更新中...');await syncFromDrive();}
-function setSyncStatus(t){const el=document.getElementById('syncStatus');if(el)el.textContent=t;}
+async function manualSync(){await syncFromDrive();renderCurrent();}
 
-// ═══ 集計ヘルパー ═══
-function calcML(principal,rate,years){
-  const m=rate/100/12,n=years*12;
-  if(!m)return Math.round(principal/n);
-  return Math.round(principal*m*Math.pow(1+m,n)/(Math.pow(1+m,n)-1));
+// ═══ ナビゲーション（不動産アプリ準拠） ═══
+function buildNav(){
+  const isAll=currentProp==='all';
+  const tabs=isAll
+    ?['cashflow:収支','occupancy:稼働状況']
+    :['cashflow:収支','occupancy:稼働状況','analysis:概要'];
+  document.getElementById('mainNav').innerHTML=tabs.map(t=>{
+    const[id,label]=t.split(':');
+    return`<button class="nb" onclick="showTab('${id}',this)">${label}</button>`;
+  }).join('');
+  document.getElementById('mainNav').firstChild?.classList.add('active');
 }
 
-// 物件の月返済合計（複数ローン対応）
+function showTab(id,el){
+  iconPageActive=null;updateIconBtns();
+  currentTabId=id;
+  if(el){
+    document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }else{
+    const L={cashflow:'収支',occupancy:'稼働状況',analysis:'概要'};
+    document.querySelectorAll('.nb').forEach(b=>{if(b.textContent.trim()===L[id])b.classList.add('active');});
+  }
+  da();
+  ({cashflow:renderCashflow,occupancy:renderOccupancy,analysis:renderAnalysis}[id]||renderCashflow)();
+}
+
+function showIconPage(id){
+  iconPageActive=id;updateIconBtns();
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  da();
+  ({upload:renderUpload,files:renderFiles,settings:renderSettings}[id]||renderSettings)();
+}
+
+function switchProp(){
+  currentProp=document.getElementById('propSel').value;
+  iconPageActive=null;updateIconBtns();
+  buildNav();showTab('cashflow');
+}
+
+function renderCurrent(){
+  if(iconPageActive){showIconPage(iconPageActive);return;}
+  showTab(currentTabId);
+}
+
+function da(){document.getElementById('pages').innerHTML='';}
+
+function updateIconBtns(){
+  ['upload','files','settings'].forEach(id=>{
+    const btn=document.getElementById('icon'+id.charAt(0).toUpperCase()+id.slice(1));
+    if(btn)btn.classList.toggle('active-page',iconPageActive===id);
+  });
+}
+
+function buildPropSelector(){
+  const cp=currentProp;
+  document.getElementById('propSel').innerHTML=
+    `<option value="all">全物件</option>`+
+    properties.map(p=>`<option value="${p.id}"${p.id===cp?'selected':''}>${p.name}</option>`).join('');
+}
+
+function buildYearSel(){
+  const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])].sort((a,b)=>b-a);
+  const cur=+document.getElementById('yearSel').value||new Date().getFullYear();
+  document.getElementById('yearSel').innerHTML=allYears.map(y=>`<option value="${y}"${y===cur?'selected':''}>${y}年</option>`).join('');
+}
+
+// ═══ 集計 ═══
+function calcML(p,r,y){const m=r/100/12,n=y*12;if(!m)return Math.round(p/n);return Math.round(p*m*Math.pow(1+m,n)/(Math.pow(1+m,n)-1));}
+function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').toLowerCase();}
+function yen(v){return '¥'+Math.round(v).toLocaleString();}
+function yenS(v){return v===0?'—':'¥'+Math.round(v).toLocaleString();}
+function pc(v){return v>0?'c-grn':v<0?'c-red':'';}
+function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,6);}
+function ymStr(y,m){return y+'-'+(String(m).padStart(2,'0'));}
+
 function propLoanRepay(prop,year,month){
-  return (prop.loans||[]).reduce((s,loan)=>{
+  return(prop.loans||[]).reduce((s,loan)=>{
     if(!loan.startDate)return s;
-    const start=new Date(loan.startDate);
-    const ym=year*12+month;
-    const startYM=start.getFullYear()*12+(start.getMonth()+1);
-    const endYM=startYM+loan.years*12-1;
-    if(ym>=startYM&&ym<=endYM) s+=calcML(loan.principal,loan.rate,loan.years);
+    const start=new Date(loan.startDate),ym=year*12+month;
+    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
+    if(ym>=sYM&&ym<=eYM)s+=calcML(loan.principal,loan.rate,loan.years);
     return s;
   },0);
 }
-
-// 全体ローンの月返済合計
 function globalLoanRepay(year,month){
   return globalLoans.reduce((s,loan)=>{
     if(!loan.startDate)return s;
-    const start=new Date(loan.startDate);
-    const ym=year*12+month;
-    const startYM=start.getFullYear()*12+(start.getMonth()+1);
-    const endYM=startYM+loan.years*12-1;
-    if(ym>=startYM&&ym<=endYM) s+=calcML(loan.principal,loan.rate,loan.years);
+    const start=new Date(loan.startDate),ym=year*12+month;
+    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
+    if(ym>=sYM&&ym<=eYM)s+=calcML(loan.principal,loan.rate,loan.years);
     return s;
   },0);
 }
-
-// 転貸家賃（指定年月に適用される金額）
 function getRent(prop,year,month){
   if(prop.type!=='sublease')return 0;
-  const history=prop.rentHistory||[];
-  const ym=ymStr(year,month);
-  // 適用期間内のものを探す（複数あれば最後に登録したものを優先）
-  const matched=history.filter(h=>{
-    if(h.from>ym)return false;
-    if(h.to&&h.to<ym)return false;
-    return true;
-  });
-  if(!matched.length)return 0;
-  return matched[matched.length-1].amount||0;
+  const ym=ymStr(year,month),history=prop.rentHistory||[];
+  const matched=history.filter(h=>h.from<=ym&&(!h.to||h.to>=ym));
+  return matched.length?matched[matched.length-1].amount:0;
 }
-function ymStr(y,m){return y+'-'+(String(m).padStart(2,'0'));}
-
 function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
-function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
+function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
+function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
 function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
 function ni(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.nights||0),0);}
-function oc(pid,y,m){const n=ni(pid,y,m),days=new Date(y,m,0).getDate(),cnt=pid==='all'?properties.length:1;return days*cnt>0?(n/(days*cnt))*100:0;}
 
-// 全体月次データ
-function mAll(y){
+// 月次データ生成（pid='all' or 物件ID）
+function monthlyData(pid,year){
   return MONTHS.map(m=>{
-    const R=properties.reduce((s,p)=>s+rv(p.id,y,m),0);
-    const E=properties.reduce((s,p)=>s+ex(p.id,y,m),0);
-    const rent=properties.reduce((s,p)=>s+getRent(p,y,m),0);
-    const propLoans=properties.reduce((s,p)=>s+propLoanRepay(p,y,m),0);
-    const C=cm(y,m);
-    const GL=globalLoanRepay(y,m);
-    return{m,R,E,rent,propLoans,C,GL,profit:R-E-rent-propLoans-C-GL,occ:oc('all',y,m)};
+    const R=pid==='all'?properties.reduce((s,p)=>s+rv(p.id,year,m),0):rv(pid,year,m);
+    const p=pid!=='all'?properties.find(x=>x.id===pid):null;
+    const rent=pid==='all'?properties.reduce((s,p)=>s+getRent(p,year,m),0):getRent(p,year,m);
+    const propL=pid==='all'?properties.reduce((s,p)=>s+propLoanRepay(p,year,m),0):propLoanRepay(p,year,m);
+    const GL=globalLoanRepay(year,m);
+    const C=cm(year,m);
+    const expTotal=pid==='all'?properties.reduce((s,p)=>s+ex(p.id,year,m),0):ex(pid,year,m);
+    // カテゴリ別経費
+    const expByCat={};
+    EXP_CATS.forEach(cat=>{expByCat[cat]=pid==='all'?properties.reduce((s,p)=>s+exByCat(p.id,year,m,cat),0):exByCat(pid,year,m,cat);});
+    const nights=ni(pid==='all'?'all':pid,year,m);
+    const daysInMonth=new Date(year,m,0).getDate();
+    const propCount=pid==='all'?properties.length:1;
+    const occ=propCount*daysInMonth>0?(nights/(propCount*daysInMonth))*100:0;
+    const profit=R-expTotal-rent-propL-C-GL;
+    return{m,R,expTotal,expByCat,rent,propL,C,GL,nights,occ,profit};
   });
 }
-
-// 個別物件月次データ
-function mProp(p,y){
-  return MONTHS.map(m=>{
-    const R=rv(p.id,y,m),E=ex(p.id,y,m);
-    const rent=getRent(p,y,m);
-    const loans=propLoanRepay(p,y,m);
-    return{m,R,E,rent,loans,profit:R-E-rent-loans,nights:ni(p.id,y,m),occ:oc(p.id,y,m)};
-  });
+function yearTotal(pid,year){
+  const md=monthlyData(pid,year);
+  return md.reduce((a,r)=>({R:a.R+r.R,expTotal:a.expTotal+r.expTotal,rent:a.rent+r.rent,propL:a.propL+r.propL,C:a.C+r.C,GL:a.GL+r.GL,nights:a.nights+r.nights,profit:a.profit+r.profit}),{R:0,expTotal:0,rent:0,propL:0,C:0,GL:0,nights:0,profit:0});
 }
-
-function yTot(y){return mAll(y).reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,rent:a.rent+r.rent,propLoans:a.propLoans+r.propLoans,C:a.C+r.C,GL:a.GL+r.GL,profit:a.profit+r.profit}),{R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0});}
-
-// ═══ フォーマット ═══
-function yen(v){return '¥'+Math.round(v).toLocaleString();}
-function yenS(v){return v===0?'—':'¥'+Math.round(v).toLocaleString();}
-function pc(v){return v>0?'#1a7a3c':v<0?'#b71c1c':'#aaa';}
-function uid(){return Date.now()+'_'+Math.random().toString(36).slice(2,6);}
-function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').toLowerCase();}
+function lifetimeProfit(pid){
+  const years=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year)])];
+  return years.reduce((s,y)=>s+yearTotal(pid,y).profit,0);
+}
 
 // ═══ CSV処理 ═══
-const COL_ALIASES={
+const COL={
   cc:      ['確認コード','Confirmation Code','confirmation_code','Confirmation code'],
   status:  ['ステータス','Status','status'],
   type:    ['タイプ','Type','type','Transaction Type'],
@@ -563,797 +626,838 @@ function parseCSV(text){
       cur+=line[i];
     }
     vals.push(cur);
-    const obj={};headers.forEach((h,i)=>{obj[h]=(vals[i]||'').trim();});
-    return obj;
+    const obj={};headers.forEach((h,i)=>{obj[h]=(vals[i]||'').trim();});return obj;
   });
 }
-
-// CSVフォーマット判定（予約CSV vs 取引履歴CSV）
-function detectCSVFormat(rows){
-  if(!rows.length)return 'reservation';
+function detectFmt(rows){
+  if(!rows.length)return'reservation';
   const keys=Object.keys(rows[0]);
-  // ステータス列があれば予約CSV
-  if(COL_ALIASES.status.some(k=>keys.includes(k)))return 'reservation';
-  // タイプ列があれば取引履歴CSV
-  if(COL_ALIASES.type.some(k=>keys.includes(k)))return 'transaction';
-  return 'reservation';
+  if(COL.status.some(k=>keys.includes(k)))return'reservation';
+  if(COL.type.some(k=>keys.includes(k)))return'transaction';
+  return'reservation';
 }
-
 function matchProp(listing,aid){
   if(aid)return aid;
   const n=normStr(listing);
-  const m=properties.find(p=>{
-    const targets=[p.name,...(p.keywords||[]),...(p.aliases||[])];
-    return targets.some(x=>{
-      if(!x)return false;
-      const nn=normStr(x);
-      return n.includes(nn)||nn.includes(n);
-    });
-  });
+  const m=properties.find(p=>[p.name,...(p.keywords||[]),...(p.aliases||[])].some(x=>{if(!x)return false;const nn=normStr(x);return n.includes(nn)||nn.includes(n);}));
   return m?m.id:'';
 }
-
 async function processCSV(text,fname,aid){
-  const rows=parseCSV(text);
-  if(!rows.length)return{added:0,duplicate:0,skipped:0,fmt:'unknown'};
-  const fmt=detectCSVFormat(rows);
+  const rows=parseCSV(text);if(!rows.length)return{added:0,duplicate:0,skipped:0,fmt:'unknown'};
+  const fmt=detectFmt(rows);
   const existing=new Set(airbnbRows.map(r=>r.cc?`cc::${r.cc}`:`cx::${r.listing}|${r.ci}|${r.guest}|${r.amount}`));
   const newRows=[];let dup=0,skip=0;
-
   for(const row of rows){
-    const cc     =getC(row,COL_ALIASES.cc);
-    const listing=getC(row,COL_ALIASES.listing);
-    const guest  =getC(row,COL_ALIASES.guest);
-    const ci     =getC(row,COL_ALIASES.ci);
-    const co     =getC(row,COL_ALIASES.co);
-    const nights =toNum(getC(row,COL_ALIASES.nights));
-    const status =getC(row,COL_ALIASES.status);
-    const type   =getC(row,COL_ALIASES.type);
-
+    const cc=getC(row,COL.cc),listing=getC(row,COL.listing),guest=getC(row,COL.guest),ci=getC(row,COL.ci),co=getC(row,COL.co),nights=toNum(getC(row,COL.nights)),status=getC(row,COL.status),type=getC(row,COL.type);
     let net=0;
-    if(fmt==='reservation'){
-      // 予約CSV：キャンセル・保留はスキップ
-      if(/キャンセル|cancelled|pending|保留/i.test(status)){skip++;continue;}
-      net=toNum(getC(row,COL_ALIASES.amount));
-    } else {
-      // 取引履歴CSV：精算額 or 金額を使用
-      const py=toNum(getC(row,COL_ALIASES.payout));
-      const am=toNum(getC(row,COL_ALIASES.amount));
-      net=py>0?py:am;
-      if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
-    }
+    if(fmt==='reservation'){if(/キャンセル|cancelled|pending|保留/i.test(status)){skip++;continue;}net=toNum(getC(row,COL.amount));}
+    else{const py=toNum(getC(row,COL.payout)),am=toNum(getC(row,COL.amount));net=py>0?py:am;if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}}
     if(net<=0){skip++;continue;}
-
     const key=cc?`cc::${cc}`:`cx::${listing}|${ci}|${guest}|${net}`;
     if(existing.has(key)){dup++;continue;}
     existing.add(key);
-
     const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
     const yr=isNaN(d.getTime())?new Date().getFullYear():d.getFullYear();
     const mo=isNaN(d.getTime())?new Date().getMonth()+1:d.getMonth()+1;
     newRows.push({id:uid(),cc,propertyId:matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()});
   }
   airbnbRows=[...airbnbRows,...newRows];
-  await archiveCSV(fname,text);
-  saveData();
+  await archiveCSV(fname,text);saveData();
   return{added:newRows.length,duplicate:dup,skipped:skip,fmt};
-}
-async function onCsvChange(e){await handleCSVFiles(Array.from(e.target.files));e.target.value='';}
-async function onCsvDrop(e){e.preventDefault();document.getElementById('dropzone').classList.remove('drag');await handleCSVFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.csv')));}
-async function handleCSVFiles(files){
-  if(!files.length)return;
-  document.getElementById('dropText').textContent='解析中...';
-  const aid=document.getElementById('csvPropSel').value;
-  const logs=[];
-  for(const f of files){if(!f.name.toLowerCase().endsWith('.csv'))continue;const r=await processCSV(await f.text(),f.name,aid);logs.push({filename:f.name,...r,time:new Date().toLocaleString('ja-JP')});}
-  importLog=[...logs,...importLog];saveData();
-  document.getElementById('dropText').textContent='CSVをドロップ / クリックして選択';
-  document.getElementById('csvResult').innerHTML=logs.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd"><div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename} <span style="font-size:11px;color:#888;font-weight:400">${log.fmt==='reservation'?'予約CSV':'取引履歴CSV'}</span></div><div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap"><span class="c-grn">✓ 新規: <b>${log.added}</b>件</span><span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span><span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span></div></div>`).join('');
-  buildSelectors();render();
-}
-
-// ═══ セレクター構築 ═══
-function buildSelectors(){
-  const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])].sort((a,b)=>b-a);
-  const cy=+document.getElementById('selYear').value||2024;
-  document.getElementById('selYear').innerHTML=allYears.map(y=>`<option value="${y}"${y===cy?'selected':''}>${y}年</option>`).join('');
-  const cp=document.getElementById('selProp').value||'all';
-  document.getElementById('selProp').innerHTML='<option value="all">全物件</option>'+properties.map(p=>`<option value="${p.id}"${p.id===cp?'selected':''}>${p.name}</option>`).join('');
-  document.getElementById('csvPropSel').innerHTML='<option value="">自動判定</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  document.getElementById('ae-prop').innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-  document.getElementById('loan-prop').innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-}
-
-// ═══ タブ切替 ═══
-function showTab(name){
-  currentTab=name;
-  ['dash','props','csv','exp','loans'].forEach(t=>document.getElementById('tab-'+t).style.display=t===name?'':'none');
-  // ナビボタンのactive制御（csvタブはナビに通常表示しない）
-  document.querySelectorAll('.nb').forEach(b=>{
-    const t=b.getAttribute('onclick')?.match(/showTab\('(\w+)'\)/)?.[1];
-    if(t)b.classList.toggle('active',t===name);
-  });
-  // 取込データタブを開いた時はナビに表示
-  const nbCsv=document.getElementById('nb-csv');
-  if(nbCsv) nbCsv.style.display=name==='csv'?'':'none';
-  render();
 }
 
 // ═══ レンダリング ═══
-function render(){
-  const year=+document.getElementById('selYear').value||new Date().getFullYear();
-  const propSel=document.getElementById('selProp').value||'all';
-  if(currentTab==='dash')  renderDash(year,propSel);
-  if(currentTab==='props') renderProps(year);
-  if(currentTab==='csv')   renderCSV(year);
-  if(currentTab==='exp')   renderExp(year,propSel);
-  if(currentTab==='loans') renderLoans();
-}
 
-// ─── ダッシュボード ───
-function renderDash(year,propSel){
-  const mdata=propSel==='all'?mAll(year):MONTHS.map(m=>{
-    const p=properties.find(x=>x.id===propSel);
-    if(!p)return{m,R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0,occ:0};
-    const R=rv(p.id,year,m),E=ex(p.id,year,m),rent=getRent(p,year,m),loans=propLoanRepay(p,year,m),C=cm(year,m),GL=globalLoanRepay(year,m);
-    return{m,R,E,rent,propLoans:loans,C,GL,profit:R-E-rent-loans-C-GL,occ:oc(p.id,year,m)};
-  });
-  const tot=mdata.reduce((a,r)=>({R:a.R+r.R,E:a.E+r.E,rent:a.rent+r.rent,propLoans:a.propLoans+r.propLoans,C:a.C+r.C,GL:a.GL+r.GL,profit:a.profit+r.profit}),{R:0,E:0,rent:0,propLoans:0,C:0,GL:0,profit:0});
+// ── 収支（CF推移）──
+function renderCashflow(){
+  const year=+document.getElementById('yearSel').value||new Date().getFullYear();
+  const pid=currentProp;
+  const md=monthlyData(pid,year);
+  const yt=yearTotal(pid,year);
+  const lp=lifetimeProfit(pid);
+  const prevYearProfit=[...Array(year-2020)].reduce((s,_,i)=>s+yearTotal(pid,2020+i+1).profit,0)-yt.profit;
 
-  let html=`<div class="metric-grid">
-    ${[['総売上',tot.R,'#111'],['物件経費',tot.E,'#b71c1c'],['家賃支払',tot.rent,'#7c3aed'],['ローン返済',tot.propLoans,'#b45309'],['共通経費',tot.C,'#6d28d9'],['運転資金返済',tot.GL,'#b45309'],['年間純利益',tot.profit,pc(tot.profit)]].map(([l,v,c])=>`
-    <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${yen(v)}</div></div>`).join('')}
+  // 累計CF（月次積み上げ）
+  let cumCF=prevYearProfit;
+  const cumCFs=md.map(r=>{cumCF+=r.profit;return cumCF;});
+
+  const pg=document.getElementById('pages');
+
+  // サマリー上段
+  pg.innerHTML=`
+  <div class="summary-grid" style="margin-bottom:12px">
+    ${[
+      ['年間CF',yt.profit,true],
+      ['年間売上',yt.R,false],
+      ['稼働率（年）',((yt.nights/((pid==='all'?properties.length:1)*365))*100).toFixed(1)+'%',false,true],
+      ['取得来CF累計',lp,true],
+    ].map(([l,v,isProfit,isStr])=>`
+    <div class="summary-item">
+      <div class="summary-label">${l}</div>
+      <div class="summary-val ${isStr?'':(isProfit?pc(v):'')}">
+        ${isStr?v:yen(v)}
+      </div>
+    </div>`).join('')}
   </div>`;
 
-  html+=`<div class="card"><div class="sec-title">月次CF推移 — ${year}年${propSel!=='all'?' / '+(properties.find(p=>p.id===propSel)?.name||''):' / 全物件'}</div>
-  <div class="scroll-x"><table class="mtbl">
+  // CF推移テーブル（縦=項目、横=月）
+  const hasSublease=pid==='all'?properties.some(p=>p.type==='sublease'):properties.find(p=>p.id===pid)?.type==='sublease';
+  const hasGlobalLoan=globalLoans.length>0;
+  const expCatsUsed=EXP_CATS.filter(cat=>MONTHS.some(m=>md[m-1].expByCat[cat]>0));
+
+  // 行定義
+  const rows=[];
+  rows.push({type:'section',label:'▌ 収入'});
+  rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+
+  rows.push({type:'section',label:'▌ 支出'});
+  expCatsUsed.forEach(cat=>{
+    rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
+  });
+  if(hasSublease) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
+  rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
+  rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
+  if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
+
+  rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
+  rows.push({type:'cum',label:'年間CF累計',vals:cumCFs,totVal:yt.profit});
+  rows.push({type:'lp',label:'取得来CF累計',vals:null,totVal:lp});
+  rows.push({type:'occ',label:'稼働率',vals:md.map(r=>r.occ),totVal:null});
+
+  // テーブル描画
+  let tbl=`<div class="card" style="padding:12px 8px"><div class="scroll-x"><table class="cf-tbl">
     <thead><tr>
-      <th class="l" style="min-width:90px">項目</th>
-      ${MONTHS.map(m=>`<th class="r">${m}月</th>`).join('')}
-      <th class="r">年間</th>
-    </tr></thead>
-    <tbody>
-      ${[
-        {label:'売上',       vals:mdata.map(r=>r.R),         cls:'c-grn',bold:true},
-        {label:'物件経費',   vals:mdata.map(r=>r.E),         cls:'c-red'},
-        {label:'家賃支払',   vals:mdata.map(r=>r.rent),      cls:'c-pur', hide:mdata.every(r=>r.rent===0)},
-        {label:'物件ローン', vals:mdata.map(r=>r.propLoans), cls:'c-org'},
-        {label:'共通経費',   vals:mdata.map(r=>r.C),         cls:'c-pur'},
-        {label:'運転資金',   vals:mdata.map(r=>r.GL),        cls:'c-org', hide:mdata.every(r=>r.GL===0)},
-        {label:'純利益',     vals:mdata.map(r=>r.profit),    cls:'',bold:true,isPL:true},
-        {label:'稼働率',     vals:mdata.map(r=>r.occ),       cls:'',isOcc:true},
-      ].filter(r=>!r.hide).map(row=>{
-        const tot=row.isOcc
-          ? (airbnbRows.filter(r=>r.year===year&&(propSel==='all'||r.propertyId===propSel)).reduce((s,r)=>s+(r.nights||0),0)/365*100)
-          : row.vals.reduce((s,v)=>s+v,0);
-        return `<tr>
-          <td class="l" style="${row.bold?'font-weight:700':'color:#666'}">${row.label}</td>
-          ${row.vals.map((v,i)=>{
-            const has=mdata[i].R>0||mdata[i].E>0;
-            if(row.isOcc)return `<td class="r" style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
-            return `<td class="r ${row.isPL?(v>0?'c-grn':v<0?'c-red':''):row.cls}" style="${row.bold?'font-weight:700':''}">${has||row.isPL?(v!==0?yenS(v):'—'):'—'}</td>`;
-          }).join('')}
-          <td class="r fw7 ${row.isPL?(tot>0?'c-grn':tot<0?'c-red':''):row.cls}">
-            ${row.isOcc?tot.toFixed(0)+'%':tot!==0?yen(tot):'—'}
-          </td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table></div></div>`;
+      <th class="item-col">項目</th>
+      ${MONTHS.map(m=>`<th>${m}月</th>`).join('')}
+      <th>年間</th>
+    </tr></thead><tbody>`;
 
-  if(propSel==='all'){
-    html+=`<div class="card"><div class="sec-title">物件別サマリー — ${year}年</div>
-    <div class="scroll-x"><table class="mtbl">
-      <thead><tr><th class="l">物件</th><th class="l">タイプ</th><th class="r">売上</th><th class="r">物件経費</th><th class="r">家賃</th><th class="r">ローン</th><th class="r">純利益</th><th class="r">利益率</th><th class="r">稼働率</th></tr></thead>
-      <tbody>${properties.map(p=>{
-        const R=MONTHS.reduce((s,m)=>s+rv(p.id,year,m),0),E=MONTHS.reduce((s,m)=>s+ex(p.id,year,m),0);
-        const rent=MONTHS.reduce((s,m)=>s+getRent(p,year,m),0),L=MONTHS.reduce((s,m)=>s+propLoanRepay(p,year,m),0);
-        const pf=R-E-rent-L,o=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
-        return `<tr>
-          <td class="l">${p.name}</td>
-          <td class="l"><span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span></td>
-          <td class="r">${yen(R)}</td>
-          <td class="r c-red">${yen(E)}</td>
-          <td class="r ${rent>0?'c-pur':''}">${rent>0?yen(rent):'—'}</td>
-          <td class="r c-org">${yen(L)}</td>
-          <td class="r fw7" style="color:${pc(pf)}">${yen(pf)}</td>
-          <td class="r" style="color:${pc(R>0?(pf/R)*100:0)}">${R>0?((pf/R)*100).toFixed(1)+'%':'—'}</td>
-          <td class="r">${((o/365)*100).toFixed(0)}%</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div></div>`;
-  }
-  document.getElementById('tab-dash').innerHTML=html;
-}
+  rows.forEach(row=>{
+    if(row.type==='section'){
+      tbl+=`<tr class="cf-section"><td class="item-col" colspan="${14}">${row.label}</td></tr>`;return;
+    }
+    const isProfit=row.type==='cf'||row.type==='cum'||row.type==='lp';
+    const totPos=row.totVal>0,totNeg=row.totVal<0;
+    const trCls=row.type==='cf'?(totPos?'cf-profit':totNeg?'cf-minus':''):row.type==='cum'||row.type==='lp'?'cf-profit':'';
 
-// ─── 物件別 ───
-// 各物件ごとにサブタブ（概要 / CF推移 / 明細）を持つ
-// サブタブ状態はpropSubTab[propId]で管理
-const propSubTab={};
-
-function setPropSubTab(propId,tab){
-  propSubTab[propId]=tab;
-  render();
-}
-
-function renderProps(year){
-  const propSel=document.getElementById('selProp').value||'all';
-  const targets=propSel==='all'?properties:properties.filter(p=>p.id===propSel);
-  let html='';
-
-  targets.forEach(p=>{
-    const subTab=propSubTab[p.id]||'overview';
-    const mdata=mProp(p,year);
-    const totR=mdata.reduce((s,r)=>s+r.R,0),totE=mdata.reduce((s,r)=>s+r.E,0);
-    const totRent=mdata.reduce((s,r)=>s+r.rent,0),totL=mdata.reduce((s,r)=>s+r.loans,0);
-    const totPF=totR-totE-totRent-totL,totN=mdata.reduce((s,r)=>s+r.nights,0);
-    const kws=[...(p.keywords||[]),...(p.aliases||[])];
-
-    html+=`<div class="card">
-      <!-- 物件ヘッダー -->
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <span style="font-size:17px;font-weight:700">${p.name}</span>
-            <span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span>
-          </div>
-          <div style="font-size:12px;color:#aaa">運営開始: ${p.startDate||'—'}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:19px;font-weight:700;color:${pc(totPF)}">${yen(totPF)}</div>
-          <div style="font-size:11px;color:#aaa">${year}年純利益</div>
-        </div>
-      </div>
-
-      <!-- サブタブ -->
-      <div style="display:flex;gap:2px;border-bottom:1px solid #eee;margin-bottom:14px">
-        ${[['overview','概要'],['cf','CF推移'],['detail','明細']].map(([t,l])=>`
-        <button onclick="setPropSubTab('${p.id}','${t}')" style="padding:6px 14px;font-size:12px;font-weight:600;border:none;background:transparent;color:${subTab===t?'#111':'#aaa'};border-bottom:${subTab===t?'2px solid #111':'2px solid transparent'};cursor:pointer;font-family:inherit">${l}</button>`).join('')}
-        <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
-          <button class="btn sm" onclick="openAliasModal('${p.id}')">キーワード</button>
-          ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
-          <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ローン</button>
-        </div>
-      </div>`;
-
-    // ── 概要タブ ──
-    if(subTab==='overview'){
-      const initExps=expenses.filter(e=>e.propertyId===p.id&&e.isInitial);
-      const initTotal=initExps.reduce((s,e)=>s+e.amount,0);
-      const loanTotal=(p.loans||[]).reduce((s,l)=>s+l.principal,0);
-      const allProfit=Object.keys({}).length===0
-        ? [2023,2024,2025,2026].reduce((s,y)=>{
-            const md=mProp(p,y);
-            return s+md.reduce((ss,r)=>ss+r.profit,0);
-          },0)
-        : 0;
-      // 全期間累計
-      const allYearsList=[...new Set([...airbnbRows.filter(r=>r.propertyId===p.id).map(r=>r.year),...expenses.filter(e=>e.propertyId===p.id).map(e=>e.year)])].sort();
-      const lifetimePF=allYearsList.reduce((s,y)=>s+mProp(p,y).reduce((ss,r)=>ss+r.profit,0),0);
-
-      html+=`
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-          <div>
-            <div class="sec-title">基本情報</div>
-            <table style="width:100%;font-size:13px;border-collapse:collapse">
-              ${[
-                ['物件タイプ', p.type==='sublease'?'転貸（サブリース）':'購入'],
-                ['運営開始', p.startDate||'—'],
-                ['ローン総額', loanTotal>0?yen(loanTotal):'なし'],
-                ['月返済合計', (p.loans||[]).length>0?yen((p.loans||[]).reduce((s,l)=>s+calcML(l.principal,l.rate,l.years),0))+'/月':'なし'],
-                [p.type==='sublease'?'現在の家賃':'—', p.type==='sublease'?yen(getRent(p,year,1))+'/月':'—'],
-              ].filter(([l])=>l!=='—').map(([l,v])=>`<tr><td style="padding:5px 0;color:#888;width:40%">${l}</td><td style="padding:5px 0;font-weight:600">${v}</td></tr>`).join('')}
-            </table>
-          </div>
-          <div>
-            <div class="sec-title">収益サマリー</div>
-            <table style="width:100%;font-size:13px;border-collapse:collapse">
-              ${[
-                [`${year}年 売上`, yen(totR)],
-                [`${year}年 純利益`, yen(totPF)],
-                ['取得来 累計純利益', yen(lifetimePF)],
-                ['稼働率（年間）', ((totN/365)*100).toFixed(1)+'%'],
-              ].map(([l,v],i)=>`<tr><td style="padding:5px 0;color:#888;width:40%">${l}</td><td style="padding:5px 0;font-weight:600;color:${i===1?pc(totPF):i===2?pc(lifetimePF):'#111'}">${v}</td></tr>`).join('')}
-            </table>
-          </div>
-        </div>
-
-        <div class="sec-title">初期費用 <span style="font-weight:400;color:#aaa;font-size:10px">（経費明細で「初期費用」にチェックしたもの）</span></div>
-        ${initExps.length===0
-          ? `<div style="font-size:13px;color:#ccc;padding:10px 0">初期費用の登録がありません。経費追加時に「初期費用として扱う」にチェックを入れてください。</div>`
-          : `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px">
-              <thead><tr>
-                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">年月</th>
-                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">カテゴリ</th>
-                <th style="text-align:right;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">金額</th>
-                <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">備考</th>
-                <th style="padding:5px 8px;border-bottom:2px solid #eee"></th>
-              </tr></thead>
-              <tbody>
-                ${initExps.map(e=>`<tr>
-                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb">${e.year}/${e.month}</td>
-                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb"><span class="bdg">${e.category}</span></td>
-                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb;text-align:right;color:#b71c1c;font-weight:700">${yen(e.amount)}</td>
-                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb;color:#aaa;font-size:12px">${e.note||''}</td>
-                  <td style="padding:6px 8px;border-bottom:1px solid #f2f0eb">
-                    <button class="btn sm" style="font-size:10px;color:#888" onclick="toggleInitial('${e.id}')">解除</button>
-                  </td>
-                </tr>`).join('')}
-              </tbody>
-              <tfoot><tr>
-                <td colspan="2" style="padding:7px 8px;font-weight:700;border-top:2px solid #ddd;background:#f8f7f3">合計</td>
-                <td style="padding:7px 8px;text-align:right;font-weight:700;color:#b71c1c;border-top:2px solid #ddd;background:#f8f7f3">${yen(initTotal)}</td>
-                <td colspan="2" style="border-top:2px solid #ddd;background:#f8f7f3"></td>
-              </tr></tfoot>
-            </table>`
-        }
-
-        ${kws.length>0?`<div style="margin-top:12px"><span style="font-size:11px;color:#ccc">マッチングキーワード: </span>${kws.map(k=>`<span style="font-size:11px;padding:1px 7px;background:#f0eeea;border-radius:4px;color:#888;margin-right:4px">${k}</span>`).join('')}</div>`:''}
-      `;
+    let cells='';
+    if(row.vals){
+      cells=row.vals.map((v,i)=>{
+        if(row.type==='occ')return`<td style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
+        const cls=isProfit?(v>0?'c-grn':v<0?'c-red':''):row.cls||'';
+        const bold=row.type==='cf'||row.type==='cum'?'fw7':'';
+        const has=md[i].R>0||md[i].expTotal>0;
+        return`<td class="${cls} ${bold}">${(has||isProfit)&&v!==0?yenS(v):'—'}</td>`;
+      }).join('');
+    }else{
+      cells=MONTHS.map(()=>`<td>—</td>`).join('');
     }
 
-    // ── CF推移タブ（縦=項目、横=月） ──
-    if(subTab==='cf'){
-      const hasSublease=p.type==='sublease';
-      const rows=[
-        {label:'売上',          vals:mdata.map(m=>m.R),    cls:'c-grn', bold:true},
-        {label:'物件経費',      vals:mdata.map(m=>m.E),    cls:'c-red'},
-        ...(hasSublease?[{label:'家賃',vals:mdata.map(m=>m.rent),cls:'c-pur'}]:[]),
-        {label:'ローン返済',    vals:mdata.map(m=>m.loans), cls:'c-org'},
-        {label:'純利益',        vals:mdata.map(m=>m.profit),cls:'',bold:true,isPL:true},
-        {label:'稼働率',        vals:mdata.map(m=>m.occ),  cls:'',isOcc:true},
-        {label:'泊数',          vals:mdata.map(m=>m.nights),cls:'',isNights:true},
-      ];
-      html+=`<div class="scroll-x"><table class="mtbl">
-        <thead><tr>
-          <th class="l" style="min-width:80px">項目</th>
-          ${MONTHS.map(m=>`<th class="r">${m}月</th>`).join('')}
-          <th class="r">年間</th>
-        </tr></thead>
-        <tbody>
-          ${rows.map(row=>{
-            const tot=row.isOcc
-              ? (mdata.reduce((s,m)=>s+m.nights,0)/365*100)
-              : row.isNights
-              ? mdata.reduce((s,m)=>s+m.nights,0)
-              : row.vals.reduce((s,v)=>s+v,0);
-            return `<tr>
-              <td class="l" style="${row.bold?'font-weight:700':'color:#666'}">${row.label}</td>
-              ${row.vals.map((v,i)=>{
-                const has=mdata[i].R>0||mdata[i].E>0;
-                if(row.isOcc) return `<td class="r" style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
-                if(row.isNights) return `<td class="r" style="color:#666">${v>0?v:'—'}</td>`;
-                return `<td class="r ${row.isPL?(v>0?'c-grn':v<0?'c-red':''):row.cls}" style="${row.bold?'font-weight:700':''}">${has||row.isPL?(v!==0?yenS(v):'—'):'—'}</td>`;
-              }).join('')}
-              <td class="r fw7 ${row.isPL?(tot>0?'c-grn':tot<0?'c-red':''):row.cls}">
-                ${row.isOcc?tot.toFixed(0)+'%':row.isNights?tot:tot!==0?yen(tot):'—'}
-              </td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table></div>`;
-    }
+    const totCell=row.type==='occ'
+      ?`<td style="color:#666">${((yt.nights/((pid==='all'?properties.length:1)*365))*100).toFixed(0)}%</td>`
+      :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
 
-    // ── 明細タブ ──
-    if(subTab==='detail'){
-      const propExps=expenses.filter(e=>e.propertyId===p.id&&e.year===year).sort((a,b)=>a.month-b.month);
-      html+=`
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button class="btn sm" onclick="openModal('addExpModal')">＋ 経費追加</button>
-        </div>
-        <div class="scroll-x"><table class="tbl">
-          <thead><tr>
-            <th>月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期費用</th><th></th>
-          </tr></thead>
-          <tbody>
-            ${propExps.length===0
-              ? `<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">経費データがありません</td></tr>`
-              : propExps.map(e=>`<tr>
-                  <td>${e.month}月</td>
-                  <td><span class="bdg">${e.category}</span></td>
-                  <td style="text-align:right;color:#b71c1c;font-weight:700">${yen(e.amount)}</td>
-                  <td style="color:#aaa;font-size:12px">${e.note||''}</td>
-                  <td style="text-align:center">
-                    <input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める">
-                  </td>
-                  <td><button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
-                </tr>`).join('')
-            }
-          </tbody>
-        </table></div>`;
-    }
-
-    html+=`</div>`;
+    tbl+=`<tr class="${trCls}">
+      <td class="item-col${row.sub?' cf-sub':''} ${row.bold?'fw7':''}">${row.label}</td>
+      ${cells}${totCell}
+    </tr>`;
   });
 
-  document.getElementById('tab-props').innerHTML=html||'<div class="card" style="color:#aaa;text-align:center;padding:40px">物件がありません。「＋ 物件追加」から追加してください。</div>';
+  tbl+=`</tbody></table></div></div>`;
+  pg.innerHTML+=tbl;
+
+  // 全物件ページのみ：物件別サマリー行を追加
+  if(pid==='all'&&properties.length>0){
+    let propTbl=`<div class="card"><div class="card-title">物件別サマリー</div><div class="scroll-x"><table class="cf-tbl">
+      <thead><tr><th class="item-col">物件</th><th>タイプ</th>${MONTHS.map(m=>`<th>${m}月</th>`).join('')}<th>年間</th></tr></thead><tbody>`;
+    properties.forEach(p=>{
+      const pmd=monthlyData(p.id,year);
+      const pyt=yearTotal(p.id,year);
+      propTbl+=`<tr>
+        <td class="item-col fw7">${p.name}</td>
+        <td><span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span></td>
+        ${pmd.map((r,i)=>`<td class="${pc(r.profit)} fw7">${r.R>0||r.expTotal>0?yenS(r.profit):'—'}</td>`).join('')}
+        <td class="${pc(pyt.profit)} fw7">${yen(pyt.profit)}</td>
+      </tr>`;
+    });
+    propTbl+=`</tbody></table></div></div>`;
+    pg.innerHTML+=propTbl;
+  }
+
+  // 明細履歴
+  pg.innerHTML+=renderExpTable(pid,year);
 }
 
-// ─── 取込データ ───
-function renderCSV(year){
-  const filtered=airbnbRows.filter(r=>r.year===year);
-  const tR=filtered.reduce((s,r)=>s+r.amount,0),tN=filtered.reduce((s,r)=>s+(r.nights||0),0);
-  let html=`<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="sec-title">Airbnb 取込済み予約一覧</div>
-      <button class="btn" onclick="openModal('csvModal')">▲ CSV追加取込</button>
-    </div>
-    <div style="display:flex;gap:20px;margin-bottom:14px;font-size:13px;color:#666;flex-wrap:wrap;padding:10px 12px;background:#f8f7f3;border-radius:8px">
-      <span>${year}年: <b>${filtered.length}</b>件</span>
-      <span>合計売上: <b class="c-grn">${yen(tR)}</b></span>
-      <span>合計泊数: <b>${tN}</b>泊</span>
-      <span style="margin-left:auto;color:#aaa;font-size:12px">累計: ${airbnbRows.length}件（重複排除済み）</span>
+// 経費テーブルHTML生成
+function renderExpTable(pid,year){
+  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month);
+  const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
+  return`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">明細履歴</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="openModal('addExpModal')">＋ 経費</button>
+        <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
+      </div>
     </div>
     <div class="scroll-x"><table class="tbl">
-      <thead><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th>精算額</th><th>ファイル</th></tr></thead>
+      <thead><tr><th>物件</th><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期</th><th></th></tr></thead>
+      <tbody>
+        ${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
+          <td>${p?.name||'—'}</td><td>${e.year}/${e.month}</td>
+          <td><span class="bdg">${e.category}</span></td>
+          <td style="text-align:right" class="c-red fw7">${yen(e.amount)}</td>
+          <td style="color:#aaa;font-size:12px">${e.note||''}</td>
+          <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用"></td>
+          <td><button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
+        </tr>`;}).join('')}
+        ${comList.map(c=>`<tr>
+          <td style="color:#aaa">共通</td><td>${c.year}/${c.month}</td>
+          <td><span class="bdg p">${c.category}</span></td>
+          <td style="text-align:right" class="c-pur fw7">${yen(c.amount)}</td>
+          <td style="color:#aaa;font-size:12px">${c.note||''}</td>
+          <td></td>
+          <td><button class="btn sm danger" onclick="delCom('${c.id}')">削除</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+// ── 稼働状況 ──
+function renderOccupancy(){
+  const year=+document.getElementById('yearSel').value||new Date().getFullYear();
+  const pid=currentProp;
+  const pg=document.getElementById('pages');
+  const targets=pid==='all'?properties:properties.filter(p=>p.id===pid);
+
+  let html='';
+  targets.forEach(p=>{
+    const daysTotal=365;
+    const totalNights=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
+    const annualOcc=(totalNights/daysTotal*100).toFixed(1);
+    html+=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:700">${p.name}</div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700;color:${+annualOcc>=60?'#1a7a3c':+annualOcc>=40?'#b45309':'#b71c1c'}">${annualOcc}%</div>
+          <div style="font-size:11px;color:#aaa">年間稼働率（${totalNights}泊/${daysTotal}日）</div>
+        </div>
+      </div>
+      <div class="occ-grid">
+        ${MONTHS.map(m=>{
+          const n=ni(p.id,year,m);
+          const days=new Date(year,m,0).getDate();
+          const rate=(n/days*100);
+          const col=rate>=60?'#1a7a3c':rate>=40?'#b45309':rate>0?'#b71c1c':'#ccc';
+          return`<div class="occ-item">
+            <div class="occ-month">${m}月</div>
+            <div class="occ-rate" style="color:${col}">${n>0?rate.toFixed(0)+'%':'—'}</div>
+            <div class="occ-nights">${n>0?n+'泊/'+days+'日':'データなし'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <!-- 月別稼働バー -->
+      <div style="margin-top:14px">
+        ${MONTHS.map(m=>{
+          const n=ni(p.id,year,m);const days=new Date(year,m,0).getDate();const rate=n/days*100;
+          return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:11px;color:#aaa;width:24px;text-align:right">${m}月</span>
+            <div style="flex:1;height:8px;background:#f0efeb;border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(rate,100)}%;background:${rate>=60?'#4caf50':rate>=40?'#ff9800':rate>0?'#f44336':'transparent'};border-radius:4px"></div>
+            </div>
+            <span style="font-size:11px;color:#666;width:36px">${n>0?rate.toFixed(0)+'%':'—'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+
+  // 取込済み予約一覧
+  const filtered=airbnbRows.filter(r=>r.year===year&&(pid==='all'||r.propertyId===pid));
+  html+=`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">取込済み予約一覧</div>
+      <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.length}件</span>
+    </div>
+    <div class="scroll-x"><table class="tbl">
+      <thead><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">売上</th></tr></thead>
       <tbody>${filtered.sort((a,b)=>b.month-a.month).map(r=>{
         const pr=properties.find(p=>p.id===r.propertyId);
-        return `<tr>
-          <td><code style="font-size:11px;color:#999">${r.cc||'—'}</code></td>
+        return`<tr>
+          <td><code style="font-size:11px;color:#aaa">${r.cc||'—'}</code></td>
           <td>${pr?`<span class="bdg b">${pr.name}</span>`:'<span class="bdg y">未割当</span>'}</td>
           <td>${r.month}月</td>
           <td style="font-size:12px">${r.guest||'—'}</td>
           <td style="font-size:12px">${r.ci||'—'}</td>
           <td>${r.nights||'—'}</td>
-          <td class="fw7 c-grn">${yen(r.amount)}</td>
-          <td style="font-size:11px;color:#ccc;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.src||''}</td>
+          <td style="text-align:right" class="c-grn fw7">${yen(r.amount)}</td>
         </tr>`;
       }).join('')}</tbody>
     </table></div>
-    ${airbnbRows.some(r=>!r.propertyId)?'<div class="warn-banner"><b style="color:#b45309">⚠ 物件未割当のデータがあります</b></div>':''}
+    ${airbnbRows.some(r=>!r.propertyId)?'<div class="warn-banner"><b style="color:#b45309">⚠ 物件未割当のデータがあります</b><div style="font-size:12px;color:#888;margin-top:4px">「設定」→「再マッチング実行」を試してください。</div></div>':''}
   </div>`;
-  if(importLog.length){
-    html+=`<div class="card"><div class="sec-title">取込履歴</div>
-    ${importLog.map(log=>`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename}</div>
+  pg.innerHTML=html;
+}
+
+// ── 概要（個別物件のみ） ──
+function renderAnalysis(){
+  const year=+document.getElementById('yearSel').value||new Date().getFullYear();
+  const pid=currentProp;
+  if(pid==='all'){da();document.getElementById('pages').innerHTML='<div class="card" style="color:#aaa;text-align:center;padding:30px">個別物件を選択してください</div>';return;}
+  const p=properties.find(x=>x.id===pid);if(!p)return;
+  const pg=document.getElementById('pages');
+  const yt=yearTotal(pid,year);
+  const lp=lifetimeProfit(pid);
+  const initExps=expenses.filter(e=>e.propertyId===pid&&e.isInitial);
+  const initTotal=initExps.reduce((s,e)=>s+e.amount,0);
+  const loanTotal=(p.loans||[]).reduce((s,l)=>s+l.principal,0);
+  const monthlyLoanTotal=(p.loans||[]).reduce((s,l)=>s+calcML(l.principal,l.rate,l.years),0);
+  const kws=[...(p.keywords||[]),...(p.aliases||[])];
+
+  pg.innerHTML=`
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:17px;font-weight:700;margin-bottom:4px">${p.name}
+          <span class="type-badge-${p.type||'purchase'}" style="margin-left:6px">${p.type==='sublease'?'転貸':'購入'}</span>
+        </div>
+        <div style="font-size:12px;color:#aaa">運営開始: ${p.startDate||'—'}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" onclick="openAliasModal('${p.id}')">キーワード管理</button>
+        ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe" onclick="openRentModal('${p.id}')">家賃履歴</button>`:''}
+        <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン</button>
+      </div>
+    </div>
+
+    <div class="summary-grid" style="margin-bottom:16px">
+      ${[
+        [`${year}年 売上`,yen(yt.R),false],
+        [`${year}年 CF`,yen(yt.profit),true],
+        ['取得来CF累計',yen(lp),true],
+        ['初期費用合計',yen(initTotal),false],
+        ['ローン総額',yen(loanTotal),false],
+      ].map(([l,v,isP])=>`
+      <div class="summary-item">
+        <div class="summary-label">${l}</div>
+        <div class="summary-val ${isP?pc(isP==='profit'?yt.profit:lp):''}">${v}</div>
+      </div>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <div class="card-title">基本情報</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+          ${[
+            ['物件タイプ',p.type==='sublease'?'転貸':'購入'],
+            ['運営開始',p.startDate||'—'],
+            ['ローン本数',(p.loans||[]).length+'本'],
+            ['月返済合計',monthlyLoanTotal>0?yen(monthlyLoanTotal)+'/月':'なし'],
+            ...(p.type==='sublease'?[['現在の家賃',yen(getRent(p,year,1))+'/月']]:[] ),
+          ].map(([l,v])=>`<tr><td style="padding:5px 0;color:#888;width:45%">${l}</td><td style="padding:5px 0;font-weight:600">${v}</td></tr>`).join('')}
+        </table>
+      </div>
+      <div>
+        <div class="card-title">ローン一覧</div>
+        ${(p.loans||[]).length===0?'<div style="font-size:12px;color:#aaa">ローンなし</div>':(p.loans||[]).map(l=>{
+          const ml=calcML(l.principal,l.rate,l.years);
+          const start=new Date(l.startDate||'2023-01-01'),now=new Date();
+          const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
+          const rem=Math.max(l.principal-ml*elapsed,0);
+          return`<div style="margin-bottom:10px">
+            <div style="font-size:12px;font-weight:700">${l.name}</div>
+            <div style="font-size:11px;color:#b45309">${yen(ml)}/月 / 残債${yen(rem)}</div>
+            <div class="pbar" style="margin-top:4px"><div class="pbar-fill" style="width:${(elapsed/(l.years*12))*100}%;background:#4caf50"></div></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card-title">初期費用</div>
+    ${initExps.length===0
+      ?'<div style="font-size:12px;color:#aaa;margin-bottom:12px">初期費用の登録がありません（経費追加時に「初期費用として扱う」にチェック）</div>'
+      :`<div class="scroll-x"><table class="tbl" style="margin-bottom:12px">
+        <thead><tr><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th></th></tr></thead>
+        <tbody>
+          ${initExps.map(e=>`<tr>
+            <td>${e.year}/${e.month}</td>
+            <td><span class="bdg">${e.category}</span></td>
+            <td style="text-align:right" class="c-red fw7">${yen(e.amount)}</td>
+            <td style="color:#aaa;font-size:12px">${e.note||''}</td>
+            <td><button class="btn sm" style="color:#888;font-size:10px" onclick="toggleInitial('${e.id}')">解除</button></td>
+          </tr>`).join('')}
+          <tr style="background:#f5f5f0">
+            <td colspan="2" class="fw7">合計</td>
+            <td style="text-align:right" class="c-red fw7">${yen(initTotal)}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tbody>
+      </table></div>`}
+
+    ${kws.length>0?`<div><span style="font-size:11px;color:#aaa">マッチングキーワード: </span>${kws.map(k=>`<span style="font-size:11px;padding:1px 7px;background:#f0efeb;border-radius:4px;color:#888;margin-right:4px">${k}</span>`).join('')}</div>`:''}
+  </div>`;
+}
+
+// ── アップロード（取込）──
+function renderUpload(){
+  const pg=document.getElementById('pages');
+  pg.innerHTML=`
+  <div class="card">
+    <div class="card-title">CSV取込（Airbnb）</div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.7">
+      Airbnb →「取引履歴」または「予約」→「CSVでダウンロード」で取得したファイルを読み込みます。<br>
+      確認コードで重複を自動排除。取込後CSVはドライブに自動保存されます。
+    </p>
+    <div class="form-row" style="margin-bottom:12px">
+      <label class="form-label">物件を事前指定（空欄=掲載名から自動判定）</label>
+      <select id="csvPropSel"><option value="">自動判定</option>${properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+    </div>
+    <div class="dropzone" id="csvDropzone" onclick="document.getElementById('csvFile').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')" ondrop="onCsvDrop(event)">
+      <input type="file" id="csvFile" accept=".csv" multiple style="display:none" onchange="onCsvChange(event)">
+      <div style="font-size:24px;margin-bottom:6px">📊</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px" id="dropText">CSVをドロップ / クリックして選択</div>
+      <div style="font-size:11px;color:#aaa">複数ファイル可 · 重複は自動スキップ</div>
+    </div>
+    <div id="csvResult" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">書類取込（PDF・画像）</div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px;line-height:1.7">
+      精算書・請求書・領収書などをアップロードするとClaude AIが内容を解析し、<br>
+      経費・収入に自動振り分けします。確認後にドライブの物件フォルダへ格納されます。
+    </p>
+    <div class="form-row" style="margin-bottom:12px">
+      <label class="form-label">対象物件</label>
+      <select id="pdfPropSel"><option value="">選択してください</option>${properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+    </div>
+    <div class="dropzone" id="pdfDropzone" onclick="document.getElementById('pdfFile').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')" ondrop="onPdfDrop(event)">
+      <input type="file" id="pdfFile" accept=".pdf,.png,.jpg,.jpeg,.heic" multiple style="display:none" onchange="onPdfChange(event)">
+      <div style="font-size:24px;margin-bottom:6px">📄</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px" id="pdfDropText">PDF / 画像をドロップ / クリックして選択</div>
+      <div style="font-size:11px;color:#aaa">精算書・請求書・領収書・明細書など</div>
+    </div>
+    <div id="pdfResult" style="margin-top:12px"></div>
+  </div>`;
+}
+
+// ── PDF解析 ──
+let _pendingUploadData=null; // 確認モーダル用の一時データ
+
+async function onPdfChange(e){await handlePdfFiles(Array.from(e.target.files));e.target.value='';}
+async function onPdfDrop(e){
+  e.preventDefault();
+  document.getElementById('pdfDropzone')?.classList.remove('drag');
+  await handlePdfFiles(Array.from(e.dataTransfer.files));
+}
+
+async function handlePdfFiles(files){
+  if(!files.length)return;
+  const propId=document.getElementById('pdfPropSel')?.value||'';
+  const dropText=document.getElementById('pdfDropText');
+  if(dropText)dropText.textContent='解析中...';
+  const pdfResult=document.getElementById('pdfResult');
+  if(pdfResult)pdfResult.innerHTML='<div style="font-size:13px;color:#666;padding:8px 0">🔍 AIが書類を解析しています...</div>';
+
+  for(const file of files){
+    try{
+      // base64変換
+      const base64=await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=()=>res(r.result.split(',')[1]);
+        r.onerror=rej;
+        r.readAsDataURL(file);
+      });
+      const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
+      const mediaType=isPdf?'application/pdf':(file.type||'image/jpeg');
+
+      // Claude API呼び出し
+      const year=+document.getElementById('yearSel').value||new Date().getFullYear();
+      const prop=properties.find(p=>p.id===propId);
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:1000,
+          messages:[{
+            role:'user',
+            content:[
+              {type:isPdf?'document':'image',source:{type:'base64',media_type:mediaType,data:base64}},
+              {type:'text',text:`この書類（精算書・請求書・領収書・明細書など）を解析して以下のJSON形式のみで回答してください。説明文やmarkdownは不要です。
+
+{
+  "docType": "精算書|請求書|領収書|明細書|その他",
+  "year": 年(数値),
+  "month": 月(数値),
+  "items": [
+    {"label":"項目名","amount":金額(数値),"type":"expense|income","category":"カテゴリ","note":"備考"}
+  ],
+  "totalAmount": 合計金額(数値),
+  "suggestedFilename": "YYYYMM_書類種別_発行元",
+  "summary": "書類の概要（1行）"
+}
+
+対象物件: ${prop?.name||'不明'}
+経費カテゴリ候補: 清掃費,水道光熱費,修繕費,消耗品費,プラットフォーム手数料,管理費,その他経費
+収入カテゴリ候補: 宿泊収入,その他収入
+年月が不明な場合は${year}年のものと推定してください。金額は税込円で整数。`}
+            ]
+          }]
+        })
+      });
+      const data=await resp.json();
+      const text=data.content?.map(c=>c.text||'').join('')||'';
+      let parsed=null;
+      try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){}
+
+      if(!parsed){
+        if(pdfResult)pdfResult.innerHTML='<div style="color:#b71c1c;font-size:13px;padding:8px">解析に失敗しました。別のファイルをお試しください。</div>';
+        if(dropText)dropText.textContent='PDF / 画像をドロップ / クリックして選択';
+        return;
+      }
+
+      // 確認モーダルを表示
+      _pendingUploadData={parsed,propId,file,base64,mediaType,isPdf};
+      showUploadConfirm(parsed,propId,file.name);
+
+    }catch(err){
+      console.error(err);
+      if(pdfResult)pdfResult.innerHTML=`<div style="color:#b71c1c;font-size:13px;padding:8px">エラー: ${err.message}</div>`;
+    }
+  }
+  if(dropText)dropText.textContent='PDF / 画像をドロップ / クリックして選択';
+}
+
+function showUploadConfirm(parsed,propId,filename){
+  const prop=properties.find(p=>p.id===propId);
+  let html=`
+  <div style="padding:10px 12px;background:#f9f9f7;border-radius:8px;margin-bottom:14px;font-size:12px;color:#666">
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px">${parsed.summary||parsed.docType}</div>
+    <div>ファイル: ${filename} / ${parsed.year||'—'}年${parsed.month||'—'}月 / ${parsed.docType}</div>
+  </div>
+
+  <div class="card-title">解析された明細（物件: ${prop?.name||'未指定'}）</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:14px">
+    <thead><tr>
+      <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">項目</th>
+      <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">種別</th>
+      <th style="text-align:left;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">カテゴリ</th>
+      <th style="text-align:right;padding:5px 8px;border-bottom:2px solid #eee;color:#aaa;font-size:11px">金額</th>
+      <th style="padding:5px 8px;border-bottom:2px solid #eee"></th>
+    </tr></thead>
+    <tbody>
+      ${(parsed.items||[]).map((item,i)=>`<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">${item.label}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">
+          <select id="utype_${i}" style="font-size:12px;padding:3px 6px">
+            <option value="expense" ${item.type==='expense'?'selected':''}>経費</option>
+            <option value="income"  ${item.type==='income'?'selected':''}>収入</option>
+            <option value="skip">スキップ</option>
+          </select>
+        </td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">
+          <select id="ucat_${i}" style="font-size:12px;padding:3px 6px">
+            ${[...EXP_CATS,'宿泊収入','その他収入'].map(c=>`<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0efeb;text-align:right;font-weight:700">${yen(item.amount)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">
+          <input type="checkbox" id="ucheck_${i}" checked title="登録する">
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+
+  <div class="form-grid" style="margin-bottom:10px">
+    <div><label class="form-label">年</label><input type="number" id="u-year" value="${parsed.year||new Date().getFullYear()}" style="width:100%"></div>
+    <div><label class="form-label">月</label><input type="number" id="u-month" value="${parsed.month||new Date().getMonth()+1}" min="1" max="12" style="width:100%"></div>
+  </div>
+  <div><label class="form-label">ファイル名（Driveに保存）</label>
+    <input type="text" id="u-filename" value="${parsed.suggestedFilename||filename}" style="width:100%">
+  </div>`;
+
+  document.getElementById('uploadResultBody').innerHTML=html;
+  openModal('uploadResultModal');
+}
+
+async function confirmUploadResult(){
+  if(!_pendingUploadData)return;
+  const {parsed,propId,file,base64,mediaType,isPdf}=_pendingUploadData;
+  const year=+document.getElementById('u-year').value;
+  const month=+document.getElementById('u-month').value;
+  const fname=document.getElementById('u-filename').value||file.name;
+
+  // 選択された明細を登録
+  (parsed.items||[]).forEach((item,i)=>{
+    const typeEl=document.getElementById(`utype_${i}`);
+    const catEl=document.getElementById(`ucat_${i}`);
+    const checkEl=document.getElementById(`ucheck_${i}`);
+    if(!checkEl?.checked||!typeEl||!catEl)return;
+    const type=typeEl.value;
+    if(type==='skip')return;
+
+    if(type==='expense'&&propId){
+      expenses.push({id:uid(),propertyId:propId,year,month,amount:item.amount,category:catEl.value,note:item.label+' ['+fname+']',isInitial:false});
+    }else if(type==='income'&&propId){
+      // 収入はairbnbRowsに追加（手動登録として）
+      airbnbRows.push({id:uid(),cc:'',propertyId:propId,year,month,amount:item.amount,listing:'',guest:'手動登録',ci:'',co:'',nights:0,src:fname,fmt:'manual',at:new Date().toISOString()});
+    }
+  });
+
+  saveData();
+
+  // DriveのフォルダにPDFを格納
+  await uploadFileToDrive(file,base64,mediaType,fname,propId);
+
+  closeModal('uploadResultModal');
+  _pendingUploadData=null;
+  renderCurrent();
+
+  const res=document.getElementById('pdfResult');
+  if(res)res.innerHTML=`<div style="padding:8px 12px;background:#e6f4ea;border-radius:8px;font-size:13px;color:#1a7a3c">✓ 登録完了 · Driveに格納しました</div>`;
+}
+
+// Driveへのファイル格納（物件フォルダ内）
+async function uploadFileToDrive(file,base64,mediaType,filename,propId){
+  if(!accessToken)return;
+  try{
+    // 物件フォルダIDを取得（なければFOLDER_ID直下）
+    const prop=properties.find(p=>p.id===propId);
+    let targetFolderId=FOLDER_ID;
+    if(prop){
+      // 物件名フォルダを探す or 作成
+      const r=await gapi.client.drive.files.list({
+        q:`'${FOLDER_ID}' in parents and name='${prop.name}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+        fields:'files(id)',pageSize:1
+      });
+      if(r.result.files.length>0){
+        targetFolderId=r.result.files[0].id;
+      }else{
+        // フォルダ作成
+        const cr=await gapi.client.drive.files.create({
+          resource:{name:prop.name,mimeType:'application/vnd.google-apps.folder',parents:[FOLDER_ID]},
+          fields:'id'
+        });
+        targetFolderId=cr.result.id;
+      }
+    }
+    // ファイルアップロード
+    const byteStr=atob(base64);
+    const bytes=new Uint8Array(byteStr.length);
+    for(let i=0;i<byteStr.length;i++)bytes[i]=byteStr.charCodeAt(i);
+    const blob=new Blob([bytes],{type:mediaType});
+    const form=new FormData();
+    const ext=file.name.split('.').pop();
+    const uploadName=filename.endsWith('.'+ext)?filename:filename+'.'+ext;
+    form.append('metadata',new Blob([JSON.stringify({name:uploadName,parents:[targetFolderId]})],{type:'application/json'}));
+    form.append('file',blob);
+    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+      method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form
+    });
+  }catch(e){console.error('Drive upload error:',e);}
+}
+
+// ── ファイル一覧 ──
+function renderFiles(){
+  const pg=document.getElementById('pages');
+  pg.innerHTML=`<div class="card">
+    <div class="card-title">取込履歴</div>
+    ${importLog.length===0?'<div style="font-size:13px;color:#aaa;text-align:center;padding:20px">取込履歴はありません</div>':
+    importLog.map(log=>`<div style="padding:10px 12px;background:#f9f9f7;border-radius:8px;margin-bottom:8px;border:.5px solid #e0e0d8">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename} <span style="font-size:11px;color:#aaa;font-weight:400">${log.fmt==='reservation'?'予約CSV':'取引履歴CSV'}</span></div>
       <div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap">
         <span class="c-grn">✓ 新規: <b>${log.added}</b>件</span>
         <span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span>
         <span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span>
         <span class="c-gry" style="margin-left:auto">${log.time||''}</span>
-      </div></div>`).join('')}
-    </div>`;
-  }
-  document.getElementById('tab-csv').innerHTML=html;
-}
-
-// ─── 経費 ───
-function renderExp(year,propSel){
-  let html=`<div class="card"><div class="sec-title">物件経費 月次一覧 — ${year}年</div>
-  <div class="scroll-x"><table class="mtbl">
-    <thead><tr><th class="l">月</th>${EXP_CATS.map(c=>`<th class="r">${c}</th>`).join('')}<th class="r">合計</th></tr></thead>
-    <tbody>${MONTHS.map(m=>{
-      const bc={};expenses.filter(r=>r.year===year&&r.month===m&&(propSel==='all'||r.propertyId===propSel)).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
-      const t=Object.values(bc).reduce((s,v)=>s+v,0);
-      return `<tr class="${t>0?'':'no-data'}"><td class="l">${m}月</td>${EXP_CATS.map(c=>`<td class="r ${bc[c]?'c-red':''}">${bc[c]?yen(bc[c]):'—'}</td>`).join('')}<td class="r fw7 ${t>0?'c-red':''}">${t>0?yen(t):'—'}</td></tr>`;
-    }).join('')}</tbody>
-    <tfoot><tr><td class="l">年間</td>${EXP_CATS.map(c=>{const t=expenses.filter(r=>r.year===year&&r.category===c&&(propSel==='all'||r.propertyId===propSel)).reduce((s,r)=>s+r.amount,0);return`<td class="r ${t?'c-red':''}">${t?yen(t):'—'}</td>`;}).join('')}<td class="r fw7 c-red">${yen(expenses.filter(r=>r.year===year&&(propSel==='all'||r.propertyId===propSel)).reduce((s,r)=>s+r.amount,0))}</td></tr></tfoot>
-  </table></div></div>`;
-
-  html+=`<div class="card"><div class="sec-title">共通経費 月次一覧 — ${year}年</div>
-  <div class="scroll-x"><table class="mtbl">
-    <thead><tr><th class="l">月</th>${COM_CATS.map(c=>`<th class="r">${c}</th>`).join('')}<th class="r">合計</th></tr></thead>
-    <tbody>${MONTHS.map(m=>{
-      const bc={};commonExps.filter(r=>r.year===year&&r.month===m).forEach(r=>{bc[r.category]=(bc[r.category]||0)+r.amount;});
-      const t=Object.values(bc).reduce((s,v)=>s+v,0);
-      return `<tr class="${t>0?'':'no-data'}"><td class="l">${m}月</td>${COM_CATS.map(c=>`<td class="r ${bc[c]?'c-pur':''}">${bc[c]?yen(bc[c]):'—'}</td>`).join('')}<td class="r fw7 ${t>0?'c-pur':''}">${t>0?yen(t):'—'}</td></tr>`;
-    }).join('')}</tbody>
-  </table></div></div>`;
-
-  html+=`<div class="card"><div class="sec-title">経費明細</div>
-  <div class="scroll-x"><table class="tbl">
-    <thead><tr><th>物件</th><th>月</th><th>カテゴリ</th><th>金額</th><th>備考</th><th></th></tr></thead>
-    <tbody>${expenses.filter(r=>r.year===year&&(propSel==='all'||r.propertyId===propSel)).sort((a,b)=>a.month-b.month).map(r=>{
-      const p=properties.find(x=>x.id===r.propertyId);
-      return `<tr><td>${p?.name||'—'}</td><td>${r.month}月</td><td><span class="bdg">${r.category}</span></td><td class="c-red fw7">${yen(r.amount)}</td><td style="color:#aaa;font-size:12px">${r.note||''}</td>
-        <td><button class="btn sm danger" onclick="delExp('${r.id}')">削除</button></td></tr>`;
-    }).join('')}</tbody>
-  </table></div></div>`;
-
-  document.getElementById('tab-exp').innerHTML=html;
-}
-
-// ─── 借入管理 ───
-function renderLoans(){
-  const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])];
-  const totalSelf=properties.reduce((s,p)=>s+(p.selfFunding||0),0);
-  const totalProfit=allYears.reduce((s,y)=>s+yTot(y).profit,0);
-  const recRate=totalSelf>0?Math.max(totalProfit,0)/totalSelf*100:0;
-
-  let html=`<div style="display:flex;gap:8px;margin-bottom:14px">
-    <button class="btn primary" onclick="openAddLoanModal('')">＋ 借入を追加</button>
+      </div>
+    </div>`).join('')}
   </div>`;
+}
 
-  // 自己資金回収率
-  html+=`<div class="card">
-    <div class="sec-title">自己資金回収状況</div>
-    <div class="metric-grid">
-      ${[['総自己資金',yen(totalSelf),'#111'],['累計純利益',yen(Math.max(totalProfit,0)),'#1a7a3c'],['回収率',recRate.toFixed(1)+'%',recRate>=100?'#1a7a3c':'#b45309']].map(([l,v,c])=>`
-      <div class="metric"><div class="metric-label">${l}</div><div class="metric-val" style="color:${c}">${v}</div></div>`).join('')}
+// ── 設定 ──
+function renderSettings(){
+  const pg=document.getElementById('pages');
+  pg.innerHTML=`<div class="card">
+    <div class="card-title">物件管理</div>
+    ${properties.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:.5px solid #f0efeb">
+      <div>
+        <span style="font-weight:700">${p.name}</span>
+        <span class="type-badge-${p.type||'purchase'}" style="margin-left:6px">${p.type==='sublease'?'転貸':'購入'}</span>
+        <div style="font-size:11px;color:#aaa;margin-top:2px">開始: ${p.startDate||'—'} / ローン: ${(p.loans||[]).length}本</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="openAliasModal('${p.id}')">KW</button>
+        ${p.type==='sublease'?`<button class="btn sm" style="color:#7c3aed" onclick="openRentModal('${p.id}')">家賃</button>`:''}
+        <button class="btn sm" onclick="openAddLoanModal('${p.id}')">ローン</button>
+        <button class="btn sm danger" onclick="deleteProp('${p.id}')">削除</button>
+      </div>
+    </div>`).join('')}
+    <button class="btn primary" style="margin-top:12px" onclick="openModal('addPropModal')">＋ 物件追加</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">借入管理（全体）</div>
+    ${globalLoans.map(l=>`<div style="padding:8px 0;border-bottom:.5px solid #f0efeb">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <span style="font-weight:700">${l.name}</span>
+          <span style="font-size:12px;color:#b45309;margin-left:8px">${yen(calcML(l.principal,l.rate,l.years))}/月</span>
+        </div>
+        <button class="btn sm danger" onclick="delGlobalLoan('${l.id}')">削除</button>
+      </div>
+      <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years}年</div>
+    </div>`).join('')}
+    <button class="btn" style="margin-top:12px" onclick="openAddLoanModal('overall')">＋ 全体借入を追加</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">データ管理</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn" style="color:#1a56db;border-color:#a8c4f5" onclick="rematch()">🔄 旧名称で再マッチング実行</button>
+      <button class="btn danger" onclick="if(confirm('Airbnbデータ（${airbnbRows.length}件）を削除しますか？'))setAirbnb_clear()">取込データをクリア</button>
+      <button class="btn danger" onclick="handleSignOut()">Googleアカウントからログアウト</button>
     </div>
-    <div style="font-size:12px;color:#aaa;display:flex;justify-content:space-between;margin-bottom:5px"><span>回収進捗</span><span>${recRate.toFixed(1)}%</span></div>
-    <div class="pbar"><div class="pbar-fill" style="width:${Math.min(Math.max(recRate,0),100)}%;background:${recRate>=100?'#4caf50':'#ff9800'}"></div></div>
   </div>`;
+}
 
-  // 全体借入
-  html+=`<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div class="sec-title" style="margin-bottom:0">全体借入（運転資金等）</div>
-      <button class="btn sm primary" onclick="openAddLoanModal('overall')">＋ 追加</button>
-    </div>`;
-  if(globalLoans.length===0){
-    html+=`<div style="font-size:13px;color:#aaa;text-align:center;padding:20px 0">全体借入はありません</div>`;
-  } else {
-    globalLoans.forEach(loan=>{
-      const ml=calcML(loan.principal,loan.rate,loan.years);
-      const start=new Date(loan.startDate||'2023-01-01'),now=new Date();
-      const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
-      const rem=Math.max(loan.principal-ml*elapsed,0);
-      const payoff=new Date(start);payoff.setMonth(payoff.getMonth()+loan.years*12);
-      html+=`<div style="padding:12px 14px;background:#f8f7f3;border-radius:8px;margin-bottom:10px;border:1px solid #e4e2dd">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div style="font-size:14px;font-weight:700">${loan.name}</div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <span style="font-size:12px;color:#b45309">月返済 ${yen(ml)}</span>
-            <button class="btn sm danger" onclick="delGlobalLoan('${loan.id}')">削除</button>
-          </div>
-        </div>
-        <div class="metric-grid" style="margin-bottom:8px">
-          ${[['借入額',yen(loan.principal),'#111'],['金利/年数',loan.rate+'%/'+loan.years+'年','#111'],['残債（概算）',yen(rem),'#b45309'],['完済予定',payoff.toLocaleDateString('ja-JP',{year:'numeric',month:'short'}),'#1a7a3c']].map(([l,v,c])=>`
-          <div class="metric"><div class="metric-label">${l}</div><div style="font-size:13px;font-weight:700;color:${c}">${v}</div></div>`).join('')}
-        </div>
-        <div class="pbar"><div class="pbar-fill" style="width:${(elapsed/(loan.years*12))*100}%;background:#4caf50"></div></div>
-      </div>`;
-    });
-  }
-  html+=`</div>`;
-
-  // 物件別借入
-  html+=`<div class="card"><div class="sec-title">物件別借入</div>`;
-  properties.forEach(p=>{
-    const loans=p.loans||[];
-    html+=`<div style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:14px;font-weight:700">${p.name} <span class="type-badge-${p.type||'purchase'}" style="font-size:10px">${p.type==='sublease'?'転貸':'購入'}</span></div>
-        <button class="btn sm primary" onclick="openAddLoanModal('${p.id}')">＋ ローン追加</button>      </div>`;
-    if(loans.length===0){
-      html+=`<div style="font-size:12px;color:#aaa;padding:8px 0">ローンなし</div>`;
-    } else {
-      loans.forEach(loan=>{
-        const ml=calcML(loan.principal,loan.rate,loan.years);
-        const start=new Date(loan.startDate||'2023-01-01'),now=new Date();
-        const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
-        const rem=Math.max(loan.principal-ml*elapsed,0);
-        const payoff=new Date(start);payoff.setMonth(payoff.getMonth()+loan.years*12);
-        html+=`<div style="padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <span style="font-size:13px;font-weight:600">${loan.name}</span>
-            <div style="display:flex;gap:6px;align-items:center">
-              <span style="font-size:11px;color:#b45309">月返済 ${yen(ml)}</span>
-              <button class="btn sm danger" onclick="delPropLoan('${p.id}','${loan.id}')">削除</button>
-            </div>
-          </div>
-          <div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap;color:#666">
-            <span>借入 ${yen(loan.principal)}</span>
-            <span>${loan.rate}% / ${loan.years}年</span>
-            <span>残債 ${yen(rem)}</span>
-            <span>完済 ${payoff.toLocaleDateString('ja-JP',{year:'numeric',month:'short'})}</span>
-          </div>
-          <div class="pbar" style="margin-top:6px"><div class="pbar-fill" style="width:${(elapsed/(loan.years*12))*100}%;background:#4caf50"></div></div>
-        </div>`;
-      });
-    }
-    // 転貸の場合は家賃履歴も表示
-    if(p.type==='sublease'){
-      html+=`<div style="margin-top:8px">
-        <div style="font-size:11px;color:#7c3aed;font-weight:700;margin-bottom:6px">家賃履歴</div>`;
-      const history=p.rentHistory||[];
-      if(history.length===0){
-        html+=`<div style="font-size:12px;color:#aaa">家賃履歴なし</div>`;
-      } else {
-        history.forEach(h=>{
-          html+=`<div style="font-size:12px;color:#555;padding:4px 0;border-bottom:1px solid #f0eeea">
-            ${h.from} 〜 ${h.to||'（永続）'} ： <b style="color:#7c3aed">${yen(h.amount)}/月</b>
-          </div>`;
-        });
-      }
-      html+=`<button class="btn sm" style="color:#7c3aed;border-color:#d8b4fe;margin-top:6px" onclick="openRentModal('${p.id}')">家賃履歴を編集</button>`;
-      html+=`</div>`;
-    }
-    html+=`</div><hr class="section-divider">`;
-  });
-  html+=`</div>`;
-
-  document.getElementById('tab-loans').innerHTML=html;
+// ═══ CSV取込ハンドラ ═══
+async function onCsvChange(e){await handleCSVFiles(Array.from(e.target.files));e.target.value='';}
+async function onCsvDrop(e){e.preventDefault();document.getElementById('dropzone')?.classList.remove('drag');await handleCSVFiles(Array.from(e.dataTransfer.files).filter(f=>f.name.toLowerCase().endsWith('.csv')));}
+async function handleCSVFiles(files){
+  if(!files.length)return;
+  const dt=document.getElementById('dropText');if(dt)dt.textContent='解析中...';
+  const aid=document.getElementById('csvPropSel')?.value||'';
+  const logs=[];
+  for(const f of files){if(!f.name.toLowerCase().endsWith('.csv'))continue;const r=await processCSV(await f.text(),f.name,aid);logs.push({filename:f.name,...r,time:new Date().toLocaleString('ja-JP')});}
+  importLog=[...logs,...importLog];saveData();buildPropSelector();buildYearSel();
+  if(dt)dt.textContent='CSVをドロップ / クリックして選択';
+  const res=document.getElementById('csvResult');
+  if(res)res.innerHTML=logs.map(l=>`<div style="padding:8px 12px;background:#f9f9f7;border-radius:8px;margin-bottom:6px;border:.5px solid #e0e0d8">
+    <b>${l.filename}</b> <span style="font-size:11px;color:#aaa">${l.fmt==='reservation'?'予約CSV':'取引履歴CSV'}</span><br>
+    <span class="c-grn">✓ ${l.added}件</span> <span class="c-org">↩ ${l.duplicate}件スキップ</span> <span class="c-gry">— ${l.skipped}件対象外</span>
+  </div>`).join('');
 }
 
 // ═══ CRUD ═══
-function toggleSubleaseFields(){
-  const t=document.getElementById('np-type').value;
-  document.getElementById('sublease-fields').style.display=t==='sublease'?'':'none';
-}
+function toggleSubleaseFields(){document.getElementById('sublease-fields').style.display=document.getElementById('np-type').value==='sublease'?'':'none';}
 function addProp(){
-  const name=document.getElementById('np-name').value.trim();
-  if(!name)return;
+  const name=document.getElementById('np-name').value.trim();if(!name)return;
   const type=document.getElementById('np-type').value;
   const prop={id:uid(),name,type,aliases:[],keywords:[],loans:[],rentHistory:[],startDate:document.getElementById('np-start').value||''};
-  if(type==='sublease'){
-    const rentAmt=+document.getElementById('np-rent').value||0;
-    const rentFrom=document.getElementById('np-rent-from').value;
-    if(rentAmt&&rentFrom) prop.rentHistory=[{id:uid(),from:rentFrom,to:null,amount:rentAmt}];
-  }
-  properties.push(prop);
-  saveData();buildSelectors();render();closeModal('addPropModal');
-  document.getElementById('np-name').value='';
-  document.getElementById('np-start').value='';
-  document.getElementById('np-rent').value='';
-  document.getElementById('np-rent-from').value='';
+  if(type==='sublease'){const amt=+document.getElementById('np-rent').value,from=document.getElementById('np-rent-from').value;if(amt&&from)prop.rentHistory=[{id:uid(),from,to:null,amount:amt}];}
+  properties.push(prop);saveData();buildPropSelector();closeModal('addPropModal');
+  ['np-name','np-start','np-rent','np-rent-from'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderCurrent();
 }
-
+function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
-  const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;
-  if(!pid||!amount)return;
-  const isInitial=document.getElementById('ae-initial').checked;
-  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value,isInitial});
-  saveData();render();closeModal('addExpModal');
-  document.getElementById('ae-amount').value='';
-  document.getElementById('ae-note').value='';
-  document.getElementById('ae-initial').checked=false;
+  const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
+  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value,isInitial:document.getElementById('ae-initial').checked});
+  saveData();['ae-amount','ae-note'].forEach(id=>document.getElementById(id).value='');document.getElementById('ae-initial').checked=false;
+  closeModal('addExpModal');renderCurrent();
 }
 function addCom(){
-  const amount=+document.getElementById('ac-amount').value;
-  if(!amount)return;
+  const amount=+document.getElementById('ac-amount').value;if(!amount)return;
   commonExps.push({id:uid(),year:+document.getElementById('ac-year').value,month:+document.getElementById('ac-month').value,amount,category:document.getElementById('ac-cat').value,note:document.getElementById('ac-note').value});
-  saveData();render();closeModal('addComModal');
-  document.getElementById('ac-amount').value='';document.getElementById('ac-note').value='';
+  saveData();['ac-amount','ac-note'].forEach(id=>document.getElementById(id).value='');
+  closeModal('addComModal');renderCurrent();
 }
-function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();render();}
-function toggleInitial(id){
-  const e=expenses.find(x=>x.id===id);
-  if(!e)return;
-  e.isInitial=!e.isInitial;
-  saveData();render();
-}
+function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();renderCurrent();}
+function delCom(id){commonExps=commonExps.filter(c=>c.id!==id);saveData();renderCurrent();}
+function toggleInitial(id){const e=expenses.find(x=>x.id===id);if(!e)return;e.isInitial=!e.isInitial;saveData();renderCurrent();}
+function setAirbnb_clear(){airbnbRows=[];importLog=[];saveData();renderCurrent();}
 
-// キーワード管理（旧名称と統合）
-function openAliasModal(propId){
-  aliasTargetId=propId;
-  const p=properties.find(x=>x.id===propId);if(!p)return;
-  document.getElementById('aliasDesc').textContent='物件名: '+p.name;
-  document.getElementById('newAlias').value='';
-  renderAliasList();openModal('aliasModal');
+// キーワード管理
+function openAliasModal(id){
+  aliasTargetId=id;const p=properties.find(x=>x.id===id);if(!p)return;
+  document.getElementById('aliasDesc').textContent=p.name+' のマッチングキーワードを管理します。';
+  document.getElementById('newAlias').value='';renderAliasList();openModal('aliasModal');
 }
 function renderAliasList(){
   const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
-  // keywords と aliases を統合して表示
   const kws=[...(p.keywords||[]),...(p.aliases||[])];
   document.getElementById('aliasList').innerHTML=kws.length===0
-    ?'<div style="font-size:13px;color:#ccc;padding:12px 0;text-align:center">キーワードは未登録です</div>'
-    :kws.map(k=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f7f3;border-radius:7px;margin-bottom:6px;border:1px solid #e4e2dd">
+    ?'<div style="font-size:13px;color:#ccc;text-align:center;padding:10px">未登録</div>'
+    :kws.map(k=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#f9f9f7;border-radius:6px;margin-bottom:6px;border:.5px solid #e0e0d8">
       <span style="font-size:13px">${k}</span>
-      <button class="btn sm danger" onclick="delKeyword('${k}')">削除</button>
+      <button class="btn sm danger" onclick="delKeyword('${k.replace(/'/g,"\\'")}')">削除</button>
     </div>`).join('');
 }
-function addAlias(){
-  const k=document.getElementById('newAlias').value.trim();
-  if(!k)return;
-  const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
-  if(!p.keywords)p.keywords=[];
-  if(!p.keywords.includes(k)&&!(p.aliases||[]).includes(k)){
-    p.keywords.push(k);saveData();
-  }
-  document.getElementById('newAlias').value='';
-  renderAliasList();render();
-}
-function delKeyword(k){
-  const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;
-  p.keywords=(p.keywords||[]).filter(x=>x!==k);
-  p.aliases=(p.aliases||[]).filter(x=>x!==k);
-  saveData();renderAliasList();render();
-}
+function addAlias(){const k=document.getElementById('newAlias').value.trim();if(!k)return;const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;if(!p.keywords)p.keywords=[];if(!p.keywords.includes(k)&&!(p.aliases||[]).includes(k))p.keywords.push(k);saveData();document.getElementById('newAlias').value='';renderAliasList();renderCurrent();}
+function delKeyword(k){const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;p.keywords=(p.keywords||[]).filter(x=>x!==k);p.aliases=(p.aliases||[]).filter(x=>x!==k);saveData();renderAliasList();renderCurrent();}
 function rematch(){
   let u=0;
-  airbnbRows=airbnbRows.map(r=>{
-    const match=matchProp(r.listing||'','');
-    if(match&&match!==r.propertyId){u++;return{...r,propertyId:match};}
-    if(!r.propertyId&&match){u++;return{...r,propertyId:match};}
-    return r;
-  });
-  saveData();render();alert('再マッチング完了: '+u+'件を更新しました');
+  airbnbRows=airbnbRows.map(r=>{const m=matchProp(r.listing||'','');if(m&&m!==r.propertyId){u++;return{...r,propertyId:m};}if(!r.propertyId&&m){u++;return{...r,propertyId:m};}return r;});
+  saveData();renderCurrent();alert('再マッチング完了: '+u+'件を更新しました');
 }
 
 // 家賃履歴
-function openRentModal(propId){
-  rentTargetId=propId;
-  const p=properties.find(x=>x.id===propId);if(!p)return;
-  document.getElementById('rentModalDesc').textContent=p.name+' の家賃履歴を管理します。';
-  document.getElementById('rent-from').value='';
-  document.getElementById('rent-to').value='';
-  document.getElementById('rent-amount').value='';
+function openRentModal(id){
+  rentTargetId=id;const p=properties.find(x=>x.id===id);if(!p)return;
+  document.getElementById('rentModalDesc').textContent=p.name+' の家賃履歴';
+  ['rent-from','rent-to','rent-amount'].forEach(i=>document.getElementById(i).value='');
   renderRentHistory();openModal('rentModal');
 }
 function renderRentHistory(){
   const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
-  const history=p.rentHistory||[];
-  document.getElementById('rentHistoryList').innerHTML=history.length===0
-    ?'<div style="font-size:13px;color:#ccc;text-align:center;padding:12px 0">家賃履歴はありません</div>'
-    :history.map(h=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f7f3;border-radius:8px;margin-bottom:8px;border:1px solid #e4e2dd">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:#7c3aed">${yen(h.amount)}/月</div>
-        <div style="font-size:12px;color:#888">${h.from} 〜 ${h.to||'（永続）'}</div>
-      </div>
-      <button class="btn sm danger" onclick="delRentHistory('${h.id}')">削除</button>
+  const h=p.rentHistory||[];
+  document.getElementById('rentHistoryList').innerHTML=h.length===0
+    ?'<div style="font-size:13px;color:#ccc;text-align:center;padding:10px">未登録</div>'
+    :h.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f9f9f7;border-radius:6px;margin-bottom:6px;border:.5px solid #e0e0d8">
+      <div><div style="font-size:13px;font-weight:700;color:#7c3aed">${yen(r.amount)}/月</div><div style="font-size:11px;color:#aaa">${r.from} 〜 ${r.to||'（永続）'}</div></div>
+      <button class="btn sm danger" onclick="delRentHistory('${r.id}')">削除</button>
     </div>`).join('');
 }
 function addRentHistory(){
-  const from=document.getElementById('rent-from').value;
-  const to=document.getElementById('rent-to').value||null;
-  const amount=+document.getElementById('rent-amount').value;
-  if(!from||!amount)return;
-  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
+  const from=document.getElementById('rent-from').value,to=document.getElementById('rent-to').value||null,amount=+document.getElementById('rent-amount').value;
+  if(!from||!amount)return;const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
   p.rentHistory=[...(p.rentHistory||[]),{id:uid(),from,to,amount}];
   p.rentHistory.sort((a,b)=>a.from.localeCompare(b.from));
-  saveData();renderRentHistory();render();
-  document.getElementById('rent-from').value='';document.getElementById('rent-to').value='';document.getElementById('rent-amount').value='';
+  saveData();renderRentHistory();renderCurrent();
+  ['rent-from','rent-to','rent-amount'].forEach(i=>document.getElementById(i).value='');
 }
-function delRentHistory(hid){
-  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
-  p.rentHistory=(p.rentHistory||[]).filter(h=>h.id!==hid);
-  saveData();renderRentHistory();render();
-}
+function delRentHistory(hid){const p=properties.find(x=>x.id===rentTargetId);if(!p)return;p.rentHistory=(p.rentHistory||[]).filter(h=>h.id!==hid);saveData();renderRentHistory();renderCurrent();}
 
 // ローン
-function toggleLoanScope(){
-  const scope=document.getElementById('loan-scope').value;
-  document.getElementById('loan-prop-row').style.display=scope==='overall'?'none':'';
-}
+function toggleLoanScope(){document.getElementById('loan-prop-row').style.display=document.getElementById('loan-scope').value==='overall'?'none':'';}
 function openAddLoanModal(propIdOrScope){
-  if(propIdOrScope==='overall'){
-    document.getElementById('loan-scope').value='overall';
-    document.getElementById('loan-prop-row').style.display='none';
-  } else {
-    document.getElementById('loan-scope').value='property';
-    document.getElementById('loan-prop-row').style.display='';
-    if(propIdOrScope) document.getElementById('loan-prop').value=propIdOrScope;
+  if(propIdOrScope==='overall'){document.getElementById('loan-scope').value='overall';document.getElementById('loan-prop-row').style.display='none';}
+  else{document.getElementById('loan-scope').value='property';document.getElementById('loan-prop-row').style.display='';
+    document.getElementById('loan-prop').innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}"${p.id===propIdOrScope?'selected':''}>${p.name}</option>`).join('');
+    if(propIdOrScope)document.getElementById('loan-prop').value=propIdOrScope;
   }
   ['loan-name','loan-principal','loan-start'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('loan-rate').value='1.8';
-  document.getElementById('loan-years').value='20';
+  document.getElementById('loan-rate').value='1.8';document.getElementById('loan-years').value='20';
   openModal('addLoanModal');
 }
 function addLoan(){
-  const scope=document.getElementById('loan-scope').value;
-  const name=document.getElementById('loan-name').value.trim();
-  const principal=+document.getElementById('loan-principal').value;
-  const rate=+document.getElementById('loan-rate').value;
-  const years=+document.getElementById('loan-years').value;
-  const startDate=document.getElementById('loan-start').value;
+  const scope=document.getElementById('loan-scope').value,name=document.getElementById('loan-name').value.trim(),principal=+document.getElementById('loan-principal').value,rate=+document.getElementById('loan-rate').value,years=+document.getElementById('loan-years').value,startDate=document.getElementById('loan-start').value;
   if(!name||!principal||!startDate)return;
   const loan={id:uid(),name,principal,rate,years,startDate};
-  if(scope==='overall'){
-    globalLoans=[...globalLoans,loan];
-  } else {
-    const pid=document.getElementById('loan-prop').value;
-    if(!pid)return;
-    const p=properties.find(x=>x.id===pid);if(!p)return;
-    p.loans=[...(p.loans||[]),loan];
-  }
-  saveData();buildSelectors();render();closeModal('addLoanModal');
+  if(scope==='overall'){globalLoans=[...globalLoans,loan];}
+  else{const pid=document.getElementById('loan-prop').value;if(!pid)return;const p=properties.find(x=>x.id===pid);if(!p)return;p.loans=[...(p.loans||[]),loan];}
+  saveData();closeModal('addLoanModal');renderCurrent();
 }
-function delPropLoan(propId,loanId){
-  const p=properties.find(x=>x.id===propId);if(!p)return;
-  p.loans=(p.loans||[]).filter(l=>l.id!==loanId);
-  saveData();render();
-}
-function delGlobalLoan(loanId){
-  globalLoans=globalLoans.filter(l=>l.id!==loanId);
-  saveData();render();
-}
+function delPropLoan(propId,loanId){const p=properties.find(x=>x.id===propId);if(!p)return;p.loans=(p.loans||[]).filter(l=>l.id!==loanId);saveData();renderCurrent();}
+function delGlobalLoan(id){globalLoans=globalLoans.filter(l=>l.id!==id);saveData();renderCurrent();}
 
-// ═══ モーダル ═══
+// モーダル
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('modal'))e.target.classList.remove('open');});
+
+// 経費追加モーダルに物件セレクタを都度構築
+document.getElementById('addExpModal').addEventListener('click',()=>{
+  const sel=document.getElementById('ae-prop');
+  if(sel.options.length<=1)sel.innerHTML='<option value="">選択してください</option>'+properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+});
 </script>
 
 <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
