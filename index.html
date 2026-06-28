@@ -72,12 +72,10 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 .cf-tbl td.item-col{text-align:left;color:#555}
 .cf-tbl td.val-bold{font-weight:700}
 .cf-tbl tr.cf-section td{background:#f5f5f0;font-weight:700;font-size:11px;color:#333}
-.cf-tbl tr.cf-profit td{background:#e8f5e9}
-.cf-tbl tr.cf-profit td.item-col{color:#1a7a3c}
-.cf-tbl tr.cf-profit td{color:#1a7a3c}
-.cf-tbl tr.cf-minus td{background:#fce8e8}
-.cf-tbl tr.cf-minus td.item-col{color:#b71c1c}
-.cf-tbl tr.cf-minus td{color:#b71c1c}
+.cf-tbl tr.cf-profit td{background:#f0f4f0}
+.cf-tbl tr.cf-profit td.item-col{color:#333;font-weight:700}
+.cf-tbl tr.cf-minus td{background:#f0f4f0}
+.cf-tbl tr.cf-minus td.item-col{color:#333;font-weight:700}
 .cf-tbl tr.cf-sub td.item-col{padding-left:16px;color:#888;font-size:11px}
 .cf-tbl tr.dim td{opacity:.35}
 
@@ -280,8 +278,8 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
   <div class="form-row"><label class="form-label">カテゴリ</label>
     <select id="ae-cat">
-      <option>清掃費</option><option>水道光熱費</option><option>修繕費</option>
-      <option>消耗品費</option><option>プラットフォーム手数料</option><option>管理費</option><option>その他経費</option>
+      <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
+      <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
   <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note"></div>
@@ -322,7 +320,7 @@ const FOLDER_ID = '13OYTFTW75UEU9St1w4LBHQz63Y8xQxas';
 const SCOPES    = 'https://www.googleapis.com/auth/drive';
 const TOKEN_KEY = 'mp_gtoken', TOKEN_EXP = 'mp_gtoken_exp';
 const MONTHS    = [1,2,3,4,5,6,7,8,9,10,11,12];
-const EXP_CATS  = ['清掃費','水道光熱費','修繕費','消耗品費','プラットフォーム手数料','管理費','その他経費'];
+const EXP_CATS  = ['OTA手数料','運営代行費','清掃費','水道光熱費','修繕費','消耗品費','その他経費'];
 const COM_CATS  = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
 
 // ═══ 状態 ═══
@@ -574,8 +572,8 @@ function monthlyData(pid,year){
     const p=pid!=='all'?properties.find(x=>x.id===pid):null;
     const rent=pid==='all'?properties.reduce((s,p)=>s+getRent(p,year,m),0):getRent(p,year,m);
     const propL=pid==='all'?properties.reduce((s,p)=>s+propLoanRepay(p,year,m),0):propLoanRepay(p,year,m);
-    const GL=globalLoanRepay(year,m);
-    const C=cm(year,m);
+    const GL=pid==='all'?globalLoanRepay(year,m):0;
+    const C=pid==='all'?cm(year,m):0;
     const expTotal=pid==='all'?properties.reduce((s,p)=>s+ex(p.id,year,m),0):ex(pid,year,m);
     // カテゴリ別経費
     const expByCat={};
@@ -741,18 +739,17 @@ function renderCashflow(){
   rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
 
   rows.push({type:'section',label:'▌ 支出'});
+  const hasRent=md.some(r=>r.rent>0);
+  if(hasRent) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
   expCatsUsed.forEach(cat=>{
     rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
   });
-  const hasRent=md.some(r=>r.rent>0);
-  if(hasRent) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
   rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
   rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
   if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
 
   rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
-  rows.push({type:'cum',label:'年間CF累計',vals:cumCFs,totVal:yt.profit});
-  rows.push({type:'lp',label:'取得来CF累計',vals:null,totVal:lp});
+  rows.push({type:'cum',label:'取得来CF累計',vals:cumCFs,totVal:lp});
   rows.push({type:'occ',label:'稼働率',vals:md.map(r=>r.occ),totVal:null});
 
   // テーブル描画
@@ -769,7 +766,7 @@ function renderCashflow(){
     }
     const isProfit=row.type==='cf'||row.type==='cum'||row.type==='lp';
     const totPos=row.totVal>0,totNeg=row.totVal<0;
-    const trCls=row.type==='cf'?(totPos?'cf-profit':totNeg?'cf-minus':''):row.type==='cum'||row.type==='lp'?'cf-profit':'';
+    const trCls=(row.type==='cf'||row.type==='cum'||row.type==='lp')?'cf-profit':'';
 
     let cells='';
     if(row.vals){
