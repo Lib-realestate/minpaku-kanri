@@ -879,8 +879,8 @@ function renderCashflow(){
     pg.innerHTML+=propTbl;
   }
 
-  // 明細履歴
-  pg.innerHTML+=renderExpTable(pid,year);
+  // 明細履歴（個別物件のみ）
+  if(pid!=='all') pg.innerHTML+=renderExpTable(pid,year);
 }
 
 // 経費テーブルHTML生成
