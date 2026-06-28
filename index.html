@@ -1173,10 +1173,44 @@ async function convertToJpeg(file){
   });
 }
 
+// 画像をリサイズ・圧縮（100KB以下に）
+async function compressImage(file){
+  return new Promise((resolve)=>{
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      // 長辺を1500px以下に
+      if(w>1500||h>1500){const r=Math.min(1500/w,1500/h);w=Math.round(w*r);h=Math.round(h*r);}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      // 品質を下げながら100KB以下になるまで試みる
+      let quality=0.8;
+      const tryCompress=()=>{
+        canvas.toBlob(blob=>{
+          URL.revokeObjectURL(url);
+          if(blob.size<100*1024||quality<=0.3){
+            resolve(new File([blob],file.name.replace(/\.[^.]+$/,'.jpg'),{type:'image/jpeg'}));
+          }else{quality-=0.15;canvas.toBlob(b=>{URL.revokeObjectURL('');resolve(new File([b],file.name.replace(/\.[^.]+$/,'.jpg'),{type:'image/jpeg'}));
+          },'image/jpeg',quality);}
+        },'image/jpeg',quality);
+      };
+      tryCompress();
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);resolve(file);};
+    img.src=url;
+  });
+}
+
 async function handlePdfFiles(files){
   if(!files.length)return;
-  // HEICを自動変換
-  files=await Promise.all(files.map(f=>/\.heic$/i.test(f.name)?convertToJpeg(f):Promise.resolve(f)));
+  // HEICを自動変換、画像は圧縮
+  files=await Promise.all(files.map(async f=>{
+    if(/\.heic$/i.test(f.name))return convertToJpeg(f);
+    if(f.type.startsWith('image/'))return compressImage(f);
+    return f;
+  }));
   const propId=document.getElementById('pdfPropSel')?.value||'';
   const dropText=document.getElementById('pdfDropText');
   if(dropText)dropText.textContent='解析中...';
