@@ -645,25 +645,55 @@ function matchProp(listing,aid){
 async function processCSV(text,fname,aid){
   const rows=parseCSV(text);if(!rows.length)return{added:0,duplicate:0,skipped:0,fmt:'unknown'};
   const fmt=detectFmt(rows);
-  const existing=new Set(airbnbRows.map(r=>r.cc?`cc::${r.cc}`:`cx::${r.listing}|${r.ci}|${r.guest}|${r.amount}`));
-  const newRows=[];let dup=0,skip=0;
+  const newRows=[];let dup=0,skip=0,updated=0,cancelled=0;
+
   for(const row of rows){
     const cc=getC(row,COL.cc),listing=getC(row,COL.listing),guest=getC(row,COL.guest),ci=getC(row,COL.ci),co=getC(row,COL.co),nights=toNum(getC(row,COL.nights)),status=getC(row,COL.status),type=getC(row,COL.type);
+
+    const isCancel=/キャンセル|cancelled|pending|保留/i.test(status);
     let net=0;
-    if(fmt==='reservation'){if(/キャンセル|cancelled|pending|保留/i.test(status)){skip++;continue;}net=toNum(getC(row,COL.amount));}
-    else{const py=toNum(getC(row,COL.payout)),am=toNum(getC(row,COL.amount));net=py>0?py:am;if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}}
+    if(fmt==='reservation'){
+      if(!isCancel) net=toNum(getC(row,COL.amount));
+    }else{
+      const py=toNum(getC(row,COL.payout)),am=toNum(getC(row,COL.amount));
+      net=py>0?py:am;
+      if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
+    }
+
+    // 確認コードで既存データを検索
+    const existing=cc?airbnbRows.find(r=>r.cc===cc):null;
+
+    if(isCancel){
+      // キャンセル：既存データがあれば削除
+      if(existing){airbnbRows=airbnbRows.filter(r=>r.cc!==cc);cancelled++;}
+      else skip++;
+      continue;
+    }
+
     if(net<=0){skip++;continue;}
-    const key=cc?`cc::${cc}`:`cx::${listing}|${ci}|${guest}|${net}`;
-    if(existing.has(key)){dup++;continue;}
-    existing.add(key);
+
     const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
     const yr=isNaN(d.getTime())?new Date().getFullYear():d.getFullYear();
     const mo=isNaN(d.getTime())?new Date().getMonth()+1:d.getMonth()+1;
-    newRows.push({id:uid(),cc,propertyId:matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()});
+    const newRow={id:existing?.id||uid(),cc,propertyId:existing?.propertyId||matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
+
+    if(existing){
+      // 変更チェック：金額・宿泊数・ステータスのいずれかが異なれば上書き
+      if(existing.amount===net&&existing.nights===nights&&existing.status===status){dup++;continue;}
+      airbnbRows=airbnbRows.map(r=>r.cc===cc?newRow:r);
+      updated++;
+    }else{
+      // 確認コードなし：複合キーで重複チェック
+      if(!cc){
+        const compKey=`${listing}|${ci}|${guest}|${net}`;
+        if(airbnbRows.some(r=>`${r.listing}|${r.ci}|${r.guest}|${r.amount}`===compKey)){dup++;continue;}
+      }
+      newRows.push(newRow);
+    }
   }
   airbnbRows=[...airbnbRows,...newRows];
   await archiveCSV(fname,text);saveData();
-  return{added:newRows.length,duplicate:dup,skipped:skip,fmt};
+  return{added:newRows.length,updated,cancelled,duplicate:dup,skipped:skip,fmt};
 }
 
 // ═══ レンダリング ═══
@@ -1275,6 +1305,8 @@ function renderFiles(){
       <div style="font-size:13px;font-weight:700;margin-bottom:4px">${log.filename} <span style="font-size:11px;color:#aaa;font-weight:400">${log.fmt==='reservation'?'予約CSV':'取引履歴CSV'}</span></div>
       <div style="display:flex;gap:14px;font-size:12px;flex-wrap:wrap">
         <span class="c-grn">✓ 新規: <b>${log.added}</b>件</span>
+        <span style="color:#1a56db">↑ 更新: <b>${log.updated||0}</b>件</span>
+        <span style="color:#888">🗑 削除: <b>${log.cancelled||0}</b>件</span>
         <span class="c-org">↩ 重複: <b>${log.duplicate}</b>件</span>
         <span class="c-gry">— 対象外: <b>${log.skipped}</b>件</span>
         <span class="c-gry" style="margin-left:auto">${log.time||''}</span>
