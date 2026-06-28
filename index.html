@@ -1211,7 +1211,19 @@ async function handlePdfFiles(files){
     if(f.type.startsWith('image/'))return compressImage(f);
     return f;
   }));
-  const propId=document.getElementById('pdfPropSel')?.value||'';
+  // 物件選択チェック
+  let propId=document.getElementById('pdfPropSel')?.value||'';
+  if(!propId){
+    if(properties.length===1){
+      // 物件が1つなら自動選択
+      propId=properties[0].id;
+      document.getElementById('pdfPropSel').value=propId;
+    }else{
+      const res=document.getElementById('pdfResult');
+      if(res)res.innerHTML='<div style="padding:10px 12px;background:#fce8e8;border-radius:8px;color:#b71c1c;font-size:13px;font-weight:700">⚠ 対象物件を選択してください</div>';
+      return;
+    }
+  }
   const dropText=document.getElementById('pdfDropText');
   if(dropText)dropText.textContent='解析中...';
   const pdfResult=document.getElementById('pdfResult');
