@@ -757,7 +757,7 @@ function renderCashflow(){
     ${[
       ['年間CF',yt.profit,true],
       ['年間売上',yt.R,false],
-      ['稼働率（年）',((yt.nights/(daysForOcc(pid,year))*100).toFixed(1)+'%',false,true],
+      ['稼働率（年）',(yt.nights/daysForOcc(pid,year)*100).toFixed(1)+'%',false,true],
       ['取得来CF累計',lp,true],
     ].map(([l,v,isProfit,isStr])=>`
     <div class="summary-item">
