@@ -529,10 +529,14 @@ function buildPropSelector(){
 // 決算月=3の場合: 2024年度 = 2024年4月〜2025年3月
 function getFiscalMonths(year){
   if(yearMode==='calendar') return MONTHS.map(m=>({year,month:m}));
-  const start=fiscalMonth+1; // 決算月の翌月が年度開始
+  // 決算月の翌月が年度開始（例：決算月=11 → 開始月=12）
+  const startM=fiscalMonth===12?1:fiscalMonth+1;
+  // 開始月が12月の場合、開始年はyear-1（例：2023年度=2022年12月〜）
+  const startYear=startM<=fiscalMonth?year:year-1;
   return Array.from({length:12},(_,i)=>{
-    const m=((start-1+i)%12)+1;
-    const y=year+(start+i>12?1:0);
+    const totalMonth=startM+i;
+    const m=((totalMonth-1)%12)+1;
+    const y=startYear+Math.floor((totalMonth-1)/12);
     return{year:y,month:m};
   });
 }
