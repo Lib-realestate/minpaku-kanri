@@ -823,7 +823,7 @@ function renderCashflow(){
     }
 
     const totCell=row.type==='occ'
-      ?`<td style="color:#666">${((yt.nights/(daysForOcc(pid,year))*100).toFixed(0)}%</td>`
+      ?`<td style="color:#666">${(yt.nights/daysForOcc(pid,year)*100).toFixed(0)}%</td>`
       :row.totVal===null
       ?`<td>—</td>`
       :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
