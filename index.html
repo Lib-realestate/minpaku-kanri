@@ -317,6 +317,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 const CLIENT_ID = '467615685674-njvnd3fgio14jcqb4qobbif4jtiabogb.apps.googleusercontent.com';
 const API_KEY   = 'AIzaSyA0xQ__9nR829v-HDJeH0gd6fSsg_9DDHk';
 const FOLDER_ID = '13OYTFTW75UEU9St1w4LBHQz63Y8xQxas';
+const WORKER_URL= 'https://realestate-ai.elle-71-boc.workers.dev';
 const SCOPES    = 'https://www.googleapis.com/auth/drive';
 const TOKEN_KEY = 'mp_gtoken', TOKEN_EXP = 'mp_gtoken_exp';
 const MONTHS    = [1,2,3,4,5,6,7,8,9,10,11,12];
@@ -609,6 +610,22 @@ function monthlyData(pid,year){
     return{m,R,expTotal,expByCat,rent,propL,C,GL,nights,occ,profit};
   });
 }
+// 稼働率計算用の分母日数（今年なら今日まで、過去年なら年間全日数）
+function daysForOcc(year){
+  const now=new Date();
+  const thisYear=now.getFullYear();
+  if(year<thisYear){
+    // 過去年：うるう年対応
+    return(new Date(year,11,31)-new Date(year,0,1))/86400000+1;
+  }else if(year===thisYear){
+    // 今年：1月1日から今日まで
+    return Math.floor((now-new Date(year,0,1))/86400000)+1;
+  }else{
+    // 未来年
+    return 365;
+  }
+}
+
 function yearTotal(pid,year){
   const md=monthlyData(pid,year);
   return md.reduce((a,r)=>({R:a.R+r.R,expTotal:a.expTotal+r.expTotal,rent:a.rent+r.rent,propL:a.propL+r.propL,C:a.C+r.C,GL:a.GL+r.GL,nights:a.nights+r.nights,profit:a.profit+r.profit}),{R:0,expTotal:0,rent:0,propL:0,C:0,GL:0,nights:0,profit:0});
@@ -740,7 +757,7 @@ function renderCashflow(){
     ${[
       ['年間CF',yt.profit,true],
       ['年間売上',yt.R,false],
-      ['稼働率（年）',((yt.nights/((pid==='all'?properties.length:1)*365))*100).toFixed(1)+'%',false,true],
+      ['稼働率（年）',((yt.nights/((pid==='all'?properties.length:1)*daysForOcc(year)))*100).toFixed(1)+'%',false,true],
       ['取得来CF累計',lp,true],
     ].map(([l,v,isProfit,isStr])=>`
     <div class="summary-item">
@@ -806,7 +823,7 @@ function renderCashflow(){
     }
 
     const totCell=row.type==='occ'
-      ?`<td style="color:#666">${((yt.nights/((pid==='all'?properties.length:1)*365))*100).toFixed(0)}%</td>`
+      ?`<td style="color:#666">${((yt.nights/((pid==='all'?properties.length:1)*daysForOcc(year)))*100).toFixed(0)}%</td>`
       :row.totVal===null
       ?`<td>—</td>`
       :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
@@ -887,7 +904,7 @@ function renderOccupancy(){
 
   let html='';
   targets.forEach(p=>{
-    const daysTotal=365;
+    const daysTotal=daysForOcc(year);
     const totalNights=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
     const annualOcc=(totalNights/daysTotal*100).toFixed(1);
     html+=`<div class="card">
@@ -1130,44 +1147,25 @@ async function handlePdfFiles(files){
       const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
       const mediaType=isPdf?'application/pdf':(file.type||'image/jpeg');
 
-      // Claude API呼び出し
+
+      // Cloudflare Worker経由でClaude API呼び出し
       const year=+document.getElementById('yearSel').value||new Date().getFullYear();
       const prop=properties.find(p=>p.id===propId);
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      const resp=await fetch(WORKER_URL,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
-          model:'claude-sonnet-4-6',
-          max_tokens:1000,
-          messages:[{
-            role:'user',
-            content:[
-              {type:isPdf?'document':'image',source:{type:'base64',media_type:mediaType,data:base64}},
-              {type:'text',text:`この書類（精算書・請求書・領収書・明細書など）を解析して以下のJSON形式のみで回答してください。説明文やmarkdownは不要です。
-
-{
-  "docType": "精算書|請求書|領収書|明細書|その他",
-  "year": 年(数値),
-  "month": 月(数値),
-  "items": [
-    {"label":"項目名","amount":金額(数値),"type":"expense|income","category":"カテゴリ","note":"備考"}
-  ],
-  "totalAmount": 合計金額(数値),
-  "suggestedFilename": "YYYYMM_書類種別_発行元",
-  "summary": "書類の概要（1行）"
-}
-
-対象物件: ${prop?.name||'不明'}
-経費カテゴリ候補: 清掃費,水道光熱費,修繕費,消耗品費,プラットフォーム手数料,管理費,その他経費
-収入カテゴリ候補: 宿泊収入,その他収入
-年月が不明な場合は${year}年のものと推定してください。金額は税込円で整数。`}
-            ]
-          }]
+          fileBase64:base64,
+          mimeType:mediaType,
+          fileName:file.name,
+          properties:properties.map(p=>({id:p.id,name:p.name})),
+          existingFiles:[]
         })
       });
-      const data=await resp.json();
-      const text=data.content?.map(c=>c.text||'').join('')||'';
+      if(!resp.ok) throw new Error('Worker応答エラー: '+resp.status);
+      const text=await resp.text();
       let parsed=null;
+      try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){}
       try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){}
 
       if(!parsed){
