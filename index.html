@@ -329,6 +329,8 @@ let tokenClient, gapiInited=false, gisInited=false, accessToken=null;
 let _fileId=null, _savePending=false;
 let currentProp='all', currentTabId='cashflow', iconPageActive=null;
 let aliasTargetId=null, rentTargetId=null;
+let yearMode='calendar'; // 'calendar'=暦年, 'fiscal'=決算年度
+let fiscalMonth=1;       // 決算月（例:3なら4月始まり）
 
 // ═══ Google API（不動産アプリと同一方式） ═══
 function gapiLoaded(){
@@ -419,13 +421,15 @@ function applyData(d){
   if(d.commonExps)  commonExps  =d.commonExps;
   if(d.importLog)   importLog   =d.importLog;
   if(d.globalLoans) globalLoans =d.globalLoans;
+  if(d.yearMode)    yearMode    =d.yearMode;
+  if(d.fiscalMonth) fiscalMonth =d.fiscalMonth;
 }
 async function loadData(){loadLocal();await syncFromDrive();}
 function loadLocal(){
   try{const d=JSON.parse(localStorage.getItem('mp_data')||'{}');applyData(d);}catch(e){}
 }
 function saveData(){
-  const d={properties,airbnbRows,expenses,commonExps,importLog,globalLoans};
+  const d={properties,airbnbRows,expenses,commonExps,importLog,globalLoans,yearMode,fiscalMonth};
   localStorage.setItem('mp_data',JSON.stringify(d));
   localStorage.setItem('mp_saved_at',new Date().toISOString());
   saveToDrive().catch(()=>{});
@@ -520,10 +524,28 @@ function buildPropSelector(){
     properties.map(p=>`<option value="${p.id}"${p.id===cp?'selected':''}>${p.name}</option>`).join('');
 }
 
+// 選択年度の月リストを返す（暦年 or 決算年度）
+// 決算月=3の場合: 2024年度 = 2024年4月〜2025年3月
+function getFiscalMonths(year){
+  if(yearMode==='calendar') return MONTHS.map(m=>({year,month:m}));
+  const start=fiscalMonth+1; // 決算月の翌月が年度開始
+  return Array.from({length:12},(_,i)=>{
+    const m=((start-1+i)%12)+1;
+    const y=year+(start+i>12?1:0);
+    return{year:y,month:m};
+  });
+}
+function fiscalLabel(year){
+  if(yearMode==='calendar') return year+'年';
+  const startM=fiscalMonth===12?1:fiscalMonth+1;
+  const endM=fiscalMonth;
+  return year+'年度（'+startM+'月〜'+endM+'月）';
+}
+
 function buildYearSel(){
   const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year),2024,2025])].sort((a,b)=>b-a);
   const cur=+document.getElementById('yearSel').value||new Date().getFullYear();
-  document.getElementById('yearSel').innerHTML=allYears.map(y=>`<option value="${y}"${y===cur?'selected':''}>${y}年</option>`).join('');
+  document.getElementById('yearSel').innerHTML=allYears.map(y=>`<option value="${y}"${y===cur?'selected':''}>${yearMode==='fiscal'?y+'年度':y+'年'}</option>`).join('');
 }
 
 // ═══ 集計 ═══
@@ -567,19 +589,20 @@ function ni(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==
 
 // 月次データ生成（pid='all' or 物件ID）
 function monthlyData(pid,year){
-  return MONTHS.map(m=>{
-    const R=pid==='all'?properties.reduce((s,p)=>s+rv(p.id,year,m),0):rv(pid,year,m);
+  const fiscalMons=getFiscalMonths(year);
+  return fiscalMons.map(({year:y,month:m})=>{
+    const R=pid==='all'?properties.reduce((s,p)=>s+rv(p.id,y,m),0):rv(pid,y,m);
     const p=pid!=='all'?properties.find(x=>x.id===pid):null;
-    const rent=pid==='all'?properties.reduce((s,p)=>s+getRent(p,year,m),0):getRent(p,year,m);
-    const propL=pid==='all'?properties.reduce((s,p)=>s+propLoanRepay(p,year,m),0):propLoanRepay(p,year,m);
-    const GL=pid==='all'?globalLoanRepay(year,m):0;
-    const C=pid==='all'?cm(year,m):0;
-    const expTotal=pid==='all'?properties.reduce((s,p)=>s+ex(p.id,year,m),0):ex(pid,year,m);
+    const rent=pid==='all'?properties.reduce((s,p)=>s+getRent(p,y,m),0):getRent(p,y,m);
+    const propL=pid==='all'?properties.reduce((s,p)=>s+propLoanRepay(p,y,m),0):propLoanRepay(p,y,m);
+    const GL=pid==='all'?globalLoanRepay(y,m):0;
+    const C=pid==='all'?cm(y,m):0;
+    const expTotal=pid==='all'?properties.reduce((s,p)=>s+ex(p.id,y,m),0):ex(pid,y,m);
     // カテゴリ別経費
     const expByCat={};
-    EXP_CATS.forEach(cat=>{expByCat[cat]=pid==='all'?properties.reduce((s,p)=>s+exByCat(p.id,year,m,cat),0):exByCat(pid,year,m,cat);});
-    const nights=ni(pid==='all'?'all':pid,year,m);
-    const daysInMonth=new Date(year,m,0).getDate();
+    EXP_CATS.forEach(cat=>{expByCat[cat]=pid==='all'?properties.reduce((s,p)=>s+exByCat(p.id,y,m,cat),0):exByCat(pid,y,m,cat);});
+    const nights=ni(pid==='all'?'all':pid,y,m);
+    const daysInMonth=new Date(y,m,0).getDate();
     const propCount=pid==='all'?properties.length:1;
     const occ=propCount*daysInMonth>0?(nights/(propCount*daysInMonth))*100:0;
     const profit=R-expTotal-rent-propL-C-GL;
@@ -748,8 +771,8 @@ function renderCashflow(){
   rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
   if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
 
-  rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
-  rows.push({type:'cum',label:'取得来CF累計',vals:cumCFs,totVal:lp});
+  rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:null});
+  rows.push({type:'cum',label:'取得来CF累計',vals:cumCFs,totVal:cumCFs[11]});
   rows.push({type:'occ',label:'稼働率',vals:md.map(r=>r.occ),totVal:null});
 
   // テーブル描画
@@ -784,6 +807,8 @@ function renderCashflow(){
 
     const totCell=row.type==='occ'
       ?`<td style="color:#666">${((yt.nights/((pid==='all'?properties.length:1)*365))*100).toFixed(0)}%</td>`
+      :row.totVal===null
+      ?`<td>—</td>`
       :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
 
     tbl+=`<tr class="${trCls}">
@@ -1349,7 +1374,23 @@ function renderSettings(){
   </div>
 
   <div class="card">
-    <div class="card-title">データ管理</div>
+    <div class="card-title">年度設定</div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">表示モード</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn${yearMode==='calendar'?' primary':''}" onclick="setYearMode('calendar')">暦年（1〜12月）</button>
+        <button class="btn${yearMode==='fiscal'?' primary':''}" onclick="setYearMode('fiscal')">決算年度</button>
+      </div>
+    </div>
+    ${yearMode==='fiscal'?`
+    <div>
+      <label class="form-label">決算月</label>
+      <select onchange="setFiscalMonth(+this.value)" style="width:auto">
+        ${Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}"${m===fiscalMonth?'selected':''}>${m}月</option>`).join('')}
+      </select>
+      <div style="font-size:11px;color:#aaa;margin-top:4px">決算月が3月の場合、「2024年度」= 2024年4月〜2025年3月</div>
+    </div>`:''}
+  </div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="btn" style="color:#1a56db;border-color:#a8c4f5" onclick="rematch()">🔄 旧名称で再マッチング実行</button>
       <button class="btn danger" onclick="if(confirm('Airbnbデータ（${airbnbRows.length}件）を削除しますか？'))setAirbnb_clear()">取込データをクリア</button>
@@ -1387,6 +1428,9 @@ function addProp(){
   ['np-name','np-start','np-rent','np-rent-from'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderCurrent();
 }
+function setYearMode(mode){yearMode=mode;saveData();buildYearSel();showIconPage('settings');}
+function setFiscalMonth(m){fiscalMonth=m;saveData();buildYearSel();showIconPage('settings');}
+
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
