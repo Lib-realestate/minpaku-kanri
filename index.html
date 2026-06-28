@@ -714,7 +714,8 @@ function renderCashflow(){
   expCatsUsed.forEach(cat=>{
     rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
   });
-  if(hasSublease) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
+  const hasRent=md.some(r=>r.rent>0);
+  if(hasRent) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
   rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
   rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
   if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
@@ -746,8 +747,9 @@ function renderCashflow(){
         if(row.type==='occ')return`<td style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
         const cls=isProfit?(v>0?'c-grn':v<0?'c-red':''):row.cls||'';
         const bold=row.type==='cf'||row.type==='cum'?'fw7':'';
-        const has=md[i].R>0||md[i].expTotal>0;
-        return`<td class="${cls} ${bold}">${(has||isProfit)&&v!==0?yenS(v):'—'}</td>`;
+        const has=md[i].R>0||md[i].expTotal>0||md[i].propL>0||md[i].rent>0||md[i].GL>0||md[i].C>0;
+        const show=has&&v!==0;
+        return`<td class="${cls} ${bold}">${show?yenS(v):'—'}</td>`;
       }).join('');
     }else{
       cells=MONTHS.map(()=>`<td>—</td>`).join('');
