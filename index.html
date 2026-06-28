@@ -611,19 +611,19 @@ function monthlyData(pid,year){
   });
 }
 // 稼働率計算用の分母日数（今年なら今日まで、過去年なら年間全日数）
-function daysForOcc(year){
-  const now=new Date();
-  const thisYear=now.getFullYear();
-  if(year<thisYear){
-    // 過去年：うるう年対応
-    return(new Date(year,11,31)-new Date(year,0,1))/86400000+1;
-  }else if(year===thisYear){
-    // 今年：1月1日から今日まで
-    return Math.floor((now-new Date(year,0,1))/86400000)+1;
-  }else{
-    // 未来年
-    return 365;
-  }
+function daysForProp(prop,year){
+  const now=new Date(),thisYear=now.getFullYear();
+  const startDate=prop.startDate?new Date(prop.startDate):new Date(year,0,1);
+  if(year<startDate.getFullYear())return 0;
+  const rangeStart=year===startDate.getFullYear()?startDate:new Date(year,0,1);
+  const rangeEnd=year===thisYear?now:new Date(year,11,31);
+  if(rangeEnd<rangeStart)return 0;
+  return Math.floor((rangeEnd-rangeStart)/86400000)+1;
+}
+function daysForOcc(pid,year){
+  if(pid==='all')return properties.reduce((s,p)=>s+daysForProp(p,year),0);
+  const p=properties.find(x=>x.id===pid);
+  return p?daysForProp(p,year):0;
 }
 
 function yearTotal(pid,year){
@@ -757,7 +757,7 @@ function renderCashflow(){
     ${[
       ['年間CF',yt.profit,true],
       ['年間売上',yt.R,false],
-      ['稼働率（年）',((yt.nights/((pid==='all'?properties.length:1)*daysForOcc(year)))*100).toFixed(1)+'%',false,true],
+      ['稼働率（年）',((yt.nights/(daysForOcc(pid,year))*100).toFixed(1)+'%',false,true],
       ['取得来CF累計',lp,true],
     ].map(([l,v,isProfit,isStr])=>`
     <div class="summary-item">
@@ -823,7 +823,7 @@ function renderCashflow(){
     }
 
     const totCell=row.type==='occ'
-      ?`<td style="color:#666">${((yt.nights/((pid==='all'?properties.length:1)*daysForOcc(year)))*100).toFixed(0)}%</td>`
+      ?`<td style="color:#666">${((yt.nights/(daysForOcc(pid,year))*100).toFixed(0)}%</td>`
       :row.totVal===null
       ?`<td>—</td>`
       :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
@@ -904,7 +904,7 @@ function renderOccupancy(){
 
   let html='';
   targets.forEach(p=>{
-    const daysTotal=daysForOcc(year);
+    const daysTotal=daysForOcc(p.id,year);
     const totalNights=MONTHS.reduce((s,m)=>s+ni(p.id,year,m),0);
     const annualOcc=(totalNights/daysTotal*100).toFixed(1);
     html+=`<div class="card">
@@ -1344,7 +1344,11 @@ function renderSettings(){
       <div>
         <span style="font-weight:700">${p.name}</span>
         <span class="type-badge-${p.type||'purchase'}" style="margin-left:6px">${p.type==='sublease'?'転貸':'購入'}</span>
-        <div style="font-size:11px;color:#aaa;margin-top:2px">開始: ${p.startDate||'—'} / ローン: ${(p.loans||[]).length}本</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+  <span style="font-size:11px;color:#aaa">運用開始:</span>
+  <input type="date" value="${p.startDate||''}" style="font-size:11px;padding:2px 6px;width:130px" onchange="updateStartDate('${p.id}',this.value)">
+  <span style="font-size:11px;color:#aaa">ローン: ${(p.loans||[]).length}本</span>
+</div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn sm" onclick="openAliasModal('${p.id}')">KW</button>
@@ -1429,6 +1433,7 @@ function addProp(){
 function setYearMode(mode){yearMode=mode;saveData();buildYearSel();showIconPage('settings');}
 function setFiscalMonth(m){fiscalMonth=m;saveData();buildYearSel();showIconPage('settings');}
 
+function updateStartDate(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.startDate=val;saveData();}
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
