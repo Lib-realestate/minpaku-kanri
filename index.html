@@ -631,26 +631,22 @@ function monthlyData(pid,year){
     EXP_CATS.forEach(cat=>{expByCat[cat]=pid==='all'?properties.reduce((s,p)=>s+exByCat(p.id,y,m,cat),0):exByCat(pid,y,m,cat);});
     const nights=ni(pid==='all'?'all':pid,y,m);
 const daysInMonth=new Date(y,m,0).getDate();
+    const now=new Date(),mStart=new Date(y,m-1,1),mEnd=new Date(y,m-1,daysInMonth);
+    const effectiveEnd=now<mEnd?now:mEnd;
     const occDays=pid==='all'
       ?properties.reduce((s,p)=>{
-          const sd=p.startDate?new Date(p.startDate):new Date(y,m-1,1);
-          const now=new Date();
-          const mStart=new Date(y,m-1,1),mEnd=new Date(y,m-1,daysInMonth);
-          if(sd>mEnd)return s;
+          const sd=p.startDate?new Date(p.startDate):mStart;
+          if(sd>effectiveEnd)return s;
           const from=sd>mStart?sd:mStart;
-          const to=now<mEnd?now:mEnd;
-          return s+Math.max(0,Math.floor((to-from)/86400000)+1);
+          return s+Math.max(0,Math.floor((effectiveEnd-from)/86400000)+1);
         },0)
       :(()=>{
           const p=properties.find(x=>x.id===pid);
           if(!p)return daysInMonth;
-          const sd=p.startDate?new Date(p.startDate):new Date(y,m-1,1);
-          const now=new Date();
-          const mStart=new Date(y,m-1,1),mEnd=new Date(y,m-1,daysInMonth);
-          if(sd>mEnd)return 0;
+          const sd=p.startDate?new Date(p.startDate):mStart;
+          if(sd>effectiveEnd)return 0;
           const from=sd>mStart?sd:mStart;
-          const to=now<mEnd?now:mEnd;
-          return Math.max(0,Math.floor((to-from)/86400000)+1);
+          return Math.max(0,Math.floor((effectiveEnd-from)/86400000)+1);
         })();
     const occ=occDays>0?(nights/occDays)*100:0;
     const profit=R-expTotal-rent-propL-C-GL;
