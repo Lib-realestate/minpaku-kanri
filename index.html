@@ -786,7 +786,8 @@ function renderCashflow(){
   const md=monthlyData(pid,year);
   const yt=yearTotal(pid,year);
   const lp=lifetimeProfit(pid);
-  const prevYearProfit=[...Array(year-2020)].reduce((s,_,i)=>s+yearTotal(pid,2020+i+1).profit,0)-yt.profit;
+// 前年末までの累計CF
+  const prevYearProfit=lifetimeProfit(pid)-yt.profit;
 
   // 累計CF（月次積み上げ）
   let cumCF=prevYearProfit;
