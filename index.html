@@ -786,8 +786,9 @@ function renderCashflow(){
   const md=monthlyData(pid,year);
   const yt=yearTotal(pid,year);
   const lp=lifetimeProfit(pid);
-// 前年末までの累計CF
-  const prevYearProfit=lifetimeProfit(pid)-yt.profit;
+// 前年末までの累計CF（選択年より前の年のみ）
+  const allYears=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year)])].filter(y=>y<year);
+  const prevYearProfit=allYears.reduce((s,y)=>s+yearTotal(pid,y).profit,0);
 
   // 累計CF（月次積み上げ）
   let cumCF=prevYearProfit;
