@@ -833,6 +833,9 @@ function renderCashflow(){
   if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
 
 rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
+  let annualCum=0;
+  const annualCumCFs=md.map(r=>{annualCum+=r.profit;return annualCum;});
+  rows.push({type:'cum',label:'年間CF累計',vals:annualCumCFs,totVal:null});
   rows.push({type:'cum',label:'取得来CF累計',vals:cumCFs,totVal:null});
   rows.push({type:'occ',label:'稼働率',vals:md.map(r=>r.occ),totVal:null});
 
