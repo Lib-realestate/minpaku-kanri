@@ -590,7 +590,30 @@ function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==
 function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
 function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
 function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
-function ni(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.nights||0),0);}
+function ni(pid,y,m){
+  // チェックイン月で集計（従来）＋月跨ぎ分を各月に分配
+  return airbnbRows.filter(r=>(pid==='all'||r.propertyId===pid)).reduce((s,r)=>{
+    if(!r.ci||!r.co){
+      // チェックイン日がない場合は従来通り
+      if(r.year===y&&r.month===m)return s+(r.nights||0);
+      return s;
+    }
+    const ci=new Date(r.ci.replace(/\//g,'-'));
+    const co=new Date(r.co.replace(/\//g,'-'));
+    if(isNaN(ci.getTime())||isNaN(co.getTime())){
+      if(r.year===y&&r.month===m)return s+(r.nights||0);
+      return s;
+    }
+    // この月の1日と末日
+    const mStart=new Date(y,m-1,1);
+    const mEnd=new Date(y,m,0);
+    // 宿泊期間とこの月の重複を計算（チェックアウト日は含まない）
+    const from=ci<mStart?mStart:ci;
+    const to=co>mEnd?mEnd:new Date(co.getTime()-1);// co当日は含まない
+    if(from>to)return s;
+    return s+Math.floor((to-from)/86400000)+1;
+  },0);
+}
 
 // 月次データ生成（pid='all' or 物件ID）
 function monthlyData(pid,year){
