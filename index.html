@@ -924,13 +924,13 @@ function renderExpTable(pid,year){
     <div class="scroll-x"><table class="tbl">
       <thead><tr><th>物件</th><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期</th><th></th></tr></thead>
       <tbody>
-        ${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
+${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
           <td>${p?.name||'—'}</td><td>${e.year}/${e.month}</td>
           <td><span class="bdg">${e.category}</span></td>
           <td style="text-align:right" class="c-red fw7">${yen(e.amount)}</td>
           <td style="color:#aaa;font-size:12px">${e.note||''}</td>
           <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用"></td>
-          <td><button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
+          <td><button class="btn sm" onclick="openEditExpModal('${e.id}')">編集</button> <button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
         </tr>`;}).join('')}
         ${comList.map(c=>`<tr>
           <td style="color:#aaa">共通</td><td>${c.year}/${c.month}</td>
