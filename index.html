@@ -295,6 +295,31 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
+<!-- 経費編集 -->
+<div class="modal" id="editExpModal"><div class="modal-box">
+  <h3>経費を編集</h3>
+  <input type="hidden" id="ee-id">
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">年</label><input type="number" id="ee-year"></div>
+    <div class="form-row"><label class="form-label">月</label><input type="number" id="ee-month" min="1" max="12"></div>
+  </div>
+  <div class="form-row"><label class="form-label">カテゴリ</label>
+    <select id="ee-cat">
+      <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
+      <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
+    </select></div>
+  <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ee-amount"></div>
+  <div class="form-row"><label class="form-label">備考</label><input type="text" id="ee-note"></div>
+  <div class="form-row" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff8e1;border-radius:8px">
+    <input type="checkbox" id="ee-initial" style="width:auto;margin:0">
+    <label for="ee-initial" style="font-size:13px;color:#b45309;font-weight:600;cursor:pointer;margin:0">初期費用として扱う</label>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn primary" onclick="saveEditExp()">保存</button>
+    <button class="btn" onclick="closeModal('editExpModal')">キャンセル</button>
+  </div>
+</div></div>
+
 <!-- 共通経費追加 -->
 <div class="modal" id="addComModal"><div class="modal-box">
   <h3>共通経費を追加</h3>
@@ -922,7 +947,7 @@ function renderExpTable(pid,year){
       </div>
     </div>
     <div class="scroll-x"><table class="tbl">
-      <thead><tr><th>物件</th><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期</th><th></th></tr></thead>
+      <thead><tr><th>物件</th><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期</th><th>書類</th><th></th></tr></thead>
       <tbody>
 ${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
           <td>${p?.name||'—'}</td><td>${e.year}/${e.month}</td>
@@ -930,6 +955,7 @@ ${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
           <td style="text-align:right" class="c-red fw7">${yen(e.amount)}</td>
           <td style="color:#aaa;font-size:12px">${e.note||''}</td>
           <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用"></td>
+          <td style="text-align:center">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">開く</a>`:`<button class="btn sm" style="font-size:10px" onclick="document.getElementById('attach_${e.id}').click()">格納</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
           <td><button class="btn sm" onclick="openEditExpModal('${e.id}')">編集</button> <button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
         </tr>`;}).join('')}
         ${comList.map(c=>`<tr>
@@ -1370,12 +1396,26 @@ async function confirmUploadResult(){
     const type=typeEl.value;
     const amount=+(document.getElementById(`uamt_${i}`)?.value||item.amount);
     const isInitial=!!document.getElementById(`uinitial_${i}`)?.checked;
-    if(type==='expense'&&propId){
-      expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label+' ['+fname+']',isInitial});
+if(type==='expense'&&propId){
+      expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label,isInitial,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:false,_pendingDriveLink:true});
     }else if(type==='income'&&propId){
       airbnbRows.push({id:uid(),cc:'',propertyId:propId,year,month,amount,listing:'',guest:'手動登録',ci:'',co:'',nights:0,src:fname,fmt:'manual',at:new Date().toISOString()});
     }
   });
+
+  // DriveのフォルダにPDFを格納し、登録した経費に紐付け
+  const driveResult=await uploadFileToDrive(file,base64,mediaType,fname,propId);
+  if(driveResult){
+    expenses.forEach(e=>{
+      if(e._pendingDriveLink){
+        e.driveFileId=driveResult.id;
+        e.driveLink=driveResult.webViewLink;
+        e.driveFileName=driveResult.name;
+        delete e._pendingDriveLink;
+      }
+    });
+  }
+  saveData();
 
   saveData();
 
@@ -1424,10 +1464,11 @@ async function uploadFileToDrive(file,base64,mediaType,filename,propId){
     const uploadName=filename.endsWith('.'+ext)?filename:filename+'.'+ext;
     form.append('metadata',new Blob([JSON.stringify({name:uploadName,parents:[targetFolderId]})],{type:'application/json'}));
     form.append('file',blob);
-    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{
+    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{
       method:'POST',headers:{Authorization:'Bearer '+accessToken},body:form
     });
-  }catch(e){console.error('Drive upload error:',e);}
+    return await r.json();
+  }catch(e){console.error('Drive upload error:',e);return null;}
 }
 
 // ── ファイル一覧 ──
@@ -1552,7 +1593,7 @@ function updateStartDate(id,val){const p=properties.find(x=>x.id===id);if(!p)ret
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
-  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value,isInitial:document.getElementById('ae-initial').checked});
+  expenses.push({id:uid(),propertyId:pid,year:+document.getElementById('ae-year').value,month:+document.getElementById('ae-month').value,amount,category:document.getElementById('ae-cat').value,note:document.getElementById('ae-note').value,isInitial:document.getElementById('ae-initial').checked,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:true});
   saveData();['ae-amount','ae-note'].forEach(id=>document.getElementById(id).value='');document.getElementById('ae-initial').checked=false;
   closeModal('addExpModal');renderCurrent();
 }
@@ -1563,6 +1604,36 @@ function addCom(){
   closeModal('addComModal');renderCurrent();
 }
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();renderCurrent();}
+function openEditExpModal(id){
+  const e=expenses.find(x=>x.id===id);if(!e)return;
+  document.getElementById('ee-id').value=id;
+  document.getElementById('ee-year').value=e.year;
+  document.getElementById('ee-month').value=e.month;
+  document.getElementById('ee-cat').value=e.category;
+  document.getElementById('ee-amount').value=e.amount;
+  document.getElementById('ee-note').value=e.note||'';
+  document.getElementById('ee-initial').checked=!!e.isInitial;
+  openModal('editExpModal');
+}
+function saveEditExp(){
+  const id=document.getElementById('ee-id').value;
+  const e=expenses.find(x=>x.id===id);if(!e)return;
+  e.year=+document.getElementById('ee-year').value;
+  e.month=+document.getElementById('ee-month').value;
+  e.category=document.getElementById('ee-cat').value;
+  e.amount=+document.getElementById('ee-amount').value;
+  e.note=document.getElementById('ee-note').value;
+  e.isInitial=document.getElementById('ee-initial').checked;
+  saveData();closeModal('editExpModal');renderCurrent();
+}
+async function attachFileToExp(expId,file){
+  if(!file)return;
+  const e=expenses.find(x=>x.id===expId);if(!e)return;
+  const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+  const fname=e.year+String(e.month).padStart(2,'0')+(e.category?'_'+e.category:'')+file.name.slice(file.name.lastIndexOf('.'));
+  const result=await uploadFileToDrive(file,base64,file.type,fname,e.propertyId);
+  if(result){e.driveFileId=result.id;e.driveLink=result.webViewLink;e.driveFileName=result.name;e.manualEntry=false;saveData();renderCurrent();}
+}
 function delCom(id){commonExps=commonExps.filter(c=>c.id!==id);saveData();renderCurrent();}
 function toggleInitial(id){const e=expenses.find(x=>x.id===id);if(!e)return;e.isInitial=!e.isInitial;saveData();renderCurrent();}
 function setAirbnb_clear(){airbnbRows=[];importLog=[];saveData();renderCurrent();}
