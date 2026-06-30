@@ -317,6 +317,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditExp()">保存</button>
     <button class="btn" onclick="closeModal('editExpModal')">キャンセル</button>
+    <button class="btn danger" onclick="deleteFromEditModal()">削除</button>
   </div>
 </div></div>
 
@@ -1618,6 +1619,11 @@ function openEditExpModal(id){
   document.getElementById('ee-note').value=e.note||'';
   document.getElementById('ee-initial').checked=!!e.isInitial;
   openModal('editExpModal');
+}
+function deleteFromEditModal(){
+  const id=document.getElementById('ee-id').value;
+  if(!confirm('この経費を削除しますか？'))return;
+  delExp(id);closeModal('editExpModal');
 }
 function saveEditExp(){
   const id=document.getElementById('ee-id').value;
