@@ -946,25 +946,29 @@ function renderExpTable(pid,year){
         <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
       </div>
     </div>
-    <div class="scroll-x"><table class="tbl">
-      <thead><tr><th>物件</th><th>年月</th><th>カテゴリ</th><th style="text-align:right">金額</th><th>備考</th><th>初期</th><th>書類</th><th></th></tr></thead>
+    <div class="scroll-x"><table class="tbl" style="font-size:12px">
+      <thead><tr>
+        <th style="font-size:10px">年月</th><th style="font-size:10px">カテゴリ</th>
+        <th style="text-align:right;font-size:10px">金額</th><th style="font-size:10px">備考</th>
+        <th style="text-align:center;font-size:10px">初期費用</th><th style="text-align:center;font-size:10px">書類</th><th></th>
+      </tr></thead>
       <tbody>
-${exList.map(e=>{const p=properties.find(x=>x.id===e.propertyId);return`<tr>
-          <td>${p?.name||'—'}</td><td>${e.year}/${e.month}</td>
-          <td><span class="bdg">${e.category}</span></td>
-          <td style="text-align:right" class="c-red fw7">${yen(e.amount)}</td>
-          <td style="color:#aaa;font-size:12px">${e.note||''}</td>
-          <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用"></td>
-          <td style="text-align:center">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">開く</a>`:`<button class="btn sm" style="font-size:10px" onclick="document.getElementById('attach_${e.id}').click()">格納</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
-          <td><button class="btn sm" onclick="openEditExpModal('${e.id}')">編集</button> <button class="btn sm danger" onclick="delExp('${e.id}')">削除</button></td>
-        </tr>`;}).join('')}
+        ${exList.map(e=>`<tr>
+          <td style="white-space:nowrap">${e.year}/${e.month}</td>
+          <td><span class="bdg" style="font-size:10px">${e.category}</span></td>
+          <td style="text-align:right;white-space:nowrap" class="c-red fw7">${yen(e.amount)}</td>
+          <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
+          <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
+          <td style="text-align:center;white-space:nowrap">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`:`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="document.getElementById('attach_${e.id}').click()">＋</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
+          <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${e.id}')">⋯</button></td>
+        </tr>`).join('')}
         ${comList.map(c=>`<tr>
-          <td style="color:#aaa">共通</td><td>${c.year}/${c.month}</td>
-          <td><span class="bdg p">${c.category}</span></td>
-          <td style="text-align:right" class="c-pur fw7">${yen(c.amount)}</td>
-          <td style="color:#aaa;font-size:12px">${c.note||''}</td>
-          <td></td>
-          <td><button class="btn sm danger" onclick="delCom('${c.id}')">削除</button></td>
+          <td style="white-space:nowrap">${c.year}/${c.month}</td>
+          <td><span class="bdg p" style="font-size:10px">${c.category}</span></td>
+          <td style="text-align:right;white-space:nowrap" class="c-pur fw7">${yen(c.amount)}</td>
+          <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.note||''}</td>
+          <td></td><td></td>
+          <td style="white-space:nowrap"><button class="btn sm danger" style="font-size:10px;padding:2px 8px" onclick="delCom('${c.id}')">削除</button></td>
         </tr>`).join('')}
       </tbody>
     </table></div>
