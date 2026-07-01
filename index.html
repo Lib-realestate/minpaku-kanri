@@ -295,6 +295,21 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
+<!-- 清掃費履歴 -->
+<div class="modal" id="cleaningFeeModal"><div class="modal-box">
+  <h3>清掃費を設定</h3>
+  <p style="font-size:12px;color:#888;margin-bottom:12px" id="cleaningFeeDesc"></p>
+  <div id="cleaningFeeList" style="margin-bottom:14px"></div>
+  <div style="padding:12px;background:#f9f9f7;border-radius:8px;margin-bottom:12px">
+    <div class="form-grid">
+      <div class="form-row"><label class="form-label">開始日</label><input type="date" id="cf-from"></div>
+      <div class="form-row"><label class="form-label">清掃費（円/回）</label><input type="number" id="cf-amount" placeholder="5000"></div>
+    </div>
+    <button class="btn primary" onclick="addCleaningFee()">追加</button>
+  </div>
+  <button class="btn primary" style="width:100%" onclick="closeModal('cleaningFeeModal')">完了</button>
+</div></div>
+
 <!-- 経費編集 -->
 <div class="modal" id="editExpModal"><div class="modal-box">
   <h3>経費を編集</h3>
@@ -785,7 +800,11 @@ async function processCSV(text,fname,aid){
     const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
     const yr=isNaN(d.getTime())?new Date().getFullYear():d.getFullYear();
     const mo=isNaN(d.getTime())?new Date().getMonth()+1:d.getMonth()+1;
-    const newRow={id:existing?.id||uid(),cc,propertyId:existing?.propertyId||matchProp(listing,aid),year:yr,month:mo,amount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
+    const propId=existing?.propertyId||matchProp(listing,aid);
+    const prop=properties.find(p=>p.id===propId);
+    const cleaningFee=getCleaningFee(prop,ci);
+    const grossAmount=calcGrossRevenue(net,listing,nights,cleaningFee,ci);
+    const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
 
     if(existing){
       // 変更チェック：金額・宿泊数・ステータスのいずれかが異なれば上書き
@@ -1511,10 +1530,8 @@ function renderSettings(){
 <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
           <span style="font-size:11px;color:#aaa">運用開始:</span>
           <input type="date" value="${p.startDate||''}" style="font-size:11px;padding:2px 6px;width:130px" onchange="updateStartDate('${p.id}',this.value)">
-          <span style="font-size:11px;color:#aaa">清掃費:</span>
-          <input type="number" value="${p.cleaningFee||0}" style="font-size:11px;padding:2px 6px;width:80px" onchange="updateCleaningFee('${p.id}',+this.value)">
-          <span style="font-size:11px;color:#aaa">円/回</span>
-          <span style="font-size:11px;color:#aaa">ローン: ${(p.loans||[]).length}本</span>
+<span style="font-size:11px;color:#aaa">ローン: ${(p.loans||[]).length}本</span>
+          <button class="btn sm" style="font-size:10px" onclick="openCleaningFeeModal('${p.id}')">清掃費設定</button>
         </div>
       </div>
       <div style="display:flex;gap:6px">
@@ -1544,15 +1561,18 @@ function renderSettings(){
 
   <div class="card">
     <div class="card-title">OTA手数料率</div>
-    <p style="font-size:11px;color:#aaa;margin-bottom:10px">CSVの「リスティング」列に含まれるキーワードで判別します</p>
-    ${(otaRates||[]).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid #f0efeb">
-      <span style="flex:1;font-size:13px">${r.keyword}</span>
-      <span style="font-size:13px;color:#b45309">${r.rate}%</span>
+    <p style="font-size:11px;color:#aaa;margin-bottom:10px">CSVの「リスティング」列に含まれるキーワードで判別。チェックイン日時点の設定が適用されます。</p>
+    ${(otaRates||[]).sort((a,b)=>a.keyword.localeCompare(b.keyword)||a.from.localeCompare(b.from)).map(r=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:.5px solid #f0efeb;font-size:12px">
+      <span style="flex:1">${r.keyword}</span>
+      <span style="color:#aaa">${r.from}〜</span>
+      <span style="color:#b45309;font-weight:700">${r.rate}%</span>
       <button class="btn sm danger" onclick="delOtaRate('${r.id}')">削除</button>
     </div>`).join('')}
-    <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
-      <input type="text" id="ota-kw" placeholder="キーワード例: Airbnb" style="flex:1">
-      <input type="number" id="ota-rate" placeholder="手数料%" step="0.1" style="width:80px">
+    <div style="display:grid;grid-template-columns:1fr 80px 100px auto;gap:6px;margin-top:10px;align-items:center">
+      <input type="text" id="ota-kw" placeholder="キーワード例: Airbnb">
+      <input type="number" id="ota-rate" placeholder="手数料%" step="0.1">
+      <input type="date" id="ota-from">
       <button class="btn primary" onclick="addOtaRate()">追加</button>
     </div>
   </div>
@@ -1615,7 +1635,82 @@ function addProp(){
 function setYearMode(mode){yearMode=mode;saveData();buildYearSel();showIconPage('settings');}
 function setFiscalMonth(m){fiscalMonth=m;saveData();buildYearSel();showIconPage('settings');}
 
+// チェックイン日時点のOTA手数料率を取得
+function getOtaRate(listing, ciDate){
+  const n=normStr(listing||'');
+  const ci=ciDate||'9999-99-99';
+  // キーワードが一致するものを全て取得し、チェックイン日以前で最新のfromを適用
+  const matched=otaRates.filter(r=>n.includes(normStr(r.keyword))&&r.from<=ci);
+  if(!matched.length)return 0;
+  matched.sort((a,b)=>b.from.localeCompare(a.from));
+  return matched[0].rate/100;
+}
+
+// チェックイン日時点の清掃費を取得
+function getCleaningFee(prop, ciDate){
+  if(!prop)return 0;
+  const ci=ciDate||'9999-99-99';
+  const history=(prop.cleaningFeeHistory||[]).filter(h=>h.from<=ci);
+  if(!history.length)return prop.cleaningFee||0;
+  history.sort((a,b)=>b.from.localeCompare(a.from));
+  return history[0].amount||0;
+}
+
+// 宿泊売上を計算（CSVの収入から逆算）
+function calcGrossRevenue(rawAmount, listing, nights, cleaningFee, ciDate){
+  const otaRate=getOtaRate(listing, ciDate);
+  const discountRate=nights>=30?0.10:nights>=7?0.08:0;
+  const denom=(1-otaRate)*(1-discountRate);
+  if(denom<=0)return rawAmount;
+  return Math.round(rawAmount/denom+cleaningFee);
+}
+
 function updateStartDate(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.startDate=val;saveData();}
+
+let cleaningFeeTargetId=null;
+function openCleaningFeeModal(id){
+  cleaningFeeTargetId=id;
+  const p=properties.find(x=>x.id===id);if(!p)return;
+  document.getElementById('cleaningFeeDesc').textContent=p.name+' の清掃費履歴';
+  document.getElementById('cf-from').value='';
+  document.getElementById('cf-amount').value='';
+  renderCleaningFeeList();openModal('cleaningFeeModal');
+}
+function renderCleaningFeeList(){
+  const p=properties.find(x=>x.id===cleaningFeeTargetId);if(!p)return;
+  const h=(p.cleaningFeeHistory||[]).sort((a,b)=>b.from.localeCompare(a.from));
+  document.getElementById('cleaningFeeList').innerHTML=h.length===0
+    ?'<div style="font-size:12px;color:#ccc;text-align:center;padding:10px">未登録</div>'
+    :h.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:.5px solid #f0efeb;font-size:13px">
+      <span style="color:#aaa">${r.from}〜</span>
+      <span style="font-weight:700">¥${r.amount.toLocaleString()}/回</span>
+      <button class="btn sm danger" onclick="delCleaningFee('${r.id}')">削除</button>
+    </div>`).join('');
+}
+function addCleaningFee(){
+  const from=document.getElementById('cf-from').value;
+  const amount=+document.getElementById('cf-amount').value;
+  if(!from||!amount)return;
+  const p=properties.find(x=>x.id===cleaningFeeTargetId);if(!p)return;
+  if(!p.cleaningFeeHistory)p.cleaningFeeHistory=[];
+  p.cleaningFeeHistory.push({id:uid(),from,amount});
+  saveData();renderCleaningFeeList();
+  document.getElementById('cf-from').value='';document.getElementById('cf-amount').value='';
+}
+function delCleaningFee(hid){
+  const p=properties.find(x=>x.id===cleaningFeeTargetId);if(!p)return;
+  p.cleaningFeeHistory=(p.cleaningFeeHistory||[]).filter(h=>h.id!==hid);
+  saveData();renderCleaningFeeList();
+}
+function addOtaRate(){
+  const kw=document.getElementById('ota-kw').value.trim();
+  const rate=+document.getElementById('ota-rate').value;
+  const from=document.getElementById('ota-from').value;
+  if(!kw||!rate||!from)return;
+  otaRates=[...otaRates,{id:uid(),keyword:kw,rate,from}];
+  saveData();showIconPage('settings');
+}
+function delOtaRate(id){otaRates=otaRates.filter(r=>r.id!==id);saveData();showIconPage('settings');}
 function updateCleaningFee(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.cleaningFee=val;saveData();}
 function addOtaRate(){
   const kw=document.getElementById('ota-kw').value.trim();
