@@ -295,6 +295,28 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
+<!-- 予約編集 -->
+<div class="modal" id="editRowModal"><div class="modal-box">
+  <h3>予約データを編集</h3>
+  <input type="hidden" id="er-id">
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">年</label><input type="number" id="er-year"></div>
+    <div class="form-row"><label class="form-label">月</label><input type="number" id="er-month" min="1" max="12"></div>
+  </div>
+  <div class="form-row"><label class="form-label">物件</label>
+    <select id="er-prop"></select></div>
+  <div class="form-row"><label class="form-label">売上（円）</label><input type="number" id="er-amount"></div>
+  <div class="form-row"><label class="form-label">泊数</label><input type="number" id="er-nights"></div>
+  <div class="form-row"><label class="form-label">ゲスト名</label><input type="text" id="er-guest"></div>
+  <div class="form-row"><label class="form-label">チェックイン</label><input type="date" id="er-ci"></div>
+  <div class="form-row"><label class="form-label">チェックアウト</label><input type="date" id="er-co"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn primary" onclick="saveEditRow()">保存</button>
+    <button class="btn" onclick="closeModal('editRowModal')">キャンセル</button>
+    <button class="btn danger" onclick="deleteFromEditRowModal()">削除</button>
+  </div>
+</div></div>
+
 <!-- 清掃費履歴 -->
 <div class="modal" id="cleaningFeeModal"><div class="modal-box">
   <h3>清掃費を設定</h3>
