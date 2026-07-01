@@ -1658,11 +1658,8 @@ function getCleaningFee(prop, ciDate){
 
 // 宿泊売上を計算（CSVの収入から逆算）
 function calcGrossRevenue(rawAmount, listing, nights, cleaningFee, ciDate){
-  const otaRate=getOtaRate(listing, ciDate);
-  const discountRate=nights>=30?0.10:nights>=7?0.08:0;
-  const denom=(1-otaRate)*(1-discountRate);
-  if(denom<=0)return rawAmount;
-  return Math.round(rawAmount/denom+cleaningFee);
+  const otaRate=getOtaRate(listing, ciDate)||0.15; // デフォルト15%
+  return Math.round(rawAmount/(1-otaRate));
 }
 
 function updateStartDate(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.startDate=val;saveData();}
