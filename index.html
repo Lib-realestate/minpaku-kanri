@@ -1080,6 +1080,7 @@ function renderOccupancy(){
           <td style="font-size:12px">${r.ci||'—'}</td>
           <td>${r.nights||'—'}</td>
           <td style="text-align:right" class="c-grn fw7">${yen(r.amount)}</td>
+          <td><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
         </tr>`;
       }).join('')}</tbody>
     </table></div>
@@ -1771,6 +1772,38 @@ function addCom(){
   closeModal('addComModal');renderCurrent();
 }
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();renderCurrent();}
+function openEditRowModal(id){
+  const r=airbnbRows.find(x=>x.id===id);if(!r)return;
+  document.getElementById('er-id').value=id;
+  document.getElementById('er-year').value=r.year;
+  document.getElementById('er-month').value=r.month;
+  document.getElementById('er-prop').innerHTML=properties.map(p=>`<option value="${p.id}"${p.id===r.propertyId?'selected':''}>${p.name}</option>`).join('');
+  document.getElementById('er-amount').value=r.amount;
+  document.getElementById('er-nights').value=r.nights||'';
+  document.getElementById('er-guest').value=r.guest||'';
+  document.getElementById('er-ci').value=r.ci||'';
+  document.getElementById('er-co').value=r.co||'';
+  openModal('editRowModal');
+}
+function saveEditRow(){
+  const id=document.getElementById('er-id').value;
+  const r=airbnbRows.find(x=>x.id===id);if(!r)return;
+  r.year=+document.getElementById('er-year').value;
+  r.month=+document.getElementById('er-month').value;
+  r.propertyId=document.getElementById('er-prop').value;
+  r.amount=+document.getElementById('er-amount').value;
+  r.nights=+document.getElementById('er-nights').value;
+  r.guest=document.getElementById('er-guest').value;
+  r.ci=document.getElementById('er-ci').value;
+  r.co=document.getElementById('er-co').value;
+  saveData();closeModal('editRowModal');renderCurrent();
+}
+function deleteFromEditRowModal(){
+  const id=document.getElementById('er-id').value;
+  if(!confirm('この予約データを削除しますか？'))return;
+  airbnbRows=airbnbRows.filter(r=>r.id!==id);
+  saveData();closeModal('editRowModal');renderCurrent();
+}
 function openEditExpModal(id){
   const e=expenses.find(x=>x.id===id);if(!e)return;
   document.getElementById('ee-id').value=id;
