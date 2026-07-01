@@ -353,7 +353,7 @@ const EXP_CATS  = ['OTA手数料','運営代行費','清掃費','水道光熱費
 const COM_CATS  = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
 
 // ═══ 状態 ═══
-let properties=[], airbnbRows=[], expenses=[], commonExps=[], importLog=[], globalLoans=[];
+let properties=[], airbnbRows=[], expenses=[], commonExps=[], importLog=[], globalLoans=[], otaRates=[];
 let tokenClient, gapiInited=false, gisInited=false, accessToken=null;
 let _fileId=null, _savePending=false;
 let currentProp='all', currentTabId='cashflow', iconPageActive=null;
@@ -452,13 +452,14 @@ function applyData(d){
   if(d.globalLoans) globalLoans =d.globalLoans;
   if(d.yearMode)    yearMode    =d.yearMode;
   if(d.fiscalMonth) fiscalMonth =d.fiscalMonth;
+  if(d.otaRates)    otaRates    =d.otaRates;
 }
 async function loadData(){loadLocal();await syncFromDrive();}
 function loadLocal(){
   try{const d=JSON.parse(localStorage.getItem('mp_data')||'{}');applyData(d);}catch(e){}
 }
 function saveData(){
-  const d={properties,airbnbRows,expenses,commonExps,importLog,globalLoans,yearMode,fiscalMonth};
+  const d={properties,airbnbRows,expenses,commonExps,importLog,globalLoans,yearMode,fiscalMonth,otaRates};
   localStorage.setItem('mp_data',JSON.stringify(d));
   localStorage.setItem('mp_saved_at',new Date().toISOString());
   saveToDrive().catch(()=>{});
@@ -1507,11 +1508,14 @@ function renderSettings(){
       <div>
         <span style="font-weight:700">${p.name}</span>
         <span class="type-badge-${p.type||'purchase'}" style="margin-left:6px">${p.type==='sublease'?'転貸':'購入'}</span>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-  <span style="font-size:11px;color:#aaa">運用開始:</span>
-  <input type="date" value="${p.startDate||''}" style="font-size:11px;padding:2px 6px;width:130px" onchange="updateStartDate('${p.id}',this.value)">
-  <span style="font-size:11px;color:#aaa">ローン: ${(p.loans||[]).length}本</span>
-</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+          <span style="font-size:11px;color:#aaa">運用開始:</span>
+          <input type="date" value="${p.startDate||''}" style="font-size:11px;padding:2px 6px;width:130px" onchange="updateStartDate('${p.id}',this.value)">
+          <span style="font-size:11px;color:#aaa">清掃費:</span>
+          <input type="number" value="${p.cleaningFee||0}" style="font-size:11px;padding:2px 6px;width:80px" onchange="updateCleaningFee('${p.id}',+this.value)">
+          <span style="font-size:11px;color:#aaa">円/回</span>
+          <span style="font-size:11px;color:#aaa">ローン: ${(p.loans||[]).length}本</span>
+        </div>
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn sm" onclick="openAliasModal('${p.id}')">KW</button>
@@ -1536,6 +1540,21 @@ function renderSettings(){
       <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years}年</div>
     </div>`).join('')}
     <button class="btn" style="margin-top:12px" onclick="openAddLoanModal('overall')">＋ 全体借入を追加</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">OTA手数料率</div>
+    <p style="font-size:11px;color:#aaa;margin-bottom:10px">CSVの「リスティング」列に含まれるキーワードで判別します</p>
+    ${(otaRates||[]).map(r=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:.5px solid #f0efeb">
+      <span style="flex:1;font-size:13px">${r.keyword}</span>
+      <span style="font-size:13px;color:#b45309">${r.rate}%</span>
+      <button class="btn sm danger" onclick="delOtaRate('${r.id}')">削除</button>
+    </div>`).join('')}
+    <div style="display:flex;gap:6px;margin-top:10px;align-items:center">
+      <input type="text" id="ota-kw" placeholder="キーワード例: Airbnb" style="flex:1">
+      <input type="number" id="ota-rate" placeholder="手数料%" step="0.1" style="width:80px">
+      <button class="btn primary" onclick="addOtaRate()">追加</button>
+    </div>
   </div>
 
   <div class="card">
@@ -1597,6 +1616,33 @@ function setYearMode(mode){yearMode=mode;saveData();buildYearSel();showIconPage(
 function setFiscalMonth(m){fiscalMonth=m;saveData();buildYearSel();showIconPage('settings');}
 
 function updateStartDate(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.startDate=val;saveData();}
+function updateCleaningFee(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.cleaningFee=val;saveData();}
+function addOtaRate(){
+  const kw=document.getElementById('ota-kw').value.trim();
+  const rate=+document.getElementById('ota-rate').value;
+  if(!kw||!rate)return;
+  otaRates=[...otaRates,{id:uid(),keyword:kw,rate}];
+  saveData();showIconPage('settings');
+}
+function delOtaRate(id){otaRates=otaRates.filter(r=>r.id!==id);saveData();showIconPage('settings');}
+
+// リスティング名からOTA手数料率を取得
+function getOtaRate(listing){
+  const n=normStr(listing||'');
+  const match=otaRates.find(r=>n.includes(normStr(r.keyword)));
+  return match?match.rate/100:0;
+}
+
+// 宿泊売上を計算（CSVの収入から逆算）
+function calcGrossRevenue(rawAmount,listing,nights,cleaningFee){
+  const otaRate=getOtaRate(listing);
+  const discountRate=nights>=30?0.10:nights>=7?0.08:0;
+  // rawAmount = (gross - cleaningFee) * (1 - otaRate) * (1 - discountRate) の逆算
+  // gross = rawAmount / (1-otaRate) / (1-discountRate) + cleaningFee
+  const denom=(1-otaRate)*(1-discountRate);
+  if(denom<=0)return rawAmount;
+  return Math.round(rawAmount/denom+cleaningFee);
+}
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
