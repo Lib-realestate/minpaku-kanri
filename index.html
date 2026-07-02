@@ -280,8 +280,13 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
   <div class="form-row"><label class="form-label">カテゴリ</label>
     <select id="ae-cat">
-      <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
-      <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
+      <optgroup label="収入">
+        <option>宿泊収入</option><option>その他収入</option>
+      </optgroup>
+      <optgroup label="経費">
+        <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
+        <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
+      </optgroup>
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ae-amount" placeholder="85000"></div>
   <div class="form-row"><label class="form-label">備考</label><input type="text" id="ae-note"></div>
@@ -349,8 +354,13 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
   <div class="form-row"><label class="form-label">カテゴリ</label>
     <select id="ee-cat">
-      <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
-      <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
+      <optgroup label="収入">
+        <option>宿泊収入</option><option>その他収入</option>
+      </optgroup>
+      <optgroup label="経費">
+        <option>OTA手数料</option><option>運営代行費</option><option>清掃費</option>
+        <option>水道光熱費</option><option>修繕費</option><option>消耗品費</option><option>その他経費</option>
+      </optgroup>
     </select></div>
   <div class="form-row"><label class="form-label">金額（円）</label><input type="number" id="ee-amount"></div>
   <div class="form-row"><label class="form-label">備考</label><input type="text" id="ee-note"></div>
@@ -394,6 +404,7 @@ const SCOPES    = 'https://www.googleapis.com/auth/drive';
 const TOKEN_KEY = 'mp_gtoken', TOKEN_EXP = 'mp_gtoken_exp';
 const MONTHS    = [1,2,3,4,5,6,7,8,9,10,11,12];
 const EXP_CATS  = ['OTA手数料','運営代行費','清掃費','水道光熱費','修繕費','消耗品費','その他経費'];
+const INC_CATS  = ['宿泊収入','その他収入'];
 const COM_CATS  = ['税理士費用','保険料','通信費','交通費','その他共通経費'];
 
 // ═══ 状態 ═══
@@ -659,9 +670,11 @@ function getRent(prop,year,month){
   const matched=history.filter(h=>h.from<=ym&&(!h.to||h.to>=ym));
   return matched.length?matched[matched.length-1].amount:0;
 }
-function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.settled?r.settledAmount:r.amount),0);}
-function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
-function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
+function function rv(pid,y,m){
+  return expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入')&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+}
+function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
+function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
 function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
 function ni(pid,y,m){
   // チェックイン月で集計（従来）＋月跨ぎ分を各月に分配
@@ -898,7 +911,16 @@ function renderCashflow(){
   // 行定義
   const rows=[];
   rows.push({type:'section',label:'▌ 収入'});
-  rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+  const incCatsUsed=INC_CATS.filter(cat=>getFiscalMonths(year).some(({year:y,month:m})=>expenses.some(e=>e.year===y&&e.month===m&&e.category===cat&&(pid==='all'||e.propertyId===pid)&&!e.isInitial)));
+  if(incCatsUsed.length===0){
+    rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+  }else{
+    incCatsUsed.forEach(cat=>{
+      const vals=getFiscalMonths(year).map(({year:y,month:m})=>expenses.filter(e=>e.year===y&&e.month===m&&e.category===cat&&(pid==='all'||e.propertyId===pid)&&!e.isInitial).reduce((s,e)=>s+e.amount,0));
+      const tot=vals.reduce((s,v)=>s+v,0);
+      rows.push({type:'data',label:cat,vals,totVal:tot,cls:'c-grn',bold:cat==='宿泊収入',sub:cat!=='宿泊収入'});
+    });
+  }
 
   rows.push({type:'section',label:'▌ 支出'});
   const hasRent=md.some(r=>r.rent>0);
@@ -986,7 +1008,7 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
 
 // 経費テーブルHTML生成
 function renderExpTable(pid,year){
-  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month);
+  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month||INC_CATS.includes(b.category)-INC_CATS.includes(a.category));
   const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
   return`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -1006,7 +1028,7 @@ function renderExpTable(pid,year){
         ${exList.map(e=>`<tr>
           <td style="white-space:nowrap">${e.year}/${e.month}</td>
           <td><span class="bdg" style="font-size:10px">${e.category}</span></td>
-          <td style="text-align:right;white-space:nowrap" class="c-red fw7">${yen(e.amount)}</td>
+          <td style="text-align:right;white-space:nowrap" class="${INC_CATS.includes(e.category)?'c-grn':'c-red'} fw7">${yen(e.amount)}</td>
           <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
           <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
           <td style="text-align:center;white-space:nowrap">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`:`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="document.getElementById('attach_${e.id}').click()">＋</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
