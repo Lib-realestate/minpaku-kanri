@@ -1656,6 +1656,7 @@ function renderSettings(){
   </div>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="btn" style="color:#1a56db;border-color:#a8c4f5" onclick="rematch()">🔄 旧名称で再マッチング実行</button>
+      <button class="btn" style="color:#7c3aed;border-color:#d8b4fe" onclick="migrateAirbnbToExpenses()">📦 CSV収入を明細に移行</button>
       <button class="btn danger" onclick="if(confirm('Airbnbデータ（${airbnbRows.length}件）を削除しますか？'))setAirbnb_clear()">取込データをクリア</button>
       <button class="btn danger" onclick="handleSignOut()">Googleアカウントからログアウト</button>
     </div>
@@ -1925,6 +1926,48 @@ function renderAliasList(){
 }
 function addAlias(){const k=document.getElementById('newAlias').value.trim();if(!k)return;const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;if(!p.keywords)p.keywords=[];if(!p.keywords.includes(k)&&!(p.aliases||[]).includes(k))p.keywords.push(k);saveData();document.getElementById('newAlias').value='';renderAliasList();renderCurrent();}
 function delKeyword(k){const p=properties.find(x=>x.id===aliasTargetId);if(!p)return;p.keywords=(p.keywords||[]).filter(x=>x!==k);p.aliases=(p.aliases||[]).filter(x=>x!==k);saveData();renderAliasList();renderCurrent();}
+function migrateAirbnbToExpenses(){
+  if(!confirm('CSVから取り込んだ収入データを宿泊収入明細に移行します。\n既に移行済みのデータは重複して追加されません。\n実行しますか？'))return;
+
+  // 既存の移行済みデータのキーを作成（年・月・物件・金額で重複チェック）
+  const existingKeys=new Set(
+    expenses.filter(e=>e.category==='宿泊収入'&&e._migratedFrom)
+      .map(e=>`${e._migratedFrom}`)
+  );
+
+  let added=0;
+
+  // airbnbRowsを予約ごとに処理
+  airbnbRows.forEach(r=>{
+    const key=r.id;
+    if(existingKeys.has(key))return; // 移行済みはスキップ
+
+    const amount=r.settled?r.settledAmount:r.amount;
+    if(!amount||amount<=0)return;
+
+    expenses.push({
+      id:uid(),
+      propertyId:r.propertyId,
+      year:r.year,
+      month:r.month,
+      amount,
+      category:'宿泊収入',
+      note:(r.guest||r.cc||'')+(r.ci?' ['+r.ci+']':''),
+      isInitial:false,
+      driveFileId:null,
+      driveLink:null,
+      driveFileName:null,
+      manualEntry:true,
+      _migratedFrom:r.id  // 移行元のIDを保持（重複防止用）
+    });
+    added++;
+  });
+
+  saveData();
+  renderCurrent();
+  alert(`移行完了: ${added}件の収入明細を追加しました。`);
+}
+
 function rematch(){
   let u=0;
   airbnbRows=airbnbRows.map(r=>{const m=matchProp(r.listing||'','');if(m&&m!==r.propertyId){u++;return{...r,propertyId:m};}if(!r.propertyId&&m){u++;return{...r,propertyId:m};}return r;});
