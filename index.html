@@ -310,6 +310,13 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <div class="form-row"><label class="form-label">ゲスト名</label><input type="text" id="er-guest"></div>
   <div class="form-row"><label class="form-label">チェックイン</label><input type="date" id="er-ci"></div>
   <div class="form-row"><label class="form-label">チェックアウト</label><input type="date" id="er-co"></div>
+  <hr style="margin:12px 0;border:none;border-top:1px solid #f0efeb">
+  <div style="font-size:12px;font-weight:700;color:#1a7a3c;margin-bottom:8px">精算情報</div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">精算額（円）</label><input type="number" id="er-settled-amount" placeholder="未精算"></div>
+    <div class="form-row"><label class="form-label">精算確定日</label><input type="date" id="er-settled-at"></div>
+  </div>
+  <div id="er-diff-display" style="font-size:12px;padding:8px 12px;background:#f9f9f7;border-radius:6px;margin-bottom:10px;display:none"></div>
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditRow()">保存</button>
     <button class="btn" onclick="closeModal('editRowModal')">キャンセル</button>
@@ -652,7 +659,7 @@ function getRent(prop,year,month){
   const matched=history.filter(h=>h.from<=ym&&(!h.to||h.to>=ym));
   return matched.length?matched[matched.length-1].amount:0;
 }
-function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);}
+function rv(pid,y,m){return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+(r.settled?r.settledAmount:r.amount),0);}
 function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
 function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial).reduce((s,r)=>s+r.amount,0);}
 function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
@@ -1069,9 +1076,10 @@ function renderOccupancy(){
       <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.length}件</span>
     </div>
     <div class="scroll-x"><table class="tbl">
-      <thead><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">売上</th></tr></thead>
+      <thead><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th style="text-align:right">精算額</th><th style="text-align:right">差額</th><th>状態</th><th></th></tr></thead>
       <tbody>${filtered.sort((a,b)=>b.month-a.month).map(r=>{
         const pr=properties.find(p=>p.id===r.propertyId);
+        const diff=r.settled?(r.settledAmount-r.amount):null;
         return`<tr>
           <td><code style="font-size:11px;color:#aaa">${r.cc||'—'}</code></td>
           <td>${pr?`<span class="bdg b">${pr.name}</span>`:'<span class="bdg y">未割当</span>'}</td>
@@ -1079,8 +1087,14 @@ function renderOccupancy(){
           <td style="font-size:12px">${r.guest||'—'}</td>
           <td style="font-size:12px">${r.ci||'—'}</td>
           <td>${r.nights||'—'}</td>
-          <td style="text-align:right" class="c-grn fw7">${yen(r.amount)}</td>
-          <td><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
+          <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
+          <td style="text-align:right" class="${r.settled?'c-grn fw7':'c-gry'}">${r.settled?yen(r.settledAmount):'—'}</td>
+          <td style="text-align:right;font-size:12px;${diff!==null?(diff>0?'color:#1a7a3c':diff<0?'color:#b71c1c':'color:#aaa'):'color:#aaa'}">${diff!==null?(diff>0?'+':'')+yen(diff):'—'}</td>
+          <td>${r.settled?'<span class="bdg g">精算済</span>':'<span class="bdg y">未精算</span>'}</td>
+          <td style="white-space:nowrap">
+            ${r.settled&&r.settledAmount!==r.amount?`<button class="btn sm" style="font-size:10px;padding:2px 6px;color:#b45309" onclick="addDiffExpense('${r.id}')">差額登録</button>`:''}
+            <button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button>
+          </td>
         </tr>`;
       }).join('')}</tbody>
     </table></div>
@@ -1783,6 +1797,21 @@ function openEditRowModal(id){
   document.getElementById('er-guest').value=r.guest||'';
   document.getElementById('er-ci').value=r.ci||'';
   document.getElementById('er-co').value=r.co||'';
+  document.getElementById('er-settled-amount').value=r.settledAmount||'';
+  document.getElementById('er-settled-at').value=r.settledAt||'';
+  // 差額表示
+  const diff=document.getElementById('er-diff-display');
+  if(r.settled&&r.settledAmount){
+    const d=r.settledAmount-r.amount;
+    diff.style.display='';
+    diff.innerHTML=`CSV収入: ${yen(r.amount)} / 精算額: ${yen(r.settledAmount)} / 差額: <b style="color:${d>0?'#1a7a3c':d<0?'#b71c1c':'#aaa'}">${d>0?'+':''}${yen(d)}</b>`;
+  }else{diff.style.display='none';}
+  // 精算額入力時にリアルタイム差額計算
+  document.getElementById('er-settled-amount').oninput=function(){
+    const sa=+this.value,ca=+document.getElementById('er-amount').value;
+    if(sa&&ca){const d=sa-ca;diff.style.display='';diff.innerHTML=`CSV収入: ${yen(ca)} / 精算額: ${yen(sa)} / 差額: <b style="color:${d>0?'#1a7a3c':d<0?'#b71c1c':'#aaa'}">${d>0?'+':''}${yen(d)}</b>`;}
+    else diff.style.display='none';
+  };
   openModal('editRowModal');
 }
 function saveEditRow(){
@@ -1796,7 +1825,20 @@ function saveEditRow(){
   r.guest=document.getElementById('er-guest').value;
   r.ci=document.getElementById('er-ci').value;
   r.co=document.getElementById('er-co').value;
+  const sa=+document.getElementById('er-settled-amount').value;
+  const sat=document.getElementById('er-settled-at').value;
+  if(sa){r.settledAmount=sa;r.settledAt=sat;r.settled=true;}
+  else{r.settledAmount=null;r.settledAt=null;r.settled=false;}
   saveData();closeModal('editRowModal');renderCurrent();
+}
+function addDiffExpense(rowId){
+  const r=airbnbRows.find(x=>x.id===rowId);if(!r||!r.settled)return;
+  const diff=r.settledAmount-r.amount;
+  if(diff===0)return;
+  const note=`精算差額 [${r.guest||r.cc||''}]`;
+  expenses.push({id:uid(),propertyId:r.propertyId,year:r.year,month:r.month,amount:Math.abs(diff),category:'その他経費',note,isInitial:false,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:true});
+  saveData();renderCurrent();
+  alert(`差額 ${yen(Math.abs(diff))} を明細に追加しました`);
 }
 function deleteFromEditRowModal(){
   const id=document.getElementById('er-id').value;
