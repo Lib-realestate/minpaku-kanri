@@ -1178,25 +1178,6 @@ function renderOccupancy(){
           return rowsHtml+summaryRow;
         }).join('');
       })()}</tbody>
-        const pr=properties.find(p=>p.id===r.propertyId);
-        const diff=r.settled?(r.settledAmount-r.amount):null;
-        return`<tr>
-          <td><code style="font-size:11px;color:#aaa">${r.cc||'—'}</code></td>
-          <td>${pr?`<span class="bdg b">${pr.name}</span>`:'<span class="bdg y">未割当</span>'}</td>
-          <td>${r.month}月</td>
-          <td style="font-size:12px">${r.guest||'—'}</td>
-          <td style="font-size:12px">${r.ci||'—'}</td>
-          <td>${r.nights||'—'}</td>
-          <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
-          <td style="text-align:right" class="${r.settled?'c-grn fw7':'c-gry'}">${r.settled?yen(r.settledAmount):'—'}</td>
-          <td style="text-align:right;font-size:12px;${diff!==null?(diff>0?'color:#1a7a3c':diff<0?'color:#b71c1c':'color:#aaa'):'color:#aaa'}">${diff!==null?(diff>0?'+':'')+yen(diff):'—'}</td>
-          <td>${r.settled?'<span class="bdg g">精算済</span>':'<span class="bdg y">未精算</span>'}</td>
-          <td style="white-space:nowrap">
-            ${r.settled&&r.settledAmount!==r.amount?`<button class="btn sm" style="font-size:10px;padding:2px 6px;color:#b45309" onclick="addDiffExpense('${r.id}')">差額登録</button>`:''}
-            <button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button>
-          </td>
-        </tr>`;
-      }).join('')}</tbody>
     </table></div>
     ${airbnbRows.some(r=>!r.propertyId)?'<div class="warn-banner"><b style="color:#b45309">⚠ 物件未割当のデータがあります</b><div style="font-size:12px;color:#888;margin-top:4px">「設定」→「再マッチング実行」を試してください。</div></div>':''}
   </div>`;
