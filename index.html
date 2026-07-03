@@ -1236,7 +1236,7 @@ function renderOccupancy(){
       <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.length}件</span>
     </div>
 <div style="max-height:400px;overflow-y:auto"><table class="tbl">
-      <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th style="text-align:right">精算額</th><th style="text-align:right">差額</th><th>状態</th><th></th></tr></thead>
+      <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th></th></tr></thead>
       <tbody>${(()=>{
         const sorted=filtered.sort((a,b)=>b.year-a.year||b.month-a.month);
         const months=[...new Set(sorted.map(r=>`${r.year}/${r.month}`))];
@@ -1256,21 +1256,14 @@ function renderOccupancy(){
               <td style="font-size:12px">${r.ci||'—'}</td>
               <td>${r.nights||'—'}</td>
               <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
-              <td style="text-align:right" class="${r.settled?'c-grn fw7':'c-gry'}">${r.settled?yen(r.settledAmount):'—'}</td>
-              <td style="text-align:right;font-size:12px;${diff!==null?(diff>0?'color:#1a7a3c':diff<0?'color:#b71c1c':'color:#aaa'):'color:#aaa'}">${diff!==null?(diff>0?'+':'')+yen(diff):'—'}</td>
-              <td>${r.settled?'<span class="bdg g">精算済</span>':'<span class="bdg y">未精算</span>'}</td>
-              <td style="white-space:nowrap">
-                ${r.settled&&r.settledAmount!==r.amount?`<button class="btn sm" style="font-size:10px;padding:2px 6px;color:#b45309" onclick="addDiffExpense('${r.id}')">差額登録</button>`:''}
-                <button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button>
-              </td>
+              <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
             </tr>`;
           }).join('');
           const summaryRow=`<tr style="background:#f5f5f0;font-weight:700">
             <td colspan="5" style="font-size:12px">${y}年${m}月 合計（${rows.length}件）</td>
             <td style="text-align:right">${rows.reduce((s,r)=>s+(r.nights||0),0)}泊</td>
             <td style="text-align:right;color:#aaa">${yen(totalCsv)}</td>
-            <td style="text-align:right" class="c-grn">${totalSettled>0?yen(totalSettled):'—'}</td>
-            <td colspan="3"></td>
+            <td></td>
           </tr>`;
           return rowsHtml+summaryRow;
         }).join('');
