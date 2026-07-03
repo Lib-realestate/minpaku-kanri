@@ -1421,7 +1421,15 @@ function renderUpload(){
 }
 
 // ── PDF解析 ──
-let _pendingUploadData=null; // 確認モーダル用の一時データ
+let _pendingUploadData=null;
+let _uploadQueue=[];
+
+function processNextUpload(){
+  if(!_uploadQueue.length)return;
+  const item=_uploadQueue[0];
+  _pendingUploadData=item;
+  showUploadConfirm(item.parsed,item.propId,item.file.name,_uploadQueue.length);
+}
 
 async function onPdfChange(e){await handlePdfFiles(Array.from(e.target.files));e.target.value='';}
 async function onPdfDrop(e){
@@ -1555,23 +1563,23 @@ async function handlePdfFiles(files){
         return;
       }
 
-      // 確認モーダルを表示
-      _pendingUploadData={parsed,propId,file,base64,mediaType,isPdf};
-      showUploadConfirm(parsed,propId,file.name);
-
+      // キューに追加
+      _uploadQueue.push({parsed,propId,file,base64,mediaType,isPdf});
     }catch(err){
       console.error(err);
       if(pdfResult)pdfResult.innerHTML=`<div style="color:#b71c1c;font-size:13px;padding:8px">エラー: ${err.message}</div>`;
     }
   }
   if(dropText)dropText.textContent='PDF / 画像をドロップ / クリックして選択';
+  // キューの最初を表示
+  processNextUpload();
 }
 
-function showUploadConfirm(parsed,propId,filename){
+function showUploadConfirm(parsed,propId,filename,remaining=1){
   const prop=properties.find(p=>p.id===propId);
   let html=`
   <div style="padding:10px 12px;background:#f9f9f7;border-radius:8px;margin-bottom:14px;font-size:12px;color:#666">
-    <div style="font-weight:700;font-size:13px;margin-bottom:4px">${parsed.summary||parsed.docType}</div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px">${parsed.summary||parsed.docType} ${remaining>1?`<span style="color:#1a56db">（残り${remaining}件）</span>`:''}</div>
     <div>ファイル: ${filename} / ${parsed.year||'—'}年${parsed.month||'—'}月 / ${parsed.docType}</div>
   </div>
 
@@ -1668,7 +1676,11 @@ if(type==='expense'&&propId){
 
   closeModal('uploadResultModal');
   _pendingUploadData=null;
+  _uploadQueue.shift();
   renderCurrent();
+  if(_uploadQueue.length>0){
+    setTimeout(()=>processNextUpload(),300);
+  }
 
   const res=document.getElementById('pdfResult');
   if(res)res.innerHTML=`<div style="padding:8px 12px;background:#e6f4ea;border-radius:8px;font-size:13px;color:#1a7a3c">✓ 登録完了 · Driveに格納しました</div>`;
