@@ -1067,7 +1067,7 @@ function renderExpTable(pid,year){
               <td><span class="bdg" style="font-size:10px">${e.category}</span></td>
               <td style="text-align:right;white-space:nowrap" class="${INC_CATS.includes(e.category)?'c-grn':'c-red'} fw7">${yen(e.amount)}</td>
               <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
-              <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
+              <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onclick="return false" style="cursor:default" title="編集ボタンから変更できます"></td>
               <td style="text-align:center;white-space:nowrap">${e.driveLink
             ?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`
             :`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="openAttachModal('${e.id}')">＋</button>`
@@ -2146,13 +2146,25 @@ function openRentModal(id){
 }
 function renderRentHistory(){
   const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
-  const h=p.rentHistory||[];
+  const h=(p.rentHistory||[]).sort((a,b)=>a.from.localeCompare(b.from));
   document.getElementById('rentHistoryList').innerHTML=h.length===0
-    ?'<div style="font-size:13px;color:#ccc;text-align:center;padding:10px">未登録</div>'
-    :h.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f9f9f7;border-radius:6px;margin-bottom:6px;border:.5px solid #e0e0d8">
-      <div><div style="font-size:13px;font-weight:700;color:#7c3aed">${yen(r.amount)}/月</div><div style="font-size:11px;color:#aaa">${r.from} 〜 ${r.to||'（永続）'}</div></div>
-      <button class="btn sm danger" onclick="delRentHistory('${r.id}')">削除</button>
+    ?'<div style="font-size:12px;color:#ccc;text-align:center;padding:10px">未登録</div>'
+    :h.map(r=>`<div style="padding:8px 0;border-bottom:.5px solid #f0efeb">
+      <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:6px;align-items:center">
+        <input type="month" value="${r.from}" style="font-size:12px;padding:3px 6px" onchange="updateRentHistory('${r.id}','from',this.value)">
+        <input type="number" value="${r.amount}" style="font-size:12px;padding:3px 6px" onchange="updateRentHistory('${r.id}','amount',+this.value)">
+        <input type="month" value="${r.to||''}" placeholder="終了（空=永続）" style="font-size:12px;padding:3px 6px;width:120px" onchange="updateRentHistory('${r.id}','to',this.value||null)">
+        <button class="btn sm danger" onclick="delRentHistory('${r.id}')">削除</button>
+      </div>
     </div>`).join('');
+}
+}
+function updateRentHistory(hid,field,val){
+  const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
+  const h=p.rentHistory.find(x=>x.id===hid);if(!h)return;
+  h[field]=val;
+  p.rentHistory.sort((a,b)=>a.from.localeCompare(b.from));
+  saveData();
 }
 function addRentHistory(){
   const from=document.getElementById('rent-from').value,to=document.getElementById('rent-to').value||null,amount=+document.getElementById('rent-amount').value;
