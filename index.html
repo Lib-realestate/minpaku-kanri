@@ -1060,13 +1060,7 @@ function renderExpTable(pid,year){
               <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
               <td style="text-align:center;white-space:nowrap">${e.driveLink
             ?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`
-            :`<div style="display:inline-block;border:1px dashed #ccc;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;min-width:32px;text-align:center"
-                onclick="document.getElementById('attach_${e.id}').click()"
-                ondragover="event.preventDefault();this.style.borderColor='#111'"
-                ondragleave="this.style.borderColor='#ccc'"
-                ondrop="event.preventDefault();this.style.borderColor='#ccc';attachFileToExp('${e.id}',event.dataTransfer.files[0])">＋
-              <input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">
-            </div>`
+            :`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="openAttachModal('${e.id}')">＋</button>`
           }</td>
               <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${e.id}')">⋯</button></td>
             </tr>`).join('')}
@@ -2026,6 +2020,27 @@ function saveEditExp(){
   e.note=document.getElementById('ee-note').value;
   e.isInitial=document.getElementById('ee-initial').checked;
   saveData();closeModal('editExpModal');renderCurrent();
+}
+function openAttachModal(expId){
+  document.getElementById('attach-exp-id').value=expId;
+  document.getElementById('attachResult').innerHTML='';
+  openModal('attachExpModal');
+}
+async function handleAttachDrop(e){
+  const file=e.dataTransfer.files[0];if(!file)return;
+  await doAttach(file);
+}
+async function handleAttachFile(e){
+  const file=e.target.files[0];if(!file)return;
+  e.target.value='';
+  await doAttach(file);
+}
+async function doAttach(file){
+  const expId=document.getElementById('attach-exp-id').value;
+  const res=document.getElementById('attachResult');
+  res.innerHTML='<div style="font-size:12px;color:#666">アップロード中...</div>';
+  await attachFileToExp(expId,file);
+  res.innerHTML='<div style="font-size:12px;color:#1a7a3c">✓ 格納完了</div>';
 }
 async function attachFileToExp(expId,file){
   if(!file)return;
