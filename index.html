@@ -1485,8 +1485,17 @@ async function handlePdfFiles(files){
   if(!files.length)return;
   console.log('files:', files, files[0]?.size, files[0]?.type, files[0]?.name);
   // HEICを自動変換、画像は圧縮
+  // HEICはブラウザで変換できないためエラー表示
+  const heicFiles=files.filter(f=>/\.heic$/i.test(f.name)||f.type==='image/heic');
+  if(heicFiles.length>0){
+    const res=document.getElementById('pdfResult');
+    if(res)res.innerHTML='<div style="padding:10px 12px;background:#fce8e8;border-radius:8px;color:#b71c1c;font-size:13px;font-weight:700">⚠ HEICファイルは対応していません<br><span style="font-weight:400;font-size:12px">iPhoneの設定 → カメラ → フォーマット → 「互換性優先」に変更するとJPEGで撮影できます</span></div>';
+    const dt=document.getElementById('pdfDropText');
+    if(dt)dt.textContent='PDF / 画像をドロップ / クリックして選択';
+    return;
+  }
   files=await Promise.all(files.map(async f=>{
-    if(/\.heic$/i.test(f.name))return convertToJpeg(f);
+    if(f.type.startsWith('image/'))return compressImage(f);
     return f;
   }));
   // 物件選択チェック
