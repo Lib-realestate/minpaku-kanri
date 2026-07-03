@@ -939,8 +939,26 @@ function renderCashflow(){
   const rows=[];
   if(pid==='all'){
     // 全物件ページ：収入合計・支出合計・月間CFのみ
-    rows.push({type:'data',label:'収入合計',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
-    rows.push({type:'data',label:'支出合計',vals:md.map(r=>r.expTotal+r.rent+r.propL+r.C+r.GL),totVal:yt.expTotal+yt.rent+yt.propL+yt.C+yt.GL,cls:'c-red',bold:true});
+    // 物件ごとの行を先に追加
+  properties.forEach(p=>{
+    const pmd=monthlyData(p.id,year);
+    const pyt=yearTotal(p.id,year);
+    let cumCF=lifetimeProfit(p.id)-pyt.profit;
+    const cumCFs=pmd.map(r=>{cumCF+=r.profit;return cumCF;});
+    rows.push({type:'data',label:p.name+' 月間CF',vals:pmd.map(r=>r.profit),totVal:pyt.profit,cls:'',bold:true,isPropCF:true,pmd});
+    rows.push({type:'cum',label:'　年間CF累計',vals:cumCFs,totVal:null});
+    rows.push({type:'occ',label:'　稼働率',vals:getFiscalMonths(year).map(({year:fy,month:m})=>{
+      const n=ni(p.id,fy,m);
+      const daysInM=new Date(fy,m,0).getDate();
+      const ms2=new Date(fy,m-1,1),me2=new Date(fy,m-1,daysInM);
+      const sd=p.startDate?new Date(p.startDate):ms2;
+      const occD=sd>me2?0:Math.max(0,Math.floor((me2-(sd>ms2?sd:ms2))/86400000)+1);
+      return occD>0?n/occD*100:0;
+    }),totVal:null,propId:p.id});
+  });
+  rows.push({type:'section',label:'▌ 合計'});
+  rows.push({type:'data',label:'収入合計',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+  rows.push({type:'data',label:'支出合計',vals:md.map(r=>r.expTotal+r.rent+r.propL+r.C+r.GL),totVal:yt.expTotal+yt.rent+yt.propL+yt.C+yt.GL,cls:'c-red',bold:true});
   }else{
     // 個別物件ページ：詳細表示
     rows.push({type:'section',label:'▌ 収入'});
@@ -1000,7 +1018,7 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
     }
 
     const totCell=row.type==='occ'
-      ?`<td style="color:#666">${(yt.nights/daysForOcc(pid,year)*100).toFixed(0)}%</td>`
+      ?`<td style="color:#666">${row.propId?(((yearTotal(row.propId,year).nights/daysForOcc(row.propId,year))*100).toFixed(0)+'%'):(((yt.nights/daysForOcc(pid,year))*100).toFixed(0)+'%')}</td>`
       :row.totVal===null
       ?`<td>—</td>`
       :`<td class="${isProfit?(totPos?'c-grn':totNeg?'c-red':''):row.cls||''} fw7">${row.totVal!==0?yen(row.totVal):'—'}</td>`;
@@ -1013,52 +1031,6 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
 
   tbl+=`</tbody></table></div></div>`;
   pg.innerHTML+=tbl;
-
-  // 全物件ページのみ：物件別サマリー行を追加
-  if(pid==='all'&&properties.length>0){
-    let propTbl=`<div class="card"><div class="card-title">物件別サマリー</div><div class="scroll-x"><table class="cf-tbl">
-      <thead><tr><th class="item-col">物件</th><th>タイプ</th>${getFiscalMonths(year).map(({month:m})=>`<th>${m}月</th>`).join('')}<th>年間</th></tr></thead><tbody>`;
-    properties.forEach(p=>{
-      const pmd=monthlyData(p.id,year);
-      const pyt=yearTotal(p.id,year);
-      let cumCF=lifetimeProfit(p.id)-pyt.profit;
-      const cumCFs=pmd.map(r=>{cumCF+=r.profit;return cumCF;});
-      // 月間CF行
-      propTbl+=`<tr>
-        <td class="item-col fw7">${p.name} 月間CF</td>
-        <td><span class="type-badge-${p.type||'purchase'}">${p.type==='sublease'?'転貸':'購入'}</span></td>
-        ${pmd.map((r)=>`<td class="${pc(r.profit)} fw7">${r.R>0||r.expTotal>0||r.rent>0||r.propL>0?yenS(r.profit):'—'}</td>`).join('')}
-        <td class="${pc(pyt.profit)} fw7">${yen(pyt.profit)}</td>
-      </tr>`;
-      // 年間CF累計行
-      propTbl+=`<tr class="cf-profit">
-        <td class="item-col" style="padding-left:16px;color:#888;font-size:11px">年間CF累計</td>
-        <td></td>
-        ${cumCFs.map((v,i)=>{
-          const has=pmd[i].R>0||pmd[i].expTotal>0||pmd[i].rent>0||pmd[i].propL>0;
-          return`<td class="${pc(v)}">${has?yenS(v):'—'}</td>`;
-        }).join('')}
-        <td>—</td>
-      </tr>`;
-      // 稼働率行
-      propTbl+=`<tr>
-        <td class="item-col" style="padding-left:16px;color:#888;font-size:11px">稼働率</td>
-        <td></td>
-        ${getFiscalMonths(year).map(({year:fy,month:m})=>{
-          const n=ni(p.id,fy,m);
-          const daysInM=new Date(fy,m,0).getDate();
-          const ms2=new Date(fy,m-1,1),me2=new Date(fy,m-1,daysInM);
-          const sd=p.startDate?new Date(p.startDate):ms2;
-          const occD=sd>me2?0:Math.max(0,Math.floor((me2-(sd>ms2?sd:ms2))/86400000)+1);
-          const rate=occD>0?n/occD*100:0;
-          return`<td style="color:${rate>=60?'#1a7a3c':rate>=40?'#b45309':rate>0?'#b71c1c':'#aaa'}">${rate>0?rate.toFixed(0)+'%':'—'}</td>`;
-        }).join('')}
-        <td style="color:${((pyt.nights/daysForOcc(p.id,year))*100)>=60?'#1a7a3c':((pyt.nights/daysForOcc(p.id,year))*100)>=40?'#b45309':'#b71c1c'}">${((pyt.nights/daysForOcc(p.id,year))*100).toFixed(0)}%</td>
-      </tr>`;
-    });
-    propTbl+=`</tbody></table></div></div>`;
-    pg.innerHTML+=propTbl;
-  }
 
   // 明細履歴（個別物件のみ）
   if(pid!=='all') pg.innerHTML+=renderExpTable(pid,year);
