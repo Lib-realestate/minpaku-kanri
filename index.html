@@ -717,22 +717,21 @@ function monthlyData(pid,year){
     EXP_CATS.forEach(cat=>{expByCat[cat]=pid==='all'?properties.reduce((s,p)=>s+exByCat(p.id,y,m,cat),0):exByCat(pid,y,m,cat);});
     const nights=ni(pid==='all'?'all':pid,y,m);
 const daysInMonth=new Date(y,m,0).getDate();
-    const now=new Date(),mStart=new Date(y,m-1,1),mEnd=new Date(y,m-1,daysInMonth);
-    const effectiveEnd=now<mEnd?now:mEnd;
+    const mStart=new Date(y,m-1,1),mEnd=new Date(y,m-1,daysInMonth);
     const occDays=pid==='all'
       ?properties.reduce((s,p)=>{
           const sd=p.startDate?new Date(p.startDate):mStart;
-          if(sd>effectiveEnd)return s;
+          if(sd>mEnd)return s;
           const from=sd>mStart?sd:mStart;
-          return s+Math.max(0,Math.floor((effectiveEnd-from)/86400000)+1);
+          return s+Math.max(0,Math.floor((mEnd-from)/86400000)+1);
         },0)
       :(()=>{
           const p=properties.find(x=>x.id===pid);
           if(!p)return daysInMonth;
           const sd=p.startDate?new Date(p.startDate):mStart;
-          if(sd>effectiveEnd)return 0;
+          if(sd>mEnd)return 0;
           const from=sd>mStart?sd:mStart;
-          return Math.max(0,Math.floor((effectiveEnd-from)/86400000)+1);
+          return Math.max(0,Math.floor((mEnd-from)/86400000)+1);
         })();
     const occ=occDays>0?(nights/occDays)*100:0;
     const profit=R-expTotal-rent-propL-C-GL;
@@ -741,11 +740,10 @@ const daysInMonth=new Date(y,m,0).getDate();
 }
 // 稼働率計算用の分母日数（今年なら今日まで、過去年なら年間全日数）
 function daysForProp(prop,year){
-  const now=new Date(),thisYear=now.getFullYear();
   const startDate=prop.startDate?new Date(prop.startDate):new Date(year,0,1);
   if(year<startDate.getFullYear())return 0;
   const rangeStart=year===startDate.getFullYear()?startDate:new Date(year,0,1);
-  const rangeEnd=year===thisYear?now:new Date(year,11,31);
+  const rangeEnd=new Date(year,11,31);
   if(rangeEnd<rangeStart)return 0;
   return Math.floor((rangeEnd-rangeStart)/86400000)+1;
 }
@@ -1071,9 +1069,9 @@ function renderOccupancy(){
         ${getFiscalMonths(year).map(({year:fy,month:m})=>{
           const n=ni(p.id,fy,m);
           const daysInM=new Date(fy,m,0).getDate();
-          const now2=new Date(),ms2=new Date(fy,m-1,1),me2=new Date(fy,m-1,daysInM);
+          const ms2=new Date(fy,m-1,1),me2=new Date(fy,m-1,daysInM);
           const sd2=p.startDate?new Date(p.startDate):ms2;
-          const occD2=sd2>me2?0:Math.max(0,Math.floor(((now2<me2?now2:me2)-(sd2>ms2?sd2:ms2))/86400000)+1);
+          const occD2=sd2>me2?0:Math.max(0,Math.floor((me2-(sd2>ms2?sd2:ms2))/86400000)+1);
           const rate=occD2>0?n/occD2*100:0;
           const col=rate>=60?'#4caf50':rate>=40?'#ff9800':rate>0?'#f44336':'transparent';
           const textCol=rate>=60?'#1a7a3c':rate>=40?'#b45309':rate>0?'#b71c1c':'#aaa';
@@ -1140,9 +1138,46 @@ function renderOccupancy(){
       <div class="card-title" style="margin-bottom:0">取込済み予約一覧</div>
       <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.length}件</span>
     </div>
-    <div class="scroll-x"><table class="tbl">
-      <thead><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th style="text-align:right">精算額</th><th style="text-align:right">差額</th><th>状態</th><th></th></tr></thead>
-      <tbody>${filtered.sort((a,b)=>b.month-a.month).map(r=>{
+<div style="max-height:400px;overflow-y:auto"><table class="tbl">
+      <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th style="text-align:right">精算額</th><th style="text-align:right">差額</th><th>状態</th><th></th></tr></thead>
+      <tbody>${(()=>{
+        const sorted=filtered.sort((a,b)=>b.year-a.year||b.month-a.month);
+        const months=[...new Set(sorted.map(r=>`${r.year}/${r.month}`))];
+        return months.map(ym=>{
+          const [y,m]=ym.split('/').map(Number);
+          const rows=sorted.filter(r=>r.year===y&&r.month===m);
+          const totalCsv=rows.reduce((s,r)=>s+r.amount,0);
+          const totalSettled=rows.reduce((s,r)=>s+(r.settled?r.settledAmount:0),0);
+          const rowsHtml=rows.map(r=>{
+            const pr=properties.find(p=>p.id===r.propertyId);
+            const diff=r.settled?(r.settledAmount-r.amount):null;
+            return`<tr>
+              <td><code style="font-size:11px;color:#aaa">${r.cc||'—'}</code></td>
+              <td>${pr?`<span class="bdg b">${pr.name}</span>`:'<span class="bdg y">未割当</span>'}</td>
+              <td>${r.month}月</td>
+              <td style="font-size:12px">${r.guest||'—'}</td>
+              <td style="font-size:12px">${r.ci||'—'}</td>
+              <td>${r.nights||'—'}</td>
+              <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
+              <td style="text-align:right" class="${r.settled?'c-grn fw7':'c-gry'}">${r.settled?yen(r.settledAmount):'—'}</td>
+              <td style="text-align:right;font-size:12px;${diff!==null?(diff>0?'color:#1a7a3c':diff<0?'color:#b71c1c':'color:#aaa'):'color:#aaa'}">${diff!==null?(diff>0?'+':'')+yen(diff):'—'}</td>
+              <td>${r.settled?'<span class="bdg g">精算済</span>':'<span class="bdg y">未精算</span>'}</td>
+              <td style="white-space:nowrap">
+                ${r.settled&&r.settledAmount!==r.amount?`<button class="btn sm" style="font-size:10px;padding:2px 6px;color:#b45309" onclick="addDiffExpense('${r.id}')">差額登録</button>`:''}
+                <button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button>
+              </td>
+            </tr>`;
+          }).join('');
+          const summaryRow=`<tr style="background:#f5f5f0;font-weight:700">
+            <td colspan="5" style="font-size:12px">${y}年${m}月 合計（${rows.length}件）</td>
+            <td style="text-align:right">${rows.reduce((s,r)=>s+(r.nights||0),0)}泊</td>
+            <td style="text-align:right;color:#aaa">${yen(totalCsv)}</td>
+            <td style="text-align:right" class="c-grn">${totalSettled>0?yen(totalSettled):'—'}</td>
+            <td colspan="3"></td>
+          </tr>`;
+          return rowsHtml+summaryRow;
+        }).join('');
+      })()}</tbody>
         const pr=properties.find(p=>p.id===r.propertyId);
         const diff=r.settled?(r.settledAmount-r.amount):null;
         return`<tr>
