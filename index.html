@@ -344,6 +344,24 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <button class="btn primary" style="width:100%" onclick="closeModal('cleaningFeeModal')">完了</button>
 </div></div>
 
+<!-- 書類格納 -->
+<div class="modal" id="attachExpModal"><div class="modal-box">
+  <h3>書類を格納</h3>
+  <input type="hidden" id="attach-exp-id">
+  <div class="dropzone" id="attachDropzone"
+    onclick="document.getElementById('attachFileInput').click()"
+    ondragover="event.preventDefault();document.getElementById('attachDropzone').classList.add('drag')"
+    ondragleave="document.getElementById('attachDropzone').classList.remove('drag')"
+    ondrop="event.preventDefault();document.getElementById('attachDropzone').classList.remove('drag');handleAttachDrop(event)">
+    <input type="file" id="attachFileInput" style="display:none" onchange="handleAttachFile(event)">
+    <div style="font-size:24px;margin-bottom:6px">📄</div>
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px">ファイルをドロップ / クリックして選択</div>
+    <div style="font-size:11px;color:#aaa">PDF・画像対応</div>
+  </div>
+  <div id="attachResult" style="margin-top:10px"></div>
+  <button class="btn" style="margin-top:12px;width:100%" onclick="closeModal('attachExpModal')">閉じる</button>
+</div></div>
+
 <!-- 経費編集 -->
 <div class="modal" id="editExpModal"><div class="modal-box">
   <h3>経費を編集</h3>
