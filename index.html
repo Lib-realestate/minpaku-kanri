@@ -1090,6 +1090,49 @@ function renderOccupancy(){
     </div>`;
   });
 
+  // 月別照合サマリー
+  const months=getFiscalMonths(year);
+  html+=`<div class="card">
+    <div class="card-title">月別照合（CSV ↔ 精算書）</div>
+    <div class="scroll-x"><table class="tbl" style="font-size:12px">
+      <thead><tr>
+        <th>月</th>
+        <th style="text-align:right">CSV泊数</th>
+        <th style="text-align:right">CSV収入（参考）</th>
+        <th style="text-align:right">精算書 宿泊収入</th>
+        <th style="text-align:right">OTA手数料</th>
+        <th style="text-align:right">手数料前売上</th>
+        <th style="text-align:center">状態</th>
+      </tr></thead>
+      <tbody>
+        ${months.map(({year:fy,month:m})=>{
+          const csvNights=ni(pid==='all'?'all':p?.id||pid,fy,m);
+          const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);
+          const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+          const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+          const grossRevenue=settled+otaFee;
+          const hasData=csvNights>0||settled>0;
+          if(!hasData)return'';
+          const diff=settled>0&&csvAmount>0?settled-csvAmount:null;
+          const match=diff===null?null:Math.abs(diff)<100;
+          return`<tr>
+            <td>${fy}/${m}</td>
+            <td style="text-align:right;color:#666">${csvNights>0?csvNights+'泊':'—'}</td>
+            <td style="text-align:right;color:#aaa">${csvAmount>0?yen(csvAmount):'—'}</td>
+            <td style="text-align:right" class="${settled>0?'c-grn fw7':'c-gry'}">${settled>0?yen(settled):'未登録'}</td>
+            <td style="text-align:right;color:#b45309">${otaFee>0?yen(otaFee):'—'}</td>
+            <td style="text-align:right;font-weight:700">${grossRevenue>0?yen(grossRevenue):'—'}</td>
+            <td style="text-align:center">${
+              match===null?'<span class="bdg y">未照合</span>':
+              match?'<span class="bdg g">✅ 一致</span>':
+              `<span class="bdg" style="background:#fce8e8;color:#b71c1c">差額 ${yen(Math.abs(diff))}</span>`
+            }</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>
+  </div>`;
+
   // 取込済み予約一覧
   const filtered=airbnbRows.filter(r=>r.year===year&&(pid==='all'||r.propertyId===pid));
   html+=`<div class="card">
