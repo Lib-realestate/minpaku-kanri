@@ -935,29 +935,33 @@ function renderCashflow(){
   const hasGlobalLoan=globalLoans.length>0;
   const expCatsUsed=EXP_CATS.filter(cat=>MONTHS.some(m=>md[m-1].expByCat[cat]>0));
 
-  // 行定義
+// 行定義
   const rows=[];
-  rows.push({type:'section',label:'▌ 収入'});
-  const incCatsUsed=INC_CATS.filter(cat=>getFiscalMonths(year).some(({year:y,month:m})=>expenses.some(e=>e.year===y&&e.month===m&&e.category===cat&&(pid==='all'||e.propertyId===pid)&&!e.isInitial)));
-  if(incCatsUsed.length===0){
-    rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+  if(pid==='all'){
+    // 全物件ページ：収入合計・支出合計・月間CFのみ
+    rows.push({type:'data',label:'収入合計',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+    rows.push({type:'data',label:'支出合計',vals:md.map(r=>r.expTotal+r.rent+r.propL+r.C+r.GL),totVal:yt.expTotal+yt.rent+yt.propL+yt.C+yt.GL,cls:'c-red',bold:true});
   }else{
-    incCatsUsed.forEach(cat=>{
-      const vals=getFiscalMonths(year).map(({year:y,month:m})=>expenses.filter(e=>e.year===y&&e.month===m&&e.category===cat&&(pid==='all'||e.propertyId===pid)&&!e.isInitial).reduce((s,e)=>s+e.amount,0));
-      const tot=vals.reduce((s,v)=>s+v,0);
-      rows.push({type:'data',label:cat,vals,totVal:tot,cls:'c-grn',bold:cat==='宿泊収入',sub:cat!=='宿泊収入'});
+    // 個別物件ページ：詳細表示
+    rows.push({type:'section',label:'▌ 収入'});
+    const incCatsUsed=INC_CATS.filter(cat=>getFiscalMonths(year).some(({year:y,month:m})=>expenses.some(e=>e.year===y&&e.month===m&&e.category===cat&&(pid==='all'||e.propertyId===pid)&&!e.isInitial)));
+    if(incCatsUsed.length===0){
+      rows.push({type:'data',label:'宿泊売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+    }else{
+      incCatsUsed.forEach(cat=>{
+        const vals=getFiscalMonths(year).map(({year:y,month:m})=>expenses.filter(e=>e.year===y&&e.month===m&&e.category===cat&&e.propertyId===pid&&!e.isInitial).reduce((s,e)=>s+e.amount,0));
+        const tot=vals.reduce((s,v)=>s+v,0);
+        rows.push({type:'data',label:cat,vals,totVal:tot,cls:'c-grn',bold:cat==='宿泊収入',sub:cat!=='宿泊収入'});
+      });
+    }
+    rows.push({type:'section',label:'▌ 支出'});
+    const hasRent=md.some(r=>r.rent>0);
+    if(hasRent) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
+    expCatsUsed.forEach(cat=>{
+      rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
     });
+    rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
   }
-
-  rows.push({type:'section',label:'▌ 支出'});
-  const hasRent=md.some(r=>r.rent>0);
-  if(hasRent) rows.push({type:'data',label:'家賃',vals:md.map(r=>r.rent),totVal:yt.rent,cls:'c-pur',sub:true});
-  expCatsUsed.forEach(cat=>{
-    rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
-  });
-  rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
-  if(pid==='all') rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
-  if(pid==='all'&&hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
 
 rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
   let annualCum=0;
