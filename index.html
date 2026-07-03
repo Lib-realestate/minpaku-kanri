@@ -1220,7 +1220,7 @@ function renderOccupancy(){
             <td style="text-align:center">${
               match===null?'<span class="bdg y">未照合</span>':
               match?'<span class="bdg g">✅ 一致</span>':
-              `<span class="bdg" style="background:#fce8e8;color:#b71c1c">差額 ${yen(Math.abs(diff))}</span>`
+              `<span class="bdg" style="background:#fce8e8;color:#b71c1c">${diff>0?'+':''}${yen(diff)}</span>`
             }</td>
           </tr>`;
         }).join('')}
