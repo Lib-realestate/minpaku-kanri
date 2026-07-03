@@ -1374,6 +1374,7 @@ function renderAnalysis(){
 }
 
 // ── アップロード（取込）──
+let _lastUploadPropId='';
 function renderUpload(){
   const pg=document.getElementById('pages');
   pg.innerHTML=`
@@ -1406,7 +1407,7 @@ function renderUpload(){
     </p>
     <div class="form-row" style="margin-bottom:12px">
       <label class="form-label">対象物件</label>
-      <select id="pdfPropSel"><option value="">選択してください</option>${properties.map(p=>`<option value="${p.id}">${p.name}</option>`).join('')}</select>
+      <select id="pdfPropSel" onchange="_lastUploadPropId=this.value"><option value="">選択してください</option>${properties.map(p=>`<option value="${p.id}"${p.id===_lastUploadPropId?'selected':''}>${p.name}</option>`).join('')}</select>
     </div>
     <div class="dropzone" id="pdfDropzone" onclick="document.getElementById('pdfFile').click()"
       ondragover="event.preventDefault();this.classList.add('drag')"
