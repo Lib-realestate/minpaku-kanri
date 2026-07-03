@@ -1609,7 +1609,7 @@ async function confirmUploadResult(){
 if(type==='expense'&&propId){
       expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label,isInitial,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:false,_pendingDriveLink:true});
     }else if(type==='income'&&propId){
-      airbnbRows.push({id:uid(),cc:'',propertyId:propId,year,month,amount,listing:'',guest:'手動登録',ci:'',co:'',nights:0,src:fname,fmt:'manual',at:new Date().toISOString()});
+      expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label,isInitial:false,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:false,_pendingDriveLink:true});
     }
   });
 
