@@ -1777,7 +1777,6 @@ function calcGrossRevenue(rawAmount,listing,nights,cleaningFee,ciDate){
   const otaRate=getOtaRate(listing,ciDate)||0.15;
   return Math.round(rawAmount/(1-otaRate));
 }
-  
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
