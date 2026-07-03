@@ -1486,7 +1486,6 @@ async function handlePdfFiles(files){
   // HEICを自動変換、画像は圧縮
   files=await Promise.all(files.map(async f=>{
     if(/\.heic$/i.test(f.name))return convertToJpeg(f);
-    if(f.type.startsWith('image/'))return compressImage(f);
     return f;
   }));
   // 物件選択チェック
