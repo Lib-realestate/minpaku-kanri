@@ -2158,7 +2158,6 @@ function renderRentHistory(){
       </div>
     </div>`).join('');
 }
-}
 function updateRentHistory(hid,field,val){
   const p=properties.find(x=>x.id===rentTargetId);if(!p)return;
   const h=p.rentHistory.find(x=>x.id===hid);if(!h)return;
