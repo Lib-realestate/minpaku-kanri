@@ -1040,7 +1040,16 @@ function renderExpTable(pid,year){
               <td style="text-align:right;white-space:nowrap" class="${INC_CATS.includes(e.category)?'c-grn':'c-red'} fw7">${yen(e.amount)}</td>
               <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
               <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
-              <td style="text-align:center;white-space:nowrap">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`:`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="document.getElementById('attach_${e.id}').click()">＋</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
+              <td style="text-align:center;white-space:nowrap">${e.driveLink
+            ?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`
+            :`<div style="display:inline-block;border:1px dashed #ccc;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;min-width:32px;text-align:center"
+                onclick="document.getElementById('attach_${e.id}').click()"
+                ondragover="event.preventDefault();this.style.borderColor='#111'"
+                ondragleave="this.style.borderColor='#ccc'"
+                ondrop="event.preventDefault();this.style.borderColor='#ccc';attachFileToExp('${e.id}',event.dataTransfer.files[0])">＋
+              <input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">
+            </div>`
+          }</td>
               <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${e.id}')">⋯</button></td>
             </tr>`).join('')}
             ${monthComs.map(c=>`<tr>
