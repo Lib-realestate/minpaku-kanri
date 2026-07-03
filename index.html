@@ -1777,12 +1777,7 @@ function calcGrossRevenue(rawAmount,listing,nights,cleaningFee,ciDate){
   const otaRate=getOtaRate(listing,ciDate)||0.15;
   return Math.round(rawAmount/(1-otaRate));
 }
-  // rawAmount = (gross - cleaningFee) * (1 - otaRate) * (1 - discountRate) の逆算
-  // gross = rawAmount / (1-otaRate) / (1-discountRate) + cleaningFee
-  const denom=(1-otaRate)*(1-discountRate);
-  if(denom<=0)return rawAmount;
-  return Math.round(rawAmount/denom+cleaningFee);
-}
+  
 function deleteProp(id){if(!confirm('この物件を削除しますか？'))return;properties=properties.filter(p=>p.id!==id);saveData();buildPropSelector();renderCurrent();}
 function addExp(){
   const pid=document.getElementById('ae-prop').value,amount=+document.getElementById('ae-amount').value;if(!pid||!amount)return;
