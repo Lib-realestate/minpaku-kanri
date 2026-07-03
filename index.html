@@ -671,7 +671,7 @@ function getRent(prop,year,month){
   return matched.length?matched[matched.length-1].amount:0;
 }
 function rv(pid,y,m){
-  return expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入')&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+  return expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入'||e.category==='OTA手数料')&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
 }
 function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
 function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
