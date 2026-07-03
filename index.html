@@ -1106,7 +1106,7 @@ function renderOccupancy(){
       </tr></thead>
       <tbody>
         ${months.map(({year:fy,month:m})=>{
-          const csvNights=ni(pid==='all'?'all':p?.id||pid,fy,m);
+          const csvNights=ni(pid==='all'?'all':pid,fy,m);
           const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);
           const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
           const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
