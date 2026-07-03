@@ -65,7 +65,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 .summary-val{font-size:18px;font-weight:700;letter-spacing:-.02em}
 
 /* ─── CF推移テーブル（縦=項目、横=月） ─── */
-.cf-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.cf-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .cf-tbl th{padding:5px 6px;border-bottom:2px solid #eee;color:#aaa;font-weight:700;white-space:nowrap;text-align:right}
 .cf-tbl th.item-col{text-align:left;min-width:80px}
 .cf-tbl td{padding:5px 6px;border-bottom:1px solid #f0efeb;white-space:nowrap;text-align:right}
@@ -999,7 +999,7 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
     }
     const isProfit=row.type==='cf'||row.type==='cum'||row.type==='lp';
     const totPos=row.totVal>0,totNeg=row.totVal<0;
-    const trCls=(row.type==='cf'||row.type==='cum'||row.type==='lp')?'cf-profit':'';
+    const trCls=row.type==='cf'?'cf-profit':row.type==='cum'?'cf-profit':'';
 
     let cells='';
     if(row.vals){
@@ -1009,7 +1009,8 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
         const bold=row.type==='cf'||row.type==='cum'?'fw7':'';
         const has=md[i].R>0||md[i].expTotal>0||md[i].propL>0||md[i].rent>0||md[i].GL>0||md[i].C>0;
         const show=has&&v!==0;
-        return`<td class="${cls} ${bold}">${show?yenS(v):'—'}</td>`;
+        const cfColor=isProfit?(v>0?'c-grn':v<0?'c-red':''):'';
+        return`<td class="${isProfit?cfColor:cls} ${bold}">${show?yenS(v):'—'}</td>`;
       }).join('');
     }else{
       cells=MONTHS.map(()=>`<td>—</td>`).join('');
