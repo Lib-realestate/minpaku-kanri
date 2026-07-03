@@ -856,8 +856,10 @@ async function processCSV(text,fname,aid){
     if(net<=0){skip++;continue;}
 
     const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
-    const yr=isNaN(d.getTime())?new Date().getFullYear():d.getFullYear();
-    const mo=isNaN(d.getTime())?new Date().getMonth()+1:d.getMonth()+1;
+    // チェックイン翌日の年月（Airbnbの精算タイミング）
+    const d2=new Date(d.getTime()+86400000);
+    const yr=isNaN(d2.getTime())?new Date().getFullYear():d2.getFullYear();
+    const mo=isNaN(d2.getTime())?new Date().getMonth()+1:d2.getMonth()+1;
     const propId=existing?.propertyId||matchProp(listing,aid);
     const prop=properties.find(p=>p.id===propId);
     const cleaningFee=getCleaningFee(prop,ci);
