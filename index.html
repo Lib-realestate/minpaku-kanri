@@ -1008,6 +1008,9 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
 function renderExpTable(pid,year){
   const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month||INC_CATS.includes(b.category)-INC_CATS.includes(a.category));
   const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
+  const allItems=[...exList.map(e=>({...e,_type:'exp'})),...comList.map(c=>({...c,_type:'com'}))].sort((a,b)=>a.month-b.month);
+  const months=[...new Set(allItems.map(e=>e.month))];
+
   return`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="card-title" style="margin-bottom:0">明細履歴</div>
@@ -1016,30 +1019,49 @@ function renderExpTable(pid,year){
         <button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>
       </div>
     </div>
-    <div class="scroll-x"><table class="tbl" style="font-size:12px">
-      <thead><tr>
+    <div style="max-height:500px;overflow-y:auto"><table class="tbl" style="font-size:12px">
+      <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr>
         <th style="font-size:10px">年月</th><th style="font-size:10px">カテゴリ</th>
         <th style="text-align:right;font-size:10px">金額</th><th style="font-size:10px">備考</th>
         <th style="text-align:center;font-size:10px">初期費用</th><th style="text-align:center;font-size:10px">書類</th><th></th>
       </tr></thead>
       <tbody>
-        ${exList.map(e=>`<tr>
-          <td style="white-space:nowrap">${e.year}/${e.month}</td>
-          <td><span class="bdg" style="font-size:10px">${e.category}</span></td>
-          <td style="text-align:right;white-space:nowrap" class="${INC_CATS.includes(e.category)?'c-grn':'c-red'} fw7">${yen(e.amount)}</td>
-          <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
-          <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
-          <td style="text-align:center;white-space:nowrap">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`:`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="document.getElementById('attach_${e.id}').click()">＋</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
-          <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${e.id}')">⋯</button></td>
-        </tr>`).join('')}
-        ${comList.map(c=>`<tr>
-          <td style="white-space:nowrap">${c.year}/${c.month}</td>
-          <td><span class="bdg p" style="font-size:10px">${c.category}</span></td>
-          <td style="text-align:right;white-space:nowrap" class="c-pur fw7">${yen(c.amount)}</td>
-          <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.note||''}</td>
-          <td></td><td></td>
-          <td style="white-space:nowrap"><button class="btn sm danger" style="font-size:10px;padding:2px 8px" onclick="delCom('${c.id}')">削除</button></td>
-        </tr>`).join('')}
+        ${months.map(m=>{
+          const monthExps=exList.filter(e=>e.month===m);
+          const monthComs=comList.filter(c=>c.month===m);
+          const incTotal=monthExps.filter(e=>INC_CATS.includes(e.category)).reduce((s,e)=>s+e.amount,0);
+          const expTotal=monthExps.filter(e=>!INC_CATS.includes(e.category)).reduce((s,e)=>s+e.amount,0);
+          const comTotal=monthComs.reduce((s,c)=>s+c.amount,0);
+
+          const rows=`
+            ${monthExps.map(e=>`<tr>
+              <td style="white-space:nowrap">${e.year}/${e.month}</td>
+              <td><span class="bdg" style="font-size:10px">${e.category}</span></td>
+              <td style="text-align:right;white-space:nowrap" class="${INC_CATS.includes(e.category)?'c-grn':'c-red'} fw7">${yen(e.amount)}</td>
+              <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.note||''}</td>
+              <td style="text-align:center"><input type="checkbox" ${e.isInitial?'checked':''} onchange="toggleInitial('${e.id}')" title="初期費用に含める"></td>
+              <td style="text-align:center;white-space:nowrap">${e.driveLink?`<a href="${e.driveLink}" target="_blank" style="font-size:11px">📄</a>`:`<button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="document.getElementById('attach_${e.id}').click()">＋</button><input type="file" id="attach_${e.id}" style="display:none" onchange="attachFileToExp('${e.id}',this.files[0])">`}</td>
+              <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${e.id}')">⋯</button></td>
+            </tr>`).join('')}
+            ${monthComs.map(c=>`<tr>
+              <td style="white-space:nowrap">${c.year}/${c.month}</td>
+              <td><span class="bdg p" style="font-size:10px">${c.category}</span></td>
+              <td style="text-align:right;white-space:nowrap" class="c-pur fw7">${yen(c.amount)}</td>
+              <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.note||''}</td>
+              <td></td><td></td>
+              <td style="white-space:nowrap"><button class="btn sm danger" style="font-size:10px;padding:2px 8px" onclick="delCom('${c.id}')">削除</button></td>
+            </tr>`).join('')}
+            <tr style="background:#f5f5f0;font-weight:700;font-size:11px">
+              <td style="white-space:nowrap">${year}/${m} 合計</td>
+              <td></td>
+              <td style="text-align:right;white-space:nowrap">
+                ${incTotal>0?`<span class="c-grn">${yen(incTotal)}</span>`:''}
+                ${expTotal+comTotal>0?`<span class="c-red" style="margin-left:4px">-${yen(expTotal+comTotal)}</span>`:''}
+              </td>
+              <td colspan="4"></td>
+            </tr>`;
+          return rows;
+        }).join('')}
       </tbody>
     </table></div>
   </div>`;
