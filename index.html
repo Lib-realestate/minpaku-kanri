@@ -943,7 +943,7 @@ function renderCashflow(){
   properties.forEach(p=>{
     const pmd=monthlyData(p.id,year);
     const pyt=yearTotal(p.id,year);
-    let cumCF=lifetimeProfit(p.id)-pyt.profit;
+    let cumCF=0;
     const cumCFs=pmd.map(r=>{cumCF+=r.profit;return cumCF;});
     rows.push({type:'data',label:p.name+' 月間CF',vals:pmd.map(r=>r.profit),totVal:pyt.profit,cls:'',bold:true,isPropCF:true,pmd});
     rows.push({type:'cum',label:'　年間CF累計',vals:cumCFs,totVal:null});
@@ -956,9 +956,7 @@ function renderCashflow(){
       return occD>0?n/occD*100:0;
     }),totVal:null,propId:p.id});
   });
-  rows.push({type:'section',label:'▌ 合計'});
-  rows.push({type:'data',label:'収入合計',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
-  rows.push({type:'data',label:'支出合計',vals:md.map(r=>r.expTotal+r.rent+r.propL+r.C+r.GL),totVal:yt.expTotal+yt.rent+yt.propL+yt.C+yt.GL,cls:'c-red',bold:true});
+rows.push({type:'section',label:'▌ 合計'});
   }else{
     // 個別物件ページ：詳細表示
     rows.push({type:'section',label:'▌ 収入'});
