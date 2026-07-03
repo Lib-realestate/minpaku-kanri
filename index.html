@@ -1024,7 +1024,8 @@ rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit}
 
 // 経費テーブルHTML生成
 function renderExpTable(pid,year){
-  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month||INC_CATS.includes(b.category)-INC_CATS.includes(a.category));
+  const catOrder=[...INC_CATS,...EXP_CATS];
+  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month||(catOrder.indexOf(a.category)-catOrder.indexOf(b.category)));
   const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
   const allItems=[...exList.map(e=>({...e,_type:'exp'})),...comList.map(c=>({...c,_type:'com'}))].sort((a,b)=>a.month-b.month);
   const months=[...new Set(allItems.map(e=>e.month))];
