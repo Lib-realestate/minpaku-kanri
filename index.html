@@ -1771,14 +1771,6 @@ function addOtaRate(){
 }
 function delOtaRate(id){otaRates=otaRates.filter(r=>r.id!==id);saveData();showIconPage('settings');}
 function updateCleaningFee(id,val){const p=properties.find(x=>x.id===id);if(!p)return;p.cleaningFee=val;saveData();}
-function addOtaRate(){
-  const kw=document.getElementById('ota-kw').value.trim();
-  const rate=+document.getElementById('ota-rate').value;
-  if(!kw||!rate)return;
-  otaRates=[...otaRates,{id:uid(),keyword:kw,rate}];
-  saveData();showIconPage('settings');
-}
-function delOtaRate(id){otaRates=otaRates.filter(r=>r.id!==id);saveData();showIconPage('settings');}
 
 // 宿泊売上を計算（CSVの収入から逆算）
 function calcGrossRevenue(rawAmount,listing,nights,cleaningFee,ciDate){
