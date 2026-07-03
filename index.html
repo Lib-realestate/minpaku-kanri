@@ -900,6 +900,13 @@ function renderCashflow(){
   let cumCF=prevYearProfit;
   const cumCFs=md.map(r=>{cumCF+=r.profit;return cumCF;});
 
+  const initTotal=pid==='all'
+    ?expenses.filter(e=>e.isInitial).reduce((s,e)=>s+e.amount,0)
+    :expenses.filter(e=>e.isInitial&&e.propertyId===pid).reduce((s,e)=>s+e.amount,0);
+  const recoverRate=initTotal>0?(lp/initTotal*100):null;
+  const now=new Date();
+  const nowLabel=`${now.getFullYear()}/${now.getMonth()+1}月時点`;
+
   const pg=document.getElementById('pages');
 
   // サマリー上段
@@ -909,8 +916,10 @@ function renderCashflow(){
       ['年間CF',yt.profit,true],
       ['年間売上',yt.R,false],
       ['稼働率（年）',(yt.nights/daysForOcc(pid,year)*100).toFixed(1)+'%',false,true],
-      ['取得来CF累計',lp,true],
-    ].map(([l,v,isProfit,isStr])=>`
+      [`取得来CF累計（${nowLabel}）`,lp,true],
+      ['初期費用合計',initTotal,false],
+      [recoverRate!==null?`初期費用回収率（${nowLabel}）`:null,recoverRate!==null?recoverRate.toFixed(1)+'%':null,false,true],
+    ].filter(([l])=>l!==null).map(([l,v,isProfit,isStr])=>`
     <div class="summary-item">
       <div class="summary-label">${l}</div>
       <div class="summary-val ${isStr?'':(isProfit?pc(v):'')}">
