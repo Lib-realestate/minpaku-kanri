@@ -954,14 +954,13 @@ function renderCashflow(){
     rows.push({type:'data',label:cat,vals:md.map(r=>r.expByCat[cat]||0),totVal:MONTHS.reduce((s,m)=>s+(md[m-1].expByCat[cat]||0),0),cls:'c-red',sub:true});
   });
   rows.push({type:'data',label:'物件ローン返済',vals:md.map(r=>r.propL),totVal:yt.propL,cls:'c-org',sub:true});
-  rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
-  if(hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
+  if(pid==='all') rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:yt.C,cls:'c-pur',sub:true});
+  if(pid==='all'&&hasGlobalLoan) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:yt.GL,cls:'c-org',sub:true});
 
 rows.push({type:'cf',label:'月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
   let annualCum=0;
   const annualCumCFs=md.map(r=>{annualCum+=r.profit;return annualCum;});
   rows.push({type:'cum',label:'年間CF累計',vals:annualCumCFs,totVal:null});
-  rows.push({type:'cum',label:'取得来CF累計',vals:cumCFs,totVal:null});
   rows.push({type:'occ',label:'稼働率',vals:md.map(r=>r.occ),totVal:null});
 
   // テーブル描画
