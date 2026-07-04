@@ -776,8 +776,16 @@ function yearTotal(pid,year){
   return md.reduce((a,r)=>({R:a.R+r.R,expTotal:a.expTotal+r.expTotal,rent:a.rent+r.rent,propL:a.propL+r.propL,C:a.C+r.C,GL:a.GL+r.GL,nights:a.nights+r.nights,profit:a.profit+r.profit}),{R:0,expTotal:0,rent:0,propL:0,C:0,GL:0,nights:0,profit:0});
 }
 function lifetimeProfit(pid){
+  const now=new Date();
+  const thisYear=now.getFullYear();
+  const thisMonth=now.getMonth()+1;
   const years=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year)])];
-  return years.reduce((s,y)=>s+yearTotal(pid,y).profit,0);
+  return years.filter(y=>y<=thisYear).reduce((s,y)=>{
+    if(y<thisYear) return s+yearTotal(pid,y).profit;
+    // 今年は今月までのみ
+    const md=monthlyData(pid,y);
+    return s+md.filter((_,i)=>getFiscalMonths(y)[i].month<=thisMonth).reduce((ss,r)=>ss+r.profit,0);
+  },0);
 }
 
 // ═══ CSV処理 ═══
