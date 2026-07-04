@@ -300,6 +300,20 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   </div>
 </div></div>
 
+<!-- 調整額追加 -->
+<div class="modal" id="addAdjustModal"><div class="modal-box">
+  <h3>調整額を追加</h3>
+  <input type="hidden" id="adj-year">
+  <input type="hidden" id="adj-month">
+  <input type="hidden" id="adj-propId">
+  <div class="form-row"><label class="form-label">調整額（円）※マイナスも可</label><input type="number" id="adj-amount" placeholder="例: 5000 または -3000"></div>
+  <div class="form-row"><label class="form-label">内容・理由</label><input type="text" id="adj-note" placeholder="例: 人数変更追加料金・長期割引など"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn primary" onclick="addAdjustment()">追加</button>
+    <button class="btn" onclick="closeModal('addAdjustModal')">キャンセル</button>
+  </div>
+</div></div>
+
 <!-- 予約編集 -->
 <div class="modal" id="editRowModal"><div class="modal-box">
   <h3>予約データを編集</h3>
@@ -1238,11 +1252,12 @@ function renderOccupancy(){
             <td style="text-align:right;color:#b45309">${otaFee>0?yen(otaFee):'—'}</td>
             <td style="text-align:right;font-weight:700">${csvPlusFee>0?yen(csvPlusFee):'—'}</td>
             <td style="text-align:right" class="${settled>0?'c-grn fw7':'c-gry'}">${settled>0?yen(settled):'未登録'}</td>
-            <td style="text-align:center">${
-              match===null?'<span class="bdg y">未照合</span>':
+            <td style="text-align:center;white-space:nowrap">
+              ${match===null?'<span class="bdg y">未照合</span>':
               match?'<span class="bdg g">✅ 一致</span>':
-              `<span class="bdg" style="background:#fce8e8;color:#b71c1c">${diff>0?'+':''}${yen(diff)}</span>`
-            }</td>
+              `<span class="bdg" style="background:#fce8e8;color:#b71c1c">${diff>0?'+':''}${yen(diff)}</span>`}
+              <button class="btn sm" style="font-size:10px;padding:2px 6px;margin-left:4px" onclick="openAdjustModal('${fy}','${m}','${pid==='all'?'':pid}')">＋調整</button>
+            </td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -1265,11 +1280,12 @@ function renderOccupancy(){
 
   // 取込済み予約一覧（個別物件のみ）
   if(pid==='all')return pg.innerHTML=html;
-  const filtered=airbnbRows.filter(r=>r.year===year&&(pid==='all'||r.propertyId===pid));
+  const filtered=airbnbRows.filter(r=>r.year===year&&(pid==='all'||r.propertyId===pid)&&!r.isAdjustment);
+  const adjustRows=airbnbRows.filter(r=>r.year===year&&(pid==='all'||r.propertyId===pid)&&r.isAdjustment);
   html+=`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="card-title" style="margin-bottom:0">取込済み予約一覧</div>
-      <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.length}件</span>
+      <span style="font-size:12px;color:#aaa">${filtered.length}件 / 累計${airbnbRows.filter(r=>!r.isAdjustment).length}件</span>
     </div>
 <div style="max-height:400px;overflow-y:auto"><table class="tbl">
       <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th></th></tr></thead>
@@ -1294,6 +1310,16 @@ function renderOccupancy(){
               <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
               <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
             </tr>`;
+          }).join('')}
+          ${adjustRows.map(r=>`<tr style="opacity:0.5;font-size:11px;background:#f9f9f7">
+            <td><code style="font-size:10px;color:#aaa">調整</code></td>
+            <td></td>
+            <td>${r.month}月</td>
+            <td style="color:#888">${r.guest||'—'}</td>
+            <td>—</td><td>—</td>
+            <td style="text-align:right;color:${r.amount>0?'#1a7a3c':'#b71c1c'};font-size:11px">${r.amount>0?'+':''}${yen(r.amount)}</td>
+            <td><button class="btn sm danger" style="font-size:10px;padding:2px 6px" onclick="delAirbnbRow('${r.id}')">削除</button></td>
+          </tr>`).join('');
           }).join('');
           const summaryRow=`<tr style="background:#f5f5f0;font-weight:700">
             <td colspan="5" style="font-size:12px">${y}年${m}月 合計（${rows.length}件）</td>
@@ -1996,6 +2022,28 @@ function addCom(){
   closeModal('addComModal');renderCurrent();
 }
 function delExp(id){expenses=expenses.filter(e=>e.id!==id);saveData();renderCurrent();}
+function openAdjustModal(year,month,propId){
+  document.getElementById('adj-year').value=year;
+  document.getElementById('adj-month').value=month;
+  document.getElementById('adj-propId').value=propId||currentProp;
+  document.getElementById('adj-amount').value='';
+  document.getElementById('adj-note').value='';
+  openModal('addAdjustModal');
+}
+function addAdjustment(){
+  const year=+document.getElementById('adj-year').value;
+  const month=+document.getElementById('adj-month').value;
+  const propId=document.getElementById('adj-propId').value;
+  const amount=+document.getElementById('adj-amount').value;
+  const note=document.getElementById('adj-note').value;
+  if(!amount)return;
+  airbnbRows.push({id:uid(),cc:'',propertyId:propId,year,month,amount,listing:'',guest:note||'調整',ci:'',co:'',nights:0,src:'manual',fmt:'adjustment',isAdjustment:true,at:new Date().toISOString()});
+  saveData();closeModal('addAdjustModal');renderCurrent();
+}
+function delAirbnbRow(id){
+  airbnbRows=airbnbRows.filter(r=>r.id!==id);
+  saveData();renderCurrent();
+}
 function openEditRowModal(id){
   const r=airbnbRows.find(x=>x.id===id);if(!r)return;
   document.getElementById('er-id').value=id;
