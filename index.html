@@ -954,40 +954,81 @@ function renderCashflow(){
 
 // 月次CF推移グラフ
   const chartMonths=getFiscalMonths(year);
-  const chartR=chartMonths.map(({year:y,month:m})=>expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入')&&!e.isInitial).reduce((s,e)=>s+e.amount,0));
-  const chartE=chartMonths.map(({year:y,month:m})=>{const r=monthlyData(pid,year).find(d=>d.m===m)||{};return(r.expTotal||0)+(r.rent||0)+(r.propL||0)+(r.C||0)+(r.GL||0);});
+  const chartR=chartMonths.map(({year:y,month:m})=>rv(pid,y,m));
+  const chartE=chartMonths.map(({year:y,month:m})=>{const d=monthlyData(pid,y).find(r=>r.m===m)||{};return(d.expTotal||0)+(d.rent||0)+(d.propL||0)+(d.C||0)+(d.GL||0);});
   const chartP=chartMonths.map((_,i)=>chartR[i]-chartE[i]);
-  const maxVal=Math.max(...chartR,...chartE.map(v=>Math.abs(v)),1);
-  const barH=120;
+  const allVals=[...chartR,...chartE,...chartP.map(v=>Math.abs(v))].filter(v=>v>0);
+  const maxVal=allVals.length?Math.max(...allVals):1;
+  const svgW=700,svgH=200,padL=60,padR=16,padT=16,padB=32;
+  const plotW=svgW-padL-padR,plotH=svgH-padT-padB;
+  const barW=plotW/chartMonths.length;
+  const yScale=v=>padT+plotH*(1-v/maxVal);
+  const ticks=[0,0.25,0.5,0.75,1].map(t=>Math.round(maxVal*t/10000)*10000);
+
+  const barsHtml=chartMonths.map(({month:m},i)=>{
+    const r=chartR[i],e=chartE[i];
+    const x=padL+i*barW;
+    const rH=r/maxVal*plotH;
+    const eH=e/maxVal*plotH;
+    const hasData=r>0||e>0;
+    if(!hasData)return'';
+    return`
+      <rect x="${x+barW*0.08}" y="${padT+plotH-rH}" width="${barW*0.42}" height="${rH}" fill="#a8d5a2" rx="2"/>
+      <rect x="${x+barW*0.5}" y="${padT+plotH-eH}" width="${barW*0.42}" height="${eH}" fill="#f4a8a8" rx="2"/>
+      <text x="${x+barW*0.29}" y="${padT+plotH-rH-4}" text-anchor="middle" font-size="8" fill="#2e7d32">${r>0?Math.round(r/10000)+'万':''}</text>
+    `;
+  }).join('');
+
+  const linePoints=chartMonths.map(({month:m},i)=>{
+    const x=padL+i*barW+barW/2;
+    const y=yScale(Math.max(chartP[i],0)+(chartP[i]<0?chartP[i]:0));
+    return`${x},${padT+plotH*(1-chartP[i]/maxVal)}`;
+  }).join(' ');
+
+  const profitLine=chartMonths.map(({month:m},i)=>{
+    const x=padL+i*barW+barW/2;
+    const y=padT+plotH*(1-chartP[i]/maxVal);
+    return i===0?`M${x},${y}`:`L${x},${y}`;
+  }).join(' ');
+
   pg.innerHTML+=`<div class="card" style="padding:14px 16px">
-    <div class="card-title">月次CF推移</div>
-    <div style="display:flex;align-items:flex-end;gap:4px;height:${barH+40}px;padding-bottom:20px;position:relative;overflow-x:auto">
-      <div style="position:absolute;left:0;right:0;top:${barH/2}px;border-top:1px dashed #ddd"></div>
-      ${chartMonths.map(({month:m},i)=>{
-        const r=chartR[i],e=chartE[i],p=chartP[i];
-        const rH=Math.round(r/maxVal*barH/2);
-        const eH=Math.round(e/maxVal*barH/2);
-        const hasData=r>0||e>0;
-        return`<div style="flex:1;min-width:28px;display:flex;flex-direction:column;align-items:center;gap:2px">
-          <div style="width:100%;display:flex;flex-direction:column;align-items:center;height:${barH}px;justify-content:flex-end;position:relative">
-            ${hasData?`
-            <div style="width:100%;display:flex;justify-content:center;gap:2px;align-items:flex-end;height:${barH}px">
-              <div style="width:38%;background:#4caf50;height:${rH}px;border-radius:2px 2px 0 0" title="収入: ${yen(r)}"></div>
-              <div style="width:38%;background:#ef5350;height:${eH}px;border-radius:2px 2px 0 0" title="支出: ${yen(e)}"></div>
-            </div>
-            <div style="position:absolute;bottom:${barH/2}px;left:0;right:0;display:flex;justify-content:center">
-              <div style="width:80%;height:2px;background:${p>=0?'#1a7a3c':'#b71c1c'}"></div>
-            </div>`:''}
-          </div>
-          <div style="font-size:9px;color:#aaa;text-align:center">${m}月</div>
-          ${hasData?`<div style="font-size:9px;font-weight:700;color:${p>=0?'#1a7a3c':'#b71c1c'};text-align:center">${p>=0?'+':''}${Math.round(p/10000)}万</div>`:''}
-        </div>`;
-      }).join('')}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="card-title" style="margin-bottom:0">月次CF推移</div>
+      <div style="display:flex;gap:12px;font-size:11px;color:#666">
+        <span><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#a8d5a2" rx="2"/></svg> 収入</span>
+        <span><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#f4a8a8" rx="2"/></svg> 支出</span>
+        <span><svg width="20" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#2563eb" stroke-width="2"/></svg> 利益</span>
+      </div>
     </div>
-    <div style="display:flex;gap:14px;justify-content:center;font-size:11px;color:#666">
-      <span><span style="display:inline-block;width:10px;height:10px;background:#4caf50;border-radius:2px;margin-right:4px"></span>収入</span>
-      <span><span style="display:inline-block;width:10px;height:10px;background:#ef5350;border-radius:2px;margin-right:4px"></span>支出</span>
-      <span><span style="display:inline-block;width:20px;height:2px;background:#1a7a3c;margin-right:4px;vertical-align:middle"></span>利益</span>
+    <div style="overflow-x:auto">
+    <svg viewBox="0 0 ${svgW} ${svgH}" style="width:100%;min-width:300px;height:auto">
+      <!-- 横グリッド・縦軸ラベル -->
+      ${ticks.map(t=>{
+        const y=yScale(t);
+        return`<line x1="${padL}" y1="${y}" x2="${svgW-padR}" y2="${y}" stroke="#f0efeb" stroke-width="1"/>
+        <text x="${padL-6}" y="${y+4}" text-anchor="end" font-size="9" fill="#aaa">¥${(t/10000).toFixed(0)}万</text>`;
+      }).join('')}
+      <!-- 棒グラフ -->
+      ${barsHtml}
+      <!-- 利益折れ線 -->
+      <path d="${profitLine}" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>
+      ${chartMonths.map(({month:m},i)=>{
+        const x=padL+i*barW+barW/2;
+        const y=padT+plotH*(1-chartP[i]/maxVal);
+        const hasData=chartR[i]>0||chartE[i]>0;
+        if(!hasData)return'';
+        return`<circle cx="${x}" cy="${y}" r="3" fill="#2563eb"/>
+        <text x="${x}" y="${y-6}" text-anchor="middle" font-size="8" fill="#2563eb">${Math.round(chartP[i]/10000)}万</text>`;
+      }).join('')}
+      <!-- 横軸ラベル -->
+      ${chartMonths.map(({month:m},i)=>{
+        const x=padL+i*barW+barW/2;
+        return`<text x="${x}" y="${svgH-4}" text-anchor="middle" font-size="9" fill="#aaa">${m}月</text>`;
+      }).join('')}
+      <!-- 軸線 -->
+      <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#e0e0d8" stroke-width="1"/>
+      <line x1="${padL}" y1="${padT+plotH}" x2="${svgW-padR}" y2="${padT+plotH}" stroke="#e0e0d8" stroke-width="1"/>
+    </svg>
     </div>
   </div>`;
 
