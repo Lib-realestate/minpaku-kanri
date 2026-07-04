@@ -1320,7 +1320,6 @@ function renderOccupancy(){
             <td style="text-align:right;color:${r.amount>0?'#1a7a3c':'#b71c1c'};font-size:11px">${r.amount>0?'+':''}${yen(r.amount)}</td>
             <td><button class="btn sm danger" style="font-size:10px;padding:2px 6px" onclick="delAirbnbRow('${r.id}')">削除</button></td>
           </tr>`).join('');
-          }).join('');
           const summaryRow=`<tr style="background:#f5f5f0;font-weight:700">
             <td colspan="5" style="font-size:12px">${y}年${m}月 合計（${rows.length}件）</td>
             <td style="text-align:right">${rows.reduce((s,r)=>s+(r.nights||0),0)}泊</td>
