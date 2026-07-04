@@ -1064,7 +1064,13 @@ function renderCashflow(){
       return occD>0?n/occD*100:0;
     }),totVal:null,propId:p.id});
   });
-// 合計行
+// 共通経費・運転資金返済（全物件のみ）
+  const hasCommon=md.some(r=>r.C>0);
+  const hasGL=md.some(r=>r.GL>0);
+  if(hasCommon) rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:md.reduce((s,r)=>s+r.C,0),cls:'c-pur',sub:true});
+  if(hasGL) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:md.reduce((s,r)=>s+r.GL,0),cls:'c-org',sub:true});
+
+  // 合計行
   let totalCumCF=0;
   const totalCumCFs=md.map(r=>{totalCumCF+=r.profit;return totalCumCF;});
   rows.push({type:'cf',label:'合計 月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
