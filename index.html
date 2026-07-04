@@ -1310,8 +1310,8 @@ function renderOccupancy(){
               <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
               <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
             </tr>`;
-          }).join('')}
-          ${adjustRows.map(r=>`<tr style="opacity:0.5;font-size:11px;background:#f9f9f7">
+          }).join('');
+          const adjHtml=adjustRows.filter(r=>r.year===y&&r.month===m).map(r=>`<tr style="opacity:0.5;font-size:11px;background:#f9f9f7">
             <td><code style="font-size:10px;color:#aaa">調整</code></td>
             <td></td>
             <td>${r.month}月</td>
@@ -1326,7 +1326,7 @@ function renderOccupancy(){
             <td style="text-align:right;color:#aaa">${yen(totalCsv)}</td>
             <td></td>
           </tr>`;
-          return rowsHtml+summaryRow;
+          return rowsHtml+adjHtml+summaryRow;
         }).join('');
       })()}</tbody>
     </table></div>
