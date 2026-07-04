@@ -1063,6 +1063,7 @@ function renderCashflow(){
 // 共通経費・運転資金返済（全物件のみ）
   const hasCommon=md.some(r=>r.C>0);
   const hasGL=md.some(r=>r.GL>0);
+if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転資金'});
   if(hasCommon) rows.push({type:'data',label:'共通経費',vals:md.map(r=>r.C),totVal:md.reduce((s,r)=>s+r.C,0),cls:'c-pur',sub:true});
   if(hasGL) rows.push({type:'data',label:'運転資金返済',vals:md.map(r=>r.GL),totVal:md.reduce((s,r)=>s+r.GL,0),cls:'c-org',sub:true});
 
