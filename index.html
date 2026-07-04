@@ -247,11 +247,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 <!-- 借入追加 -->
 <div class="modal" id="addLoanModal"><div class="modal-box">
   <h3>借入を追加</h3>
-  <div class="form-row"><label class="form-label">借入種別</label>
-    <select id="loan-scope" onchange="toggleLoanScope()">
-      <option value="property">物件個別</option>
-      <option value="overall">全体（運転資金等）</option>
-    </select></div>
+  <input type="hidden" id="loan-scope" value="property">
   <div class="form-row" id="loan-prop-row"><label class="form-label">対象物件</label>
     <select id="loan-prop"><option value="">選択してください</option></select></div>
   <div class="form-row"><label class="form-label">借入名称</label><input type="text" id="loan-name" placeholder="購入ローン / リフォームローン 等"></div>
