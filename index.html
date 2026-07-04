@@ -244,6 +244,34 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <button class="btn primary" style="width:100%" onclick="closeModal('rentModal')">完了</button>
 </div></div>
 
+<!-- ローン編集 -->
+<div class="modal" id="editLoanModal"><div class="modal-box">
+  <h3>借入を編集</h3>
+  <input type="hidden" id="el-id">
+  <input type="hidden" id="el-scope">
+  <input type="hidden" id="el-propid">
+  <div class="form-row"><label class="form-label">借入名称</label><input type="text" id="el-name"></div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">借入金額（円）</label><input type="number" id="el-principal"></div>
+    <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="el-rate" step="0.1"></div>
+  </div>
+  <div class="form-grid">
+    <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="el-years"></div>
+    <div class="form-row"><label class="form-label">返済開始日</label><input type="date" id="el-start"></div>
+  </div>
+  <div class="form-row"><label class="form-label">返済方式</label>
+    <select id="el-method">
+      <option value="equal_payment">元利均等</option>
+      <option value="equal_principal">元金均等</option>
+    </select>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button class="btn primary" onclick="saveEditLoan()">保存</button>
+    <button class="btn" onclick="closeModal('editLoanModal')">キャンセル</button>
+    <button class="btn danger" onclick="deleteFromEditLoanModal()">削除</button>
+  </div>
+</div></div>
+
 <!-- 借入追加 -->
 <div class="modal" id="addLoanModal"><div class="modal-box">
   <h3>借入を追加</h3>
@@ -258,6 +286,12 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <div class="form-grid">
     <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="loan-years" value="20"></div>
     <div class="form-row"><label class="form-label">返済開始日</label><input type="date" id="loan-start"></div>
+  </div>
+  <div class="form-row"><label class="form-label">返済方式</label>
+    <select id="loan-method">
+      <option value="equal_payment">元利均等</option>
+      <option value="equal_principal">元金均等</option>
+    </select>
   </div>
   <div style="display:flex;gap:8px">
     <button class="btn primary" onclick="addLoan()">追加</button>
@@ -666,7 +700,19 @@ function buildYearSel(){
 }
 
 // ═══ 集計 ═══
-function calcML(p,r,y){const m=r/100/12,n=y*12;if(!m)return Math.round(p/n);return Math.round(p*m*Math.pow(1+m,n)/(Math.pow(1+m,n)-1));}
+function calcML(principal,rate,years,method,month){
+  // method: 'equal_payment'=元利均等（デフォルト）, 'equal_principal'=元金均等
+  const r=rate/100/12,n=years*12;
+  if(method==='equal_principal'){
+    // 元金均等：返済月数に応じて返済額が変わる
+    const m=month||1;
+    const principal_payment=Math.round(principal/n);
+    const remaining=principal-principal_payment*(m-1);
+    return principal_payment+Math.round(remaining*r);
+  }
+  if(!r)return Math.round(principal/n);
+  return Math.round(principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
+}
 function normStr(s){return s.replace(/[　\s\-_【】「」『』・\/\\]/g,'').toLowerCase();}
 function yen(v){return '¥'+Math.round(v).toLocaleString();}
 function yenS(v){return v===0?'—':'¥'+Math.round(v).toLocaleString();}
@@ -679,7 +725,7 @@ function propLoanRepay(prop,year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
-    if(ym>=sYM&&ym<=eYM)s+=calcML(loan.principal,loan.rate,loan.years);
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m);}
     return s;
   },0);
 }
@@ -688,7 +734,7 @@ function globalLoanRepay(year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
-    if(ym>=sYM&&ym<=eYM)s+=calcML(loan.principal,loan.rate,loan.years);
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m);}
     return s;
   },0);
 }
@@ -1493,7 +1539,10 @@ function renderAnalysis(){
           const elapsed=Math.max(0,(now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth()));
           const rem=Math.max(l.principal-ml*elapsed,0);
           return`<div style="margin-bottom:10px">
-            <div style="font-size:12px;font-weight:700">${l.name}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:12px;font-weight:700">${l.name}</div>
+              <button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="openEditLoanModal('property','${p.id}','${l.id}')">編集</button>
+            </div>
             <div style="font-size:11px;color:#b45309">${yen(ml)}/月 / 残債${yen(rem)}</div>
             <div class="pbar" style="margin-top:4px"><div class="pbar-fill" style="width:${(elapsed/(l.years*12))*100}%;background:#4caf50"></div></div>
           </div>`;
@@ -1936,6 +1985,7 @@ function renderSettings(){
           <span style="font-weight:700">${l.name}</span>
           <span style="font-size:12px;color:#b45309;margin-left:8px">${yen(calcML(l.principal,l.rate,l.years))}/月</span>
         </div>
+        <button class="btn sm" onclick="openEditLoanModal('overall','',l.id)">編集</button>
         <button class="btn sm danger" onclick="delGlobalLoan('${l.id}')">削除</button>
       </div>
       <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years}年</div>
@@ -2382,10 +2432,61 @@ function openAddLoanModal(propIdOrScope){
 function addLoan(){
   const scope=document.getElementById('loan-scope').value,name=document.getElementById('loan-name').value.trim(),principal=+document.getElementById('loan-principal').value,rate=+document.getElementById('loan-rate').value,years=+document.getElementById('loan-years').value,startDate=document.getElementById('loan-start').value;
   if(!name||!principal||!startDate)return;
-  const loan={id:uid(),name,principal,rate,years,startDate};
+  const method=document.getElementById('loan-method').value||'equal_payment';
+  const loan={id:uid(),name,principal,rate,years,startDate,method};
   if(scope==='overall'){globalLoans=[...globalLoans,loan];}
   else{const pid=document.getElementById('loan-prop').value;if(!pid)return;const p=properties.find(x=>x.id===pid);if(!p)return;p.loans=[...(p.loans||[]),loan];}
   saveData();closeModal('addLoanModal');renderCurrent();
+}
+function openEditLoanModal(scope,propId,loanId){
+  const loan=scope==='overall'
+    ?globalLoans.find(l=>l.id===loanId)
+    :properties.find(p=>p.id===propId)?.loans?.find(l=>l.id===loanId);
+  if(!loan)return;
+  document.getElementById('el-id').value=loanId;
+  document.getElementById('el-scope').value=scope;
+  document.getElementById('el-propid').value=propId||'';
+  document.getElementById('el-name').value=loan.name;
+  document.getElementById('el-principal').value=loan.principal;
+  document.getElementById('el-rate').value=loan.rate;
+  document.getElementById('el-years').value=loan.years;
+  document.getElementById('el-start').value=loan.startDate||'';
+  document.getElementById('el-method').value=loan.method||'equal_payment';
+  openModal('editLoanModal');
+}
+function saveEditLoan(){
+  const id=document.getElementById('el-id').value;
+  const scope=document.getElementById('el-scope').value;
+  const propId=document.getElementById('el-propid').value;
+  const data={
+    id,
+    name:document.getElementById('el-name').value,
+    principal:+document.getElementById('el-principal').value,
+    rate:+document.getElementById('el-rate').value,
+    years:+document.getElementById('el-years').value,
+    startDate:document.getElementById('el-start').value,
+    method:document.getElementById('el-method').value,
+  };
+  if(scope==='overall'){
+    globalLoans=globalLoans.map(l=>l.id===id?data:l);
+  }else{
+    const p=properties.find(x=>x.id===propId);
+    if(p)p.loans=p.loans.map(l=>l.id===id?data:l);
+  }
+  saveData();closeModal('editLoanModal');renderCurrent();
+}
+function deleteFromEditLoanModal(){
+  const id=document.getElementById('el-id').value;
+  const scope=document.getElementById('el-scope').value;
+  const propId=document.getElementById('el-propid').value;
+  if(!confirm('このローンを削除しますか？'))return;
+  if(scope==='overall'){
+    globalLoans=globalLoans.filter(l=>l.id!==id);
+  }else{
+    const p=properties.find(x=>x.id===propId);
+    if(p)p.loans=p.loans.filter(l=>l.id!==id);
+  }
+  saveData();closeModal('editLoanModal');renderCurrent();
 }
 function delPropLoan(propId,loanId){const p=properties.find(x=>x.id===propId);if(!p)return;p.loans=(p.loans||[]).filter(l=>l.id!==loanId);saveData();renderCurrent();}
 function delGlobalLoan(id){globalLoans=globalLoans.filter(l=>l.id!==id);saveData();renderCurrent();}
