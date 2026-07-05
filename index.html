@@ -1657,6 +1657,7 @@ function renderUpload(){
 // ── PDF解析 ──
 let _pendingUploadData=null;
 let _uploadQueue=[];
+let _editingLoanOriginalSchedule=null;
 
 function processNextUpload(){
   if(!_uploadQueue.length)return;
@@ -2534,6 +2535,7 @@ function openEditLoanModal(scope,propId,loanId){
   document.getElementById('el-method').value=loan.method||'equal_payment';
   document.getElementById('el-firstpayment').value=loan.firstPayment||'';
   window._pendingSchedule=null;
+  window._editingLoanOriginalSchedule=loan.schedule||null;
   document.getElementById('scheduleDropText').textContent=loan.schedule?.length?`✓ ${loan.schedule.length}回分登録済み`:'返済予定表をドロップ / クリックして選択';
   document.getElementById('scheduleResult').innerHTML='';
   openModal('editLoanModal');
@@ -2551,7 +2553,7 @@ function saveEditLoan(){
     startDate:document.getElementById('el-start').value,
     method:document.getElementById('el-method').value,
     firstPayment:+document.getElementById('el-firstpayment').value||null,
-    schedule:window._pendingSchedule||null,
+    schedule:window._pendingSchedule||_editingLoanOriginalSchedule||null,
   };
   window._pendingSchedule=null;
   if(scope==='overall'){
