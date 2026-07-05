@@ -266,6 +266,18 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     </select>
   </div>
   <div class="form-row"><label class="form-label">初回返済額（円・空欄=自動計算）</label><input type="number" id="el-firstpayment" placeholder="端数調整がある場合のみ入力"></div>
+  <div class="form-row">
+    <label class="form-label">返済予定表（PDF・画像）</label>
+    <div class="dropzone" style="padding:16px" id="scheduleDropzone"
+      onclick="document.getElementById('scheduleFile').click()"
+      ondragover="event.preventDefault();document.getElementById('scheduleDropzone').classList.add('drag')"
+      ondragleave="document.getElementById('scheduleDropzone').classList.remove('drag')"
+      ondrop="event.preventDefault();document.getElementById('scheduleDropzone').classList.remove('drag');handleScheduleFile(event.dataTransfer.files[0])">
+      <input type="file" id="scheduleFile" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleScheduleFile(this.files[0]);this.value=''">
+      <div id="scheduleDropText" style="font-size:13px;color:#aaa;text-align:center">返済予定表をドロップ / クリックして選択</div>
+    </div>
+    <div id="scheduleResult" style="margin-top:8px;font-size:12px"></div>
+  </div>
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditLoan()">保存</button>
     <button class="btn" onclick="closeModal('editLoanModal')">キャンセル</button>
@@ -702,8 +714,13 @@ function buildYearSel(){
 }
 
 // ═══ 集計 ═══
-function calcML(principal,rate,years,method,month,firstPayment){
+function calcML(principal,rate,years,method,month,firstPayment,schedule){
   const r=rate/100/12,n=years,m=month||1;
+  // 返済予定表がある場合はそちらを優先
+  if(schedule?.length){
+    const entry=schedule.find(s=>s.count===m);
+    if(entry)return entry.payment;
+  }
   // 初回調整額がある場合
   if(m===1&&firstPayment)return firstPayment;
   if(method==='equal_principal'){
@@ -728,7 +745,7 @@ function propLoanRepay(prop,year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years-1;
-    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment,loan.schedule);}
     return s;
   },0);
 }
@@ -737,7 +754,7 @@ function globalLoanRepay(year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years-1;
-    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment,loan.schedule);}
     return s;
   },0);
 }
@@ -2451,6 +2468,41 @@ function addLoan(){
   else{const pid=document.getElementById('loan-prop').value;if(!pid)return;const p=properties.find(x=>x.id===pid);if(!p)return;p.loans=[...(p.loans||[]),loan];}
   saveData();closeModal('addLoanModal');renderCurrent();
 }
+async function handleScheduleFile(file){
+  if(!file)return;
+  const dropText=document.getElementById('scheduleDropText');
+  const result=document.getElementById('scheduleResult');
+  dropText.textContent='解析中...';
+  result.innerHTML='';
+  try{
+    const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
+    const isPdf=file.type==='application/pdf';
+    const mediaType=isPdf?'application/pdf':(file.type||'image/jpeg');
+    const resp=await fetch(WORKER_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fileBase64:base64,mimeType:mediaType,fileName:file.name,properties:[],docType:'repayment_schedule'})
+    });
+    if(!resp.ok)throw new Error('Worker応答エラー: '+resp.status);
+    const text=await resp.text();
+    let parsed=null;
+    try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){}
+    if(!parsed||!parsed.schedule?.length){result.innerHTML='<span style="color:#b71c1c">解析に失敗しました</span>';dropText.textContent='返済予定表をドロップ / クリックして選択';return;}
+    // フォームに反映
+    if(parsed.principal)document.getElementById('el-principal').value=parsed.principal;
+    if(parsed.rate)document.getElementById('el-rate').value=parsed.rate;
+    if(parsed.totalCount)document.getElementById('el-years').value=parsed.totalCount;
+    if(parsed.startDate)document.getElementById('el-start').value=parsed.startDate;
+    // scheduleを一時保存
+    window._pendingSchedule=parsed.schedule;
+    result.innerHTML=`<span style="color:#1a7a3c">✓ ${parsed.schedule.length}回分の返済予定を読み込みました。「保存」を押すと登録されます。</span>`;
+    dropText.textContent='✓ 読み込み済み';
+  }catch(e){
+    result.innerHTML=`<span style="color:#b71c1c">エラー: ${e.message}</span>`;
+    dropText.textContent='返済予定表をドロップ / クリックして選択';
+  }
+}
+
 function openEditLoanModal(scope,propId,loanId){
   const loan=scope==='overall'
     ?globalLoans.find(l=>l.id===loanId)
@@ -2466,6 +2518,9 @@ function openEditLoanModal(scope,propId,loanId){
   document.getElementById('el-start').value=loan.startDate||'';
   document.getElementById('el-method').value=loan.method||'equal_payment';
   document.getElementById('el-firstpayment').value=loan.firstPayment||'';
+  window._pendingSchedule=null;
+  document.getElementById('scheduleDropText').textContent=loan.schedule?.length?`✓ ${loan.schedule.length}回分登録済み`:'返済予定表をドロップ / クリックして選択';
+  document.getElementById('scheduleResult').innerHTML='';
   openModal('editLoanModal');
 }
 function saveEditLoan(){
@@ -2481,7 +2536,9 @@ function saveEditLoan(){
     startDate:document.getElementById('el-start').value,
     method:document.getElementById('el-method').value,
     firstPayment:+document.getElementById('el-firstpayment').value||null,
+    schedule:window._pendingSchedule||null,
   };
+  window._pendingSchedule=null;
   if(scope==='overall'){
     globalLoans=globalLoans.map(l=>l.id===id?data:l);
   }else{
