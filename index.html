@@ -256,7 +256,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="el-rate" step="0.1"></div>
   </div>
   <div class="form-grid">
-    <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="el-years"></div>
+    <div class="form-row"><label class="form-label">返済回数（回）</label><input type="number" id="el-years"></div>
     <div class="form-row"><label class="form-label">返済開始日</label><input type="date" id="el-start"></div>
   </div>
   <div class="form-row"><label class="form-label">返済方式</label>
@@ -285,7 +285,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     <div class="form-row"><label class="form-label">金利（%）</label><input type="number" id="loan-rate" value="1.8" step="0.1"></div>
   </div>
   <div class="form-grid">
-    <div class="form-row"><label class="form-label">返済年数</label><input type="number" id="loan-years" value="20"></div>
+    <div class="form-row"><label class="form-label">返済回数（回）</label><input type="number" id="loan-years" placeholder="例:240"></div>
     <div class="form-row"><label class="form-label">返済開始日</label><input type="date" id="loan-start"></div>
   </div>
   <div class="form-row"><label class="form-label">返済方式</label>
@@ -703,7 +703,7 @@ function buildYearSel(){
 
 // ═══ 集計 ═══
 function calcML(principal,rate,years,method,month,firstPayment){
-  const r=rate/100/12,n=years*12,m=month||1;
+  const r=rate/100/12,n=years,m=month||1;
   // 初回調整額がある場合
   if(m===1&&firstPayment)return firstPayment;
   if(method==='equal_principal'){
@@ -727,7 +727,7 @@ function propLoanRepay(prop,year,month){
   return(prop.loans||[]).reduce((s,loan)=>{
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
-    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
+    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years-1;
     if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
     return s;
   },0);
@@ -736,7 +736,7 @@ function globalLoanRepay(year,month){
   return globalLoans.reduce((s,loan)=>{
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
-    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
+    const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years-1;
     if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
     return s;
   },0);
@@ -1547,7 +1547,7 @@ function renderAnalysis(){
               <button class="btn sm" style="font-size:10px;padding:2px 6px" onclick="showIconPage('settings')">設定で編集</button>
             </div>
             <div style="font-size:11px;color:#b45309">${yen(ml)}/月 / 残債${yen(rem)}</div>
-            <div class="pbar" style="margin-top:4px"><div class="pbar-fill" style="width:${(elapsed/(l.years*12))*100}%;background:#4caf50"></div></div>
+            <div class="pbar" style="margin-top:4px"><div class="pbar-fill" style="width:${(elapsed/l.years)*100}%;background:#4caf50"></div></div>
           </div>`;
         }).join('')}
       </div>
@@ -1997,10 +1997,10 @@ function renderSettings(){
           <span style="font-weight:700">${l.name}</span>
           <span style="font-size:12px;color:#b45309;margin-left:8px">${yen(calcML(l.principal,l.rate,l.years))}/月</span>
         </div>
-        <button class="btn sm" onclick="openEditLoanModal('overall','',l.id)">編集</button>
+        <button class="btn sm" onclick="openEditLoanModal('overall','','${l.id}')">編集</button>
         <button class="btn sm danger" onclick="delGlobalLoan('${l.id}')">削除</button>
       </div>
-      <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years}年</div>
+      <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years*12}回</div>
     </div>`).join('')}
     <button class="btn" style="margin-top:12px" onclick="openAddLoanModal('overall')">＋ 全体借入を追加</button>
   </div>
