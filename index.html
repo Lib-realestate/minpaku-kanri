@@ -306,7 +306,18 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option value="equal_principal">元金均等</option>
     </select>
   </div>
-  <div class="form-row"><label class="form-label">初回返済額（円・空欄=自動計算）</label><input type="number" id="loan-firstpayment" placeholder="端数調整がある場合のみ入力"></div>
+  <div class="form-row">
+    <label class="form-label">返済予定表（PDF・画像）</label>
+    <div class="dropzone" style="padding:16px" id="scheduleDropzoneAdd"
+      onclick="document.getElementById('scheduleFileAdd').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="event.preventDefault();this.classList.remove('drag');handleScheduleFileAdd(event.dataTransfer.files[0])">
+      <input type="file" id="scheduleFileAdd" style="display:none" accept=".pdf,.jpg,.jpeg,.png" onchange="handleScheduleFileAdd(this.files[0]);this.value=''">
+      <div id="scheduleDropTextAdd" style="font-size:13px;color:#aaa;text-align:center">返済予定表をドロップ / クリックして選択（任意）</div>
+    </div>
+    <div id="scheduleResultAdd" style="margin-top:8px;font-size:12px"></div>
+  </div>
   <div style="display:flex;gap:8px">
     <button class="btn primary" onclick="addLoan()">追加</button>
     <button class="btn" onclick="closeModal('addLoanModal')">キャンセル</button>
@@ -1996,7 +2007,7 @@ function renderSettings(){
           <div>
             <span style="font-weight:700">${l.name}</span>
             <span style="color:#b45309;margin-left:8px">${yen(calcML(l.principal,l.rate,l.years,l.method))}/月</span>
-            <span style="color:#aaa;margin-left:6px">${yen(l.principal)} / ${l.rate}% / ${l.years}年 / ${l.method==='equal_principal'?'元金均等':'元利均等'}</span>
+            <span style="color:#aaa;margin-left:6px">${yen(l.principal)} / ${l.rate}% / ${l.years}回 / ${l.method==='equal_principal'?'元金均等':'元利均等'}</span>
           </div>
           <button class="btn sm" style="font-size:10px" onclick="openEditLoanModal('property','${p.id}','${l.id}')">編集</button>
         </div>`).join('')}
@@ -2017,7 +2028,7 @@ function renderSettings(){
         <button class="btn sm" onclick="openEditLoanModal('overall','','${l.id}')">編集</button>
         <button class="btn sm danger" onclick="delGlobalLoan('${l.id}')">削除</button>
       </div>
-      <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years*12}回</div>
+      <div style="font-size:11px;color:#aaa">${yen(l.principal)} / ${l.rate}% / ${l.years}回</div>
     </div>`).join('')}
     <button class="btn" style="margin-top:12px" onclick="openAddLoanModal('overall')">＋ 全体借入を追加</button>
   </div>
@@ -2462,45 +2473,49 @@ function addLoan(){
   const scope=document.getElementById('loan-scope').value,name=document.getElementById('loan-name').value.trim(),principal=+document.getElementById('loan-principal').value,rate=+document.getElementById('loan-rate').value,years=+document.getElementById('loan-years').value,startDate=document.getElementById('loan-start').value;
   if(!name||!principal||!startDate)return;
   const method=document.getElementById('loan-method').value||'equal_payment';
-  const firstPayment=+document.getElementById('loan-firstpayment').value||null;
-  const loan={id:uid(),name,principal,rate,years,startDate,method,firstPayment};
+  const loan={id:uid(),name,principal,rate,years,startDate,method,firstPayment:null,schedule:window._pendingScheduleAdd||null};
+  window._pendingScheduleAdd=null;
   if(scope==='overall'){globalLoans=[...globalLoans,loan];}
   else{const pid=document.getElementById('loan-prop').value;if(!pid)return;const p=properties.find(x=>x.id===pid);if(!p)return;p.loans=[...(p.loans||[]),loan];}
   saveData();closeModal('addLoanModal');renderCurrent();
 }
+async function handleScheduleFileAdd(file){
+  await _parseScheduleFile(file,'Add');
+}
 async function handleScheduleFile(file){
+  await _parseScheduleFile(file,'');
+}
+async function _parseScheduleFile(file,suffix){
   if(!file)return;
-  const dropText=document.getElementById('scheduleDropText');
-  const result=document.getElementById('scheduleResult');
+  const dropText=document.getElementById('scheduleDropText'+suffix);
+  const result=document.getElementById('scheduleResult'+suffix);
   dropText.textContent='解析中...';
   result.innerHTML='';
   try{
     const base64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file);});
-    const isPdf=file.type==='application/pdf';
-    const mediaType=isPdf?'application/pdf':(file.type||'image/jpeg');
-    const resp=await fetch(WORKER_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({fileBase64:base64,mimeType:mediaType,fileName:file.name,properties:[],docType:'repayment_schedule'})
-    });
+    const mediaType=file.type==='application/pdf'?'application/pdf':(file.type||'image/jpeg');
+    const resp=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileBase64:base64,mimeType:mediaType,fileName:file.name,properties:[],docType:'repayment_schedule'})});
     if(!resp.ok)throw new Error('Worker応答エラー: '+resp.status);
     const text=await resp.text();
     let parsed=null;
     try{parsed=JSON.parse(text.replace(/```json|```/g,'').trim());}catch(e){}
     if(!parsed||!parsed.schedule?.length){result.innerHTML='<span style="color:#b71c1c">解析に失敗しました</span>';dropText.textContent='返済予定表をドロップ / クリックして選択';return;}
     // フォームに反映
-    if(parsed.principal)document.getElementById('el-principal').value=parsed.principal;
-    if(parsed.rate)document.getElementById('el-rate').value=parsed.rate;
-    if(parsed.totalCount)document.getElementById('el-years').value=parsed.totalCount;
-    if(parsed.startDate)document.getElementById('el-start').value=parsed.startDate;
-    // scheduleを一時保存
-    window._pendingSchedule=parsed.schedule;
-    result.innerHTML=`<span style="color:#1a7a3c">✓ ${parsed.schedule.length}回分の返済予定を読み込みました。「保存」を押すと登録されます。</span>`;
+    const s=suffix===''?'el':'loan';
+    if(parsed.principal)document.getElementById(s+'-principal').value=parsed.principal;
+    if(parsed.rate)document.getElementById(s+'-rate').value=parsed.rate;
+    if(parsed.totalCount)document.getElementById(s+'-years').value=parsed.totalCount;
+    if(parsed.startDate)document.getElementById(s+'-start').value=parsed.startDate;
+    window['_pendingSchedule'+(suffix==='Add'?'Add':'')]=parsed.schedule;
+    result.innerHTML=`<span style="color:#1a7a3c">✓ ${parsed.schedule.length}回分の返済予定を読み込みました。「${suffix===''?'保存':'追加'}」を押すと登録されます。</span>`;
     dropText.textContent='✓ 読み込み済み';
   }catch(e){
     result.innerHTML=`<span style="color:#b71c1c">エラー: ${e.message}</span>`;
     dropText.textContent='返済予定表をドロップ / クリックして選択';
   }
+}
+async function handleScheduleFile(file){
+  await _parseScheduleFile(file,'');
 }
 
 function openEditLoanModal(scope,propId,loanId){
