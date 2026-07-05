@@ -265,6 +265,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option value="equal_principal">元金均等</option>
     </select>
   </div>
+  <div class="form-row"><label class="form-label">初回返済額（円・空欄=自動計算）</label><input type="number" id="el-firstpayment" placeholder="端数調整がある場合のみ入力"></div>
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditLoan()">保存</button>
     <button class="btn" onclick="closeModal('editLoanModal')">キャンセル</button>
@@ -293,6 +294,7 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
       <option value="equal_principal">元金均等</option>
     </select>
   </div>
+  <div class="form-row"><label class="form-label">初回返済額（円・空欄=自動計算）</label><input type="number" id="loan-firstpayment" placeholder="端数調整がある場合のみ入力"></div>
   <div style="display:flex;gap:8px">
     <button class="btn primary" onclick="addLoan()">追加</button>
     <button class="btn" onclick="closeModal('addLoanModal')">キャンセル</button>
@@ -700,16 +702,17 @@ function buildYearSel(){
 }
 
 // ═══ 集計 ═══
-function calcML(principal,rate,years,method,month){
-  // method: 'equal_payment'=元利均等（デフォルト）, 'equal_principal'=元金均等
-  const r=rate/100/12,n=years*12;
+function calcML(principal,rate,years,method,month,firstPayment){
+  const r=rate/100/12,n=years*12,m=month||1;
+  // 初回調整額がある場合
+  if(m===1&&firstPayment)return firstPayment;
   if(method==='equal_principal'){
-    // 元金均等：返済月数に応じて返済額が変わる
-    const m=month||1;
-    const principal_payment=Math.round(principal/n);
-    const remaining=principal-principal_payment*(m-1);
-    return principal_payment+Math.round(remaining*r);
+    // 元金均等：元金部分は毎月均等、利息は残高×月利
+    const principalPayment=Math.round(principal/n);
+    const remaining=principal-principalPayment*(m-1);
+    return principalPayment+Math.round(remaining*r);
   }
+  // 元利均等
   if(!r)return Math.round(principal/n);
   return Math.round(principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 }
@@ -725,7 +728,7 @@ function propLoanRepay(prop,year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
-    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m);}
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
     return s;
   },0);
 }
@@ -734,7 +737,7 @@ function globalLoanRepay(year,month){
     if(!loan.startDate)return s;
     const start=new Date(loan.startDate),ym=year*12+month;
     const sYM=start.getFullYear()*12+(start.getMonth()+1),eYM=sYM+loan.years*12-1;
-    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m);}
+    if(ym>=sYM&&ym<=eYM){const m=ym-sYM+1;s+=calcML(loan.principal,loan.rate,loan.years,loan.method,m,loan.firstPayment);}
     return s;
   },0);
 }
@@ -2442,7 +2445,8 @@ function addLoan(){
   const scope=document.getElementById('loan-scope').value,name=document.getElementById('loan-name').value.trim(),principal=+document.getElementById('loan-principal').value,rate=+document.getElementById('loan-rate').value,years=+document.getElementById('loan-years').value,startDate=document.getElementById('loan-start').value;
   if(!name||!principal||!startDate)return;
   const method=document.getElementById('loan-method').value||'equal_payment';
-  const loan={id:uid(),name,principal,rate,years,startDate,method};
+  const firstPayment=+document.getElementById('loan-firstpayment').value||null;
+  const loan={id:uid(),name,principal,rate,years,startDate,method,firstPayment};
   if(scope==='overall'){globalLoans=[...globalLoans,loan];}
   else{const pid=document.getElementById('loan-prop').value;if(!pid)return;const p=properties.find(x=>x.id===pid);if(!p)return;p.loans=[...(p.loans||[]),loan];}
   saveData();closeModal('addLoanModal');renderCurrent();
@@ -2461,6 +2465,7 @@ function openEditLoanModal(scope,propId,loanId){
   document.getElementById('el-years').value=loan.years;
   document.getElementById('el-start').value=loan.startDate||'';
   document.getElementById('el-method').value=loan.method||'equal_payment';
+  document.getElementById('el-firstpayment').value=loan.firstPayment||'';
   openModal('editLoanModal');
 }
 function saveEditLoan(){
@@ -2475,6 +2480,7 @@ function saveEditLoan(){
     years:+document.getElementById('el-years').value,
     startDate:document.getElementById('el-start').value,
     method:document.getElementById('el-method').value,
+    firstPayment:+document.getElementById('el-firstpayment').value||null,
   };
   if(scope==='overall'){
     globalLoans=globalLoans.map(l=>l.id===id?data:l);
