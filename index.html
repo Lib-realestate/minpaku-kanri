@@ -1461,7 +1461,7 @@ function renderOccupancy(){
 <div style="max-height:400px;overflow-y:auto"><table class="tbl">
       <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th></th></tr></thead>
       <tbody>${(()=>{
-        const sorted=filtered.sort((a,b)=>b.year-a.year||b.month-a.month);
+        const sorted=filtered.sort((a,b)=>a.year-b.year||a.month-b.month);
         const months=[...new Set(sorted.map(r=>`${r.year}/${r.month}`))];
         return months.map(ym=>{
           const [y,m]=ym.split('/').map(Number);
