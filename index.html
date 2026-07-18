@@ -385,12 +385,13 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
   <div class="form-row"><label class="form-label">チェックイン</label><input type="date" id="er-ci"></div>
   <div class="form-row"><label class="form-label">チェックアウト</label><input type="date" id="er-co"></div>
   <hr style="margin:12px 0;border:none;border-top:1px solid #f0efeb">
-  <div style="font-size:12px;font-weight:700;color:#1a7a3c;margin-bottom:8px">精算情報</div>
-  <div class="form-grid">
-    <div class="form-row"><label class="form-label">精算額（円）</label><input type="number" id="er-settled-amount" placeholder="未精算"></div>
-    <div class="form-row"><label class="form-label">精算確定日</label><input type="date" id="er-settled-at"></div>
+  <div style="font-size:12px;font-weight:700;color:#b45309;margin-bottom:8px">差額調整（CSVに載らない増減）</div>
+  <div id="er-adjustments-list" style="margin-bottom:8px"></div>
+  <div style="display:grid;grid-template-columns:100px 1fr auto;gap:6px;align-items:center">
+    <input type="number" id="er-adj-amount" placeholder="±金額">
+    <input type="text" id="er-adj-reason" placeholder="理由（例:人数変更・返金対応）">
+    <button class="btn sm" onclick="addRowAdjustment()">追加</button>
   </div>
-  <div id="er-diff-display" style="font-size:12px;padding:8px 12px;background:#f9f9f7;border-radius:6px;margin-bottom:10px;display:none"></div>
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditRow()">保存</button>
     <button class="btn" onclick="closeModal('editRowModal')">キャンセル</button>
@@ -1407,7 +1408,7 @@ function renderOccupancy(){
       <tbody>
         ${months.map(({year:fy,month:m})=>{
           const csvNights=ni(pid==='all'?'all':pid,fy,m);
-          const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);
+          const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0);
           const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
           const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
           // CSV収入+OTA手数料=精算書宿泊収入（手数料前）で照合
@@ -1435,7 +1436,7 @@ function renderOccupancy(){
     </table></div>
     ${(()=>{
       const totalDiff=months.reduce((s,{year:fy,month:m})=>{
-        const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount,0);
+        const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0);
         const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
         const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
         const csvPlusFee=csvAmount+otaFee;
@@ -1478,7 +1479,7 @@ function renderOccupancy(){
               <td style="font-size:12px">${r.guest||'—'}</td>
               <td style="font-size:12px">${r.ci||'—'}</td>
               <td>${r.nights||'—'}</td>
-              <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}</td>
+              <td style="text-align:right;color:#aaa;font-size:12px">${yen(r.amount)}${(r.adjustments||[]).length?`<br><span style="font-size:10px;color:#b45309">調整${(r.adjustments||[]).reduce((s,a)=>s+a.amount,0)>0?'+':''}${yen((r.adjustments||[]).reduce((s,a)=>s+a.amount,0))}</span>`:''}</td>
               <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditRowModal('${r.id}')">⋯</button></td>
             </tr>`;
           }).join('');
@@ -2240,22 +2241,37 @@ function openEditRowModal(id){
   document.getElementById('er-guest').value=r.guest||'';
   document.getElementById('er-ci').value=r.ci||'';
   document.getElementById('er-co').value=r.co||'';
-  document.getElementById('er-settled-amount').value=r.settledAmount||'';
-  document.getElementById('er-settled-at').value=r.settledAt||'';
-  // 差額表示
-  const diff=document.getElementById('er-diff-display');
-  if(r.settled&&r.settledAmount){
-    const d=r.settledAmount-r.amount;
-    diff.style.display='';
-    diff.innerHTML=`CSV収入: ${yen(r.amount)} / 精算額: ${yen(r.settledAmount)} / 差額: <b style="color:${d>0?'#1a7a3c':d<0?'#b71c1c':'#aaa'}">${d>0?'+':''}${yen(d)}</b>`;
-  }else{diff.style.display='none';}
-  // 精算額入力時にリアルタイム差額計算
-  document.getElementById('er-settled-amount').oninput=function(){
-    const sa=+this.value,ca=+document.getElementById('er-amount').value;
-    if(sa&&ca){const d=sa-ca;diff.style.display='';diff.innerHTML=`CSV収入: ${yen(ca)} / 精算額: ${yen(sa)} / 差額: <b style="color:${d>0?'#1a7a3c':d<0?'#b71c1c':'#aaa'}">${d>0?'+':''}${yen(d)}</b>`;}
-    else diff.style.display='none';
-  };
+  renderRowAdjustments(id);
   openModal('editRowModal');
+}
+function renderRowAdjustments(rowId){
+  const r=airbnbRows.find(x=>x.id===rowId);if(!r)return;
+  const adjs=r.adjustments||[];
+  document.getElementById('er-adjustments-list').innerHTML=adjs.length===0
+    ?'<div style="font-size:11px;color:#ccc">調整なし</div>'
+    :adjs.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#f9f9f7;border-radius:6px;margin-bottom:4px;font-size:12px">
+      <span style="color:${a.amount>0?'#1a7a3c':'#b71c1c'};font-weight:700">${a.amount>0?'+':''}${yen(a.amount)}</span>
+      <span style="flex:1;margin-left:8px;color:#666">${a.reason||''}</span>
+      <button class="btn sm danger" style="font-size:10px;padding:1px 6px" onclick="delRowAdjustment('${rowId}','${a.id}')">×</button>
+    </div>`).join('');
+}
+function addRowAdjustment(){
+  const rowId=document.getElementById('er-id').value;
+  const amount=+document.getElementById('er-adj-amount').value;
+  const reason=document.getElementById('er-adj-reason').value;
+  if(!amount)return;
+  const r=airbnbRows.find(x=>x.id===rowId);if(!r)return;
+  if(!r.adjustments)r.adjustments=[];
+  r.adjustments.push({id:uid(),amount,reason});
+  saveData();
+  document.getElementById('er-adj-amount').value='';
+  document.getElementById('er-adj-reason').value='';
+  renderRowAdjustments(rowId);
+}
+function delRowAdjustment(rowId,adjId){
+  const r=airbnbRows.find(x=>x.id===rowId);if(!r)return;
+  r.adjustments=(r.adjustments||[]).filter(a=>a.id!==adjId);
+  saveData();renderRowAdjustments(rowId);
 }
 function saveEditRow(){
   const id=document.getElementById('er-id').value;
@@ -2268,10 +2284,6 @@ function saveEditRow(){
   r.guest=document.getElementById('er-guest').value;
   r.ci=document.getElementById('er-ci').value;
   r.co=document.getElementById('er-co').value;
-  const sa=+document.getElementById('er-settled-amount').value;
-  const sat=document.getElementById('er-settled-at').value;
-  if(sa){r.settledAmount=sa;r.settledAt=sat;r.settled=true;}
-  else{r.settledAmount=null;r.settledAt=null;r.settled=false;}
   saveData();closeModal('editRowModal');renderCurrent();
 }
 function addDiffExpense(rowId){
