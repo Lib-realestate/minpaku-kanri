@@ -676,8 +676,10 @@ function switchProp(){
 }
 
 function renderCurrent(){
-  if(iconPageActive){showIconPage(iconPageActive);return;}
-  showTab(currentTabId);
+  const scrollY=window.scrollY;
+  if(iconPageActive){showIconPage(iconPageActive);}
+  else{showTab(currentTabId);}
+  requestAnimationFrame(()=>window.scrollTo(0,scrollY));
 }
 
 function da(){document.getElementById('pages').innerHTML='';}
