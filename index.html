@@ -1463,11 +1463,15 @@ function renderOccupancy(){
       <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr><th>確認コード</th><th>物件</th><th>月</th><th>ゲスト</th><th>チェックイン</th><th>泊</th><th style="text-align:right">CSV収入</th><th></th></tr></thead>
       <tbody>${(()=>{
         const sorted=filtered.sort((a,b)=>a.year-b.year||a.month-b.month);
-        const months=[...new Set(sorted.map(r=>`${r.year}/${r.month}`))];
+        const months=[...new Set([...sorted.map(r=>`${r.year}/${r.month}`),...adjustRows.map(r=>`${r.year}/${r.month}`)])].sort((a,b)=>{
+          const[ay,am]=a.split('/').map(Number),[by,bm]=b.split('/').map(Number);
+          return ay-by||am-bm;
+        });
         return months.map(ym=>{
           const [y,m]=ym.split('/').map(Number);
           const rows=sorted.filter(r=>r.year===y&&r.month===m);
-          const totalCsv=rows.reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0);
+          const monthAdjs=adjustRows.filter(r=>r.year===y&&r.month===m);
+          const totalCsv=rows.reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0)+monthAdjs.reduce((s,r)=>s+r.amount,0);
           const totalSettled=rows.reduce((s,r)=>s+(r.settled?r.settledAmount:0),0);
           const rowsHtml=rows.map(r=>{
             const pr=properties.find(p=>p.id===r.propertyId);
@@ -2239,8 +2243,10 @@ function openEditRowModal(id){
   document.getElementById('er-amount').value=r.amount;
   document.getElementById('er-nights').value=r.nights||'';
   document.getElementById('er-guest').value=r.guest||'';
-  document.getElementById('er-ci').value=r.ci||'';
-  document.getElementById('er-co').value=r.co||'';
+  // 日付形式をinput用に変換（2026/6/24 → 2026-06-24）
+  const toDateInput=s=>{if(!s)return'';const d=new Date(s.replace(/\//g,'-'));if(isNaN(d.getTime()))return'';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+  document.getElementById('er-ci').value=toDateInput(r.ci);
+  document.getElementById('er-co').value=toDateInput(r.co);
   renderRowAdjustments(id);
   openModal('editRowModal');
 }
