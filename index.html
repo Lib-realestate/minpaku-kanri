@@ -2288,8 +2288,10 @@ function saveEditRow(){
   r.amount=+document.getElementById('er-amount').value;
   r.nights=+document.getElementById('er-nights').value;
   r.guest=document.getElementById('er-guest').value;
-  r.ci=document.getElementById('er-ci').value;
-  r.co=document.getElementById('er-co').value;
+  // YYYY-MM-DD → YYYY/M/D 形式に変換（既存CSVデータと統一）
+  const toSlash=s=>{if(!s)return'';const[y,m,d]=s.split('-');return y+'/'+(+m)+'/'+(+d);};
+  r.ci=toSlash(document.getElementById('er-ci').value);
+  r.co=toSlash(document.getElementById('er-co').value);
   saveData();closeModal('editRowModal');renderCurrent();
 }
 function addDiffExpense(rowId){
