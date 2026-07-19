@@ -1414,7 +1414,6 @@ function renderOccupancy(){
           // CSV収入+OTA手数料=精算書宿泊収入（手数料前）で照合
           const csvPlusFee=csvAmount+otaFee;
           const hasData=csvNights>0||settled>0;
-          if(!hasData)return'';
           const diff=settled>0&&csvAmount>0?settled-csvPlusFee:null;
           const match=diff===null?null:Math.abs(diff)<100;
           return`<tr>
