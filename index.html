@@ -682,9 +682,14 @@ function switchProp(){
 
 function renderCurrent(){
   const scrollY=window.scrollY;
+  // 内部スクロール位置を保持（明細履歴テーブルなど）
+  const scrollAreas=[...document.querySelectorAll('[style*="overflow-y:auto"]')].map(el=>el.scrollTop);
   if(iconPageActive){showIconPage(iconPageActive);}
   else{showTab(currentTabId);}
-  requestAnimationFrame(()=>window.scrollTo(0,scrollY));
+  requestAnimationFrame(()=>{
+    window.scrollTo(0,scrollY);
+    [...document.querySelectorAll('[style*="overflow-y:auto"]')].forEach((el,i)=>{if(scrollAreas[i]!==undefined)el.scrollTop=scrollAreas[i];});
+  });
 }
 
 function da(){document.getElementById('pages').innerHTML='';}
@@ -1877,8 +1882,13 @@ ${(parsed.items||[]).map((item,i)=>`<tr>
   openModal('uploadResultModal');
 }
 
+let _confirmProcessing=false;
 async function confirmUploadResult(){
-  if(!_pendingUploadData)return;
+  if(!_pendingUploadData||_confirmProcessing)return;
+  _confirmProcessing=true;
+  // ボタンを無効化して視覚的フィードバック
+  const btn=document.querySelector('#uploadResultModal .btn.primary');
+  if(btn){btn.disabled=true;btn.textContent='登録中...';btn.style.opacity='0.5';}
   const {parsed,propId,file,base64,mediaType,isPdf}=_pendingUploadData;
   const year=+document.getElementById('u-year').value;
   const month=+document.getElementById('u-month').value;
@@ -1922,6 +1932,9 @@ if(type==='expense'&&propId){
   closeModal('uploadResultModal');
   _pendingUploadData=null;
   _uploadQueue.shift();
+  _confirmProcessing=false;
+  const btn2=document.querySelector('#uploadResultModal .btn.primary');
+  if(btn2){btn2.disabled=false;btn2.textContent='この内容で登録';btn2.style.opacity='1';}
   renderCurrent();
   if(_uploadQueue.length>0){
     setTimeout(()=>processNextUpload(),300);
