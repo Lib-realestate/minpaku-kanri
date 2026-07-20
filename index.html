@@ -875,7 +875,7 @@ function yearTotal(pid,year){
   const now=new Date();
   return md.reduce((a,r,i)=>{
     const {year:fy,month:fm}=getFiscalMonths(year)[i];
-    const isFuture=fy>now.getFullYear()||(fy===now.getFullYear()&&fm>now.getMonth()+1);
+    const isFuture=fy>now.getFullYear()||(fy===now.getFullYear()&&fm>=now.getMonth()+1);
     if(isFuture)return a;
     return{R:a.R+r.R,expTotal:a.expTotal+r.expTotal,rent:a.rent+r.rent,propL:a.propL+r.propL,C:a.C+r.C,GL:a.GL+r.GL,nights:a.nights+r.nights,profit:a.profit+r.profit};
   },{R:0,expTotal:0,rent:0,propL:0,C:0,GL:0,nights:0,profit:0});
@@ -887,9 +887,9 @@ function lifetimeProfit(pid){
   const years=[...new Set([...airbnbRows.map(r=>r.year),...expenses.map(r=>r.year)])];
   return years.filter(y=>y<=thisYear).reduce((s,y)=>{
     if(y<thisYear) return s+yearTotal(pid,y).profit;
-    // 今年は今月までのみ
+    // 今年は前月までのみ
     const md=monthlyData(pid,y);
-    return s+md.filter((_,i)=>getFiscalMonths(y)[i].month<=thisMonth).reduce((ss,r)=>ss+r.profit,0);
+    return s+md.filter((_,i)=>getFiscalMonths(y)[i].month<thisMonth).reduce((ss,r)=>ss+r.profit,0);
   },0);
 }
 
@@ -1225,7 +1225,7 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
         const cfColor=isProfit?(v>0?'c-grn':v<0?'c-red':''):'';
         const {year:fy,month:fm}=getFiscalMonths(year)[i];
         const now=new Date();
-        const isFuture=fy>now.getFullYear()||(fy===now.getFullYear()&&fm>now.getMonth()+1);
+        const isFuture=fy>now.getFullYear()||(fy===now.getFullYear()&&fm>=now.getMonth()+1);
         return`<td class="${isProfit?cfColor:cls} ${bold}" style="${isFuture?'opacity:0.35':''}">${show?yenS(v):'—'}</td>`;
       }).join('');
     }else{
