@@ -456,6 +456,10 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
     <input type="checkbox" id="ee-initial" style="width:auto;margin:0">
     <label for="ee-initial" style="font-size:13px;color:#b45309;font-weight:600;cursor:pointer;margin:0">初期費用として扱う</label>
   </div>
+  <div class="form-row">
+    <label class="form-label">書類</label>
+    <div id="ee-doc-area"></div>
+  </div>
   <div style="display:flex;gap:8px;margin-top:10px">
     <button class="btn primary" onclick="saveEditExp()">保存</button>
     <button class="btn" onclick="closeModal('editExpModal')">キャンセル</button>
@@ -2308,6 +2312,19 @@ function deleteFromEditRowModal(){
   airbnbRows=airbnbRows.filter(r=>r.id!==id);
   saveData();closeModal('editRowModal');renderCurrent();
 }
+async function replaceExpDoc(expId,file){
+  if(!file)return;
+  const e=expenses.find(x=>x.id===expId);if(!e)return;
+  // 旧ファイルは削除せずDriveに残し、新ファイルをアップして紐付けを差し替え
+  await attachFileToExp(expId,file);
+  openEditExpModal(expId);
+}
+function detachExpDoc(expId){
+  const e=expenses.find(x=>x.id===expId);if(!e)return;
+  if(!confirm('書類の紐付けを解除しますか？（Driveのファイルは残ります）'))return;
+  e.driveFileId=null;e.driveLink=null;e.driveFileName=null;
+  saveData();openEditExpModal(expId);renderCurrent();
+}
 function openEditExpModal(id){
   const e=expenses.find(x=>x.id===id);if(!e)return;
   document.getElementById('ee-id').value=id;
@@ -2317,6 +2334,22 @@ function openEditExpModal(id){
   document.getElementById('ee-amount').value=e.amount;
   document.getElementById('ee-note').value=e.note||'';
   document.getElementById('ee-initial').checked=!!e.isInitial;
+  // 書類エリア
+  const docArea=document.getElementById('ee-doc-area');
+  if(e.driveLink){
+    docArea.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+      <a href="${e.driveLink}" target="_blank">📄 ${e.driveFileName||'書類を開く'}</a>
+      <button class="btn sm" style="font-size:10px" onclick="document.getElementById('ee-replace-file').click()">差し替え</button>
+      <button class="btn sm danger" style="font-size:10px" onclick="detachExpDoc('${id}')">紐付け解除</button>
+      <input type="file" id="ee-replace-file" style="display:none" onchange="replaceExpDoc('${id}',this.files[0]);this.value=''">
+    </div>`;
+  }else{
+    docArea.innerHTML=`<div style="display:flex;align-items:center;gap:8px;font-size:12px">
+      <span style="color:#aaa">未登録</span>
+      <button class="btn sm" style="font-size:10px" onclick="document.getElementById('ee-replace-file').click()">書類を格納</button>
+      <input type="file" id="ee-replace-file" style="display:none" onchange="replaceExpDoc('${id}',this.files[0]);this.value=''">
+    </div>`;
+  }
   openModal('editExpModal');
 }
 function deleteFromEditModal(){
