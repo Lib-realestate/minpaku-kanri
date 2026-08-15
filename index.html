@@ -1410,7 +1410,7 @@ function renderOccupancy(){
         <th style="text-align:right">CSV泊数</th>
         <th style="text-align:right">CSV収入</th>
         <th style="text-align:right">OTA手数料</th>
-        <th style="text-align:right">CSV+手数料</th>
+        <th style="text-align:right">CSV収入(参考)</th>
         <th style="text-align:right">精算書 宿泊収入</th>
         <th style="text-align:center">状態</th>
       </tr></thead>
@@ -1421,7 +1421,7 @@ function renderOccupancy(){
           const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
           const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
           // CSV収入+OTA手数料=精算書宿泊収入（手数料前）で照合
-          const csvPlusFee=csvAmount+otaFee;
+          const csvPlusFee=csvAmount;
           const hasData=csvNights>0||settled>0;
           const diff=settled>0&&csvAmount>0?settled-csvPlusFee:null;
           const match=diff===null?null:Math.abs(diff)<100;
@@ -1447,7 +1447,7 @@ function renderOccupancy(){
         const csvAmount=airbnbRows.filter(r=>r.year===fy&&r.month===m&&(pid==='all'||r.propertyId===pid)).reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0);
         const settled=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='宿泊収入'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
         const otaFee=expenses.filter(e=>e.year===fy&&e.month===m&&(pid==='all'||e.propertyId===pid)&&e.category==='OTA手数料'&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
-        const csvPlusFee=csvAmount+otaFee;
+        const csvPlusFee=csvAmount;
         if(settled>0&&csvAmount>0)return s+(settled-csvPlusFee);
         return s;
       },0);
