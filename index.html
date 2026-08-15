@@ -976,7 +976,7 @@ async function processCSV(text,fname,aid){
     const propId=existing?.propertyId||matchProp(listing,aid);
     const prop=properties.find(p=>p.id===propId);
     const cleaningFee=getCleaningFee(prop,ci);
-    const grossAmount=calcGrossRevenue(net,listing,nights,cleaningFee,ci);
+    const grossAmount=net;
     const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
 
     if(existing){
