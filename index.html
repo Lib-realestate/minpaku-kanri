@@ -1255,7 +1255,7 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
 function renderExpTable(pid,year){
     const catOrder=[...INC_CATS,...EXP_CATS];
   const exList=pid==='all'?[]:expenses.filter(e=>e.propertyId===pid&&e.year===year).sort((a,b)=>a.month-b.month||(catOrder.indexOf(a.category)-catOrder.indexOf(b.category)));
-  const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
+    const comList=pid==='all'?commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month):[];
   const allItems=[...exList.map(e=>({...e,_type:'exp'})),...comList.map(c=>({...c,_type:'com'}))].sort((a,b)=>a.month-b.month);
   const months=[...new Set(allItems.map(e=>e.month))];
 
