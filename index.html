@@ -1247,25 +1247,22 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
   tbl+=`</tbody></table></div></div>`;
   pg.innerHTML+=tbl;
 
-  // 明細履歴（個別物件のみ）
-  if(pid!=='all') pg.innerHTML+=renderExpTable(pid,year);
+  // 明細履歴（個別物件は物件経費、全物件は共通経費のみ）
+  pg.innerHTML+=renderExpTable(pid,year);
 }
 
 // 経費テーブルHTML生成
 function renderExpTable(pid,year){
-  const catOrder=[...INC_CATS,...EXP_CATS];
-  const exList=expenses.filter(e=>e.year===year&&(pid==='all'||e.propertyId===pid)).sort((a,b)=>a.month-b.month||(catOrder.indexOf(a.category)-catOrder.indexOf(b.category)));
+    const catOrder=[...INC_CATS,...EXP_CATS];
+  const exList=pid==='all'?[]:expenses.filter(e=>e.propertyId===pid&&e.year===year).sort((a,b)=>a.month-b.month||(catOrder.indexOf(a.category)-catOrder.indexOf(b.category)));
   const comList=commonExps.filter(c=>c.year===year).sort((a,b)=>a.month-b.month);
   const allItems=[...exList.map(e=>({...e,_type:'exp'})),...comList.map(c=>({...c,_type:'com'}))].sort((a,b)=>a.month-b.month);
   const months=[...new Set(allItems.map(e=>e.month))];
 
   return`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div class="card-title" style="margin-bottom:0">明細履歴</div>
-            <div style="display:flex;gap:6px">
-        <button class="btn sm primary" onclick="openModal('addExpModal')">＋ 追加</button>
-        ${pid==='all'?`<button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>`:''}
-      </div>
+            <div class="card-title" style="margin-bottom:0">${pid==='all'?'共通経費 明細履歴':'明細履歴'}</div>
+      <button class="btn sm primary" onclick="openModal('${pid==='all'?'addComModal':'addExpModal'}')">＋ 追加</button>
     </div>
     <div style="max-height:500px;overflow-y:auto"><table class="tbl" style="font-size:12px">
       <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr>
