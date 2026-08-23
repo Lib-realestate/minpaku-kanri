@@ -434,8 +434,10 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 
 <!-- 経費編集 -->
 <div class="modal" id="editExpModal"><div class="modal-box">
-  <h3>経費を編集</h3>
+    <h3>経費を編集</h3>
   <input type="hidden" id="ee-id">
+  <div class="form-row"><label class="form-label">物件</label>
+    <select id="ee-prop"></select></div>
   <div class="form-grid">
     <div class="form-row"><label class="form-label">年</label><input type="number" id="ee-year"></div>
     <div class="form-row"><label class="form-label">月</label><input type="number" id="ee-month" min="1" max="12"></div>
@@ -1297,7 +1299,7 @@ function renderExpTable(pid,year){
               <td style="text-align:right;white-space:nowrap" class="c-pur fw7">${yen(c.amount)}</td>
               <td style="color:#aaa;font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.note||''}</td>
               <td></td><td></td>
-              <td style="white-space:nowrap"><button class="btn sm danger" style="font-size:10px;padding:2px 8px" onclick="delCom('${c.id}')">削除</button></td>
+              <td style="white-space:nowrap"><button class="btn sm" style="font-size:10px;padding:2px 8px" onclick="openEditExpModal('${c.id}')">⋯</button></td>
             </tr>`).join('')}
             <tr style="background:#f5f5f0;font-weight:700;font-size:11px">
               <td style="white-space:nowrap">${year}/${m} 合計</td>
@@ -2341,8 +2343,9 @@ function detachExpDoc(expId){
   saveData();openEditExpModal(expId);renderCurrent();
 }
 function openEditExpModal(id){
-  const e=expenses.find(x=>x.id===id);if(!e)return;
-  document.getElementById('ee-id').value=id;
+  const e=expenses.find(x=>x.id===id)||commonExps.find(x=>x.id===id);if(!e)return;
+    document.getElementById('ee-id').value=id;
+  document.getElementById('ee-prop').innerHTML=`<option value="common"${!e.propertyId?' selected':''}>全物件共通</option>`+properties.map(p=>`<option value="${p.id}"${p.id===e.propertyId?' selected':''}>${p.name}</option>`).join('');
   document.getElementById('ee-year').value=e.year;
   document.getElementById('ee-month').value=e.month;
   document.getElementById('ee-cat').value=e.category;
@@ -2370,17 +2373,30 @@ function openEditExpModal(id){
 function deleteFromEditModal(){
   const id=document.getElementById('ee-id').value;
   if(!confirm('この経費を削除しますか？'))return;
-  delExp(id);closeModal('editExpModal');
+  expenses=expenses.filter(e=>e.id!==id);
+  commonExps=commonExps.filter(c=>c.id!==id);
+  saveData();closeModal('editExpModal');renderCurrent();
 }
 function saveEditExp(){
   const id=document.getElementById('ee-id').value;
-  const e=expenses.find(x=>x.id===id);if(!e)return;
-  e.year=+document.getElementById('ee-year').value;
-  e.month=+document.getElementById('ee-month').value;
-  e.category=document.getElementById('ee-cat').value;
-  e.amount=+document.getElementById('ee-amount').value;
-  e.note=document.getElementById('ee-note').value;
-  e.isInitial=document.getElementById('ee-initial').checked;
+  const newProp=document.getElementById('ee-prop').value;
+  const year=+document.getElementById('ee-year').value;
+  const month=+document.getElementById('ee-month').value;
+  const category=document.getElementById('ee-cat').value;
+  const amount=+document.getElementById('ee-amount').value;
+  const note=document.getElementById('ee-note').value;
+  const isInitial=document.getElementById('ee-initial').checked;
+  const e=expenses.find(x=>x.id===id);
+  const c=commonExps.find(x=>x.id===id);
+  if(newProp==='common'){
+    // 共通経費へ
+    if(e){expenses=expenses.filter(x=>x.id!==id);commonExps.push({id,year,month,amount,category,note});}
+    else if(c){Object.assign(c,{year,month,amount,category,note});}
+  }else{
+    // 物件経費へ
+    if(c){commonExps=commonExps.filter(x=>x.id!==id);expenses.push({id,propertyId:newProp,year,month,amount,category,note,isInitial,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:true});}
+    else if(e){Object.assign(e,{propertyId:newProp,year,month,amount,category,note,isInitial});}
+  }
   saveData();closeModal('editExpModal');renderCurrent();
 }
 function openAttachModal(expId){
