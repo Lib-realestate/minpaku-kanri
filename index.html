@@ -1262,7 +1262,10 @@ function renderExpTable(pid,year){
   return`<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div class="card-title" style="margin-bottom:0">明細履歴</div>
-      <button class="btn sm primary" onclick="openModal('addExpModal')">＋ 追加</button>
+            <div style="display:flex;gap:6px">
+        <button class="btn sm primary" onclick="openModal('addExpModal')">＋ 追加</button>
+        ${pid==='all'?`<button class="btn sm" onclick="openModal('addComModal')">＋ 共通経費</button>`:''}
+      </div>
     </div>
     <div style="max-height:500px;overflow-y:auto"><table class="tbl" style="font-size:12px">
       <thead style="position:sticky;top:0;background:#fff;z-index:1"><tr>
@@ -1655,7 +1658,7 @@ function renderUpload(){
     </p>
     <div class="form-row" style="margin-bottom:12px">
       <label class="form-label">対象物件</label>
-      <select id="pdfPropSel" onchange="_lastUploadPropId=this.value"><option value="">選択してください</option>${properties.map(p=>`<option value="${p.id}"${p.id===_lastUploadPropId?'selected':''}>${p.name}</option>`).join('')}</select>
+            <select id="pdfPropSel" onchange="_lastUploadPropId=this.value"><option value="">選択してください</option><option value="common"${_lastUploadPropId==='common'?' selected':''}>全物件共通</option>${properties.map(p=>`<option value="${p.id}"${p.id===_lastUploadPropId?'selected':''}>${p.name}</option>`).join('')}</select>
     </div>
     <div class="dropzone" id="pdfDropzone" onclick="document.getElementById('pdfFile').click()"
       ondragover="event.preventDefault();this.classList.add('drag')"
@@ -1854,7 +1857,7 @@ ${(parsed.items||[]).map((item,i)=>`<tr>
         </td>
         <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">
           <select id="ucat_${i}" style="font-size:12px;padding:3px 6px">
-            ${[...EXP_CATS,'宿泊収入','その他収入'].map(c=>`<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
+                        ${(propId==='common'?COM_CATS:[...EXP_CATS,'宿泊収入','その他収入']).map(c=>`<option ${c===item.category?'selected':''}>${c}</option>`).join('')}
           </select>
         </td>
         <td style="padding:6px 8px;border-bottom:1px solid #f0efeb">
@@ -1903,7 +1906,9 @@ async function confirmUploadResult(){
     const type=typeEl.value;
     const amount=+(document.getElementById(`uamt_${i}`)?.value||item.amount);
     const isInitial=!!document.getElementById(`uinitial_${i}`)?.checked;
-if(type==='expense'&&propId){
+    if(type==='expense'&&propId==='common'){
+      commonExps.push({id:uid(),year,month,amount,category:catEl.value,note:item.label});
+    }else if(type==='expense'&&propId){
       expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label,isInitial,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:false,_pendingDriveLink:true});
     }else if(type==='income'&&propId){
       expenses.push({id:uid(),propertyId:propId,year,month,amount,category:catEl.value,note:item.label,isInitial:false,driveFileId:null,driveLink:null,driveFileName:null,manualEntry:false,_pendingDriveLink:true});
