@@ -1025,8 +1025,80 @@ function renderCashflow(){
   const nowLabel=`${now.getFullYear()}/${now.getMonth()+1}月時点`;
 
   const pg=document.getElementById('pages');
+  const num=v=>(v<0?'▲':'')+Math.abs(Math.round(v)).toLocaleString();
 
-  // サマリー上段
+  if(pid==='all'){
+    // ── 全物件：年間CF ＋ 収益状況 ──
+    const propStats=properties.map(p=>{
+      const pyt=yearTotal(p.id,year);
+      const income=pyt.R;
+      const cost=pyt.expTotal+pyt.rent+pyt.propL;
+      const plp=lifetimeProfit(p.id);
+      const pinit=expenses.filter(e=>e.isInitial&&e.propertyId===p.id).reduce((s,e)=>s+e.amount,0);
+      return{p,income,cost,profit:pyt.profit,lp:plp,init:pinit};
+    });
+    const totIncome=propStats.reduce((s,x)=>s+x.income,0);
+    const totCost=propStats.reduce((s,x)=>s+x.cost,0)+yt.C+yt.GL;
+    const totLp=propStats.reduce((s,x)=>s+x.lp,0);
+    const totInit=propStats.reduce((s,x)=>s+x.init,0);
+    const maxBar=Math.max(...propStats.map(x=>Math.max(x.income,x.cost)),totIncome,totCost,1);
+    const bar=(income,cost)=>`
+      <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;background:#f0efeb;margin:5px 0">
+        <div style="width:${income/maxBar*100}%;background:#8fd19e"></div>
+        <div style="width:${cost/maxBar*100}%;background:#f5a3a3"></div>
+      </div>
+      <div style="font-size:11px"><span class="c-grn">${num(income)}</span><span class="c-red" style="margin-left:8px">${num(cost)}</span></div>`;
+
+    pg.innerHTML=`
+    <div class="card">
+      <div class="card-title">年間CF <span style="color:#ccc;font-weight:400;text-transform:none;letter-spacing:0">${yearMode==='fiscal'?year+'年度':'暦年（1〜12月）'}</span></div>
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-weight:700">全物件合計</span>
+          <span style="font-size:18px;font-weight:700" class="${pc(yt.profit)}">${num(yt.profit)}</span>
+        </div>
+        ${bar(totIncome,totCost)}
+      </div>
+      ${propStats.map(x=>`
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-weight:700;font-size:13px">${x.p.name} <span class="bdg b" style="font-size:10px">1棟</span></span>
+          <span style="font-weight:700" class="${pc(x.profit)}">${num(x.profit)}</span>
+        </div>
+        ${bar(x.income,x.cost)}
+      </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title">収益状況</div>
+      <div class="scroll-x"><table class="tbl" style="font-size:12px">
+        <thead><tr>
+          <th></th>
+          <th style="text-align:right">初期費用</th>
+          <th style="text-align:right">取得来CF累計</th>
+          <th style="text-align:right">差額</th>
+          <th style="text-align:right">回収率</th>
+        </tr></thead>
+        <tbody>
+          <tr style="font-weight:700">
+            <td>全物件</td>
+            <td style="text-align:right" class="c-red">${num(-totInit)}</td>
+            <td style="text-align:right" class="${pc(totLp)}">${num(totLp)}</td>
+            <td style="text-align:right" class="${pc(totLp-totInit)}">${num(totLp-totInit)}</td>
+            <td style="text-align:right">${totInit>0?Math.round(totLp/totInit*100)+'%':'—'}</td>
+          </tr>
+          ${propStats.map(x=>`<tr>
+            <td style="color:#666">${x.p.name}</td>
+            <td style="text-align:right" class="c-red">${num(-x.init)}</td>
+            <td style="text-align:right" class="${pc(x.lp)}">${num(x.lp)}</td>
+            <td style="text-align:right" class="${pc(x.lp-x.init)}">${num(x.lp-x.init)}</td>
+            <td style="text-align:right">${x.init>0?Math.round(x.lp/x.init*100)+'%':'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>
+    </div>`;
+  }else{
+  // サマリー上段（個別物件）
   pg.innerHTML=`
   <div class="summary-grid" style="margin-bottom:12px">
     ${[
@@ -1044,6 +1116,7 @@ function renderCashflow(){
       </div>
     </div>`).join('')}
   </div>`;
+  }
 
 // 月次CF推移グラフ
   const chartMonths=getFiscalMonths(year);
