@@ -58,6 +58,9 @@ select,input[type=number],input[type=text],input[type=date],input[type=month]{bo
 
 /* ─── サマリーグリッド ─── */
 .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.summary-2col{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+@media(min-width:768px){.summary-2col{grid-template-columns:1fr 1fr;align-items:start}}
+.summary-2col .card{margin-bottom:0}
 @media(min-width:480px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:768px){.summary-grid{grid-template-columns:repeat(5,1fr)}}
 .summary-item{background:#f9f9f7;border-radius:8px;padding:10px 12px;border:.5px solid #e0e0d8}
@@ -1049,7 +1052,8 @@ function renderCashflow(){
       </div>
       <div style="font-size:11px"><span class="c-grn">${num(income)}</span><span class="c-red" style="margin-left:8px">${num(cost)}</span></div>`;
 
-    pg.innerHTML=`
+        pg.innerHTML=`
+    <div class="summary-2col">
     <div class="card">
       <div class="card-title">年間CF <span style="color:#ccc;font-weight:400;text-transform:none;letter-spacing:0">${yearMode==='fiscal'?year+'年度':'暦年（1〜12月）'}</span></div>
       <div style="margin-bottom:16px">
@@ -1094,8 +1098,9 @@ function renderCashflow(){
             <td style="text-align:right" class="${pc(x.lp-x.init)}">${num(x.lp-x.init)}</td>
             <td style="text-align:right">${x.init>0?Math.round(x.lp/x.init*100)+'%':'—'}</td>
           </tr>`).join('')}
-        </tbody>
+                </tbody>
       </table></div>
+    </div>
     </div>`;
   }else{
   // サマリー上段（個別物件）
