@@ -793,7 +793,11 @@ function getRent(prop,year,month){
   return matched.length?matched[matched.length-1].amount:0;
 }
 function rv(pid,y,m){
-  return expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入')&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+  const settled=expenses.filter(e=>e.year===y&&e.month===m&&(pid==='all'||e.propertyId===pid)&&(e.category==='宿泊収入'||e.category==='その他収入')&&!e.isInitial).reduce((s,e)=>s+e.amount,0);
+  if(settled>0)return settled;
+  // 精算書未登録：CSVから仮表示（調整額含む）
+  return airbnbRows.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid))
+    .reduce((s,r)=>s+r.amount+(r.adjustments||[]).reduce((ss,a)=>ss+a.amount,0),0);
 }
 function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
 function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
