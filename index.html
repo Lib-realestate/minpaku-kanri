@@ -911,9 +911,10 @@ const COL={
   guest:   ['ゲスト名','ゲスト','Guest','guest','Guest name'],
   ci:      ['開始日','チェックイン','Check-in','check_in','Start date'],
   co:      ['終了日','チェックアウト','Check-out','check_out','End date'],
-  nights:  ['宿泊日数','宿泊数','Nights','nights'],
+  nights:  ['泊数','宿泊日数','宿泊数','Nights','nights'],
   payout:  ['精算額','Payout','payout','Net amount','受取金額','Host payout'],
-  amount:  ['収入','金額','Amount','amount','Gross earnings'],
+  amount:  ['総収入','収入','金額','Amount','amount','Gross earnings'],
+  gross:   ['総収入'],
   date:    ['予約済み','日付','Date','date','Payout Date'],
 };
 function getC(row,als){for(const a of als){if(row[a]!=null&&row[a]!=='')return row[a];}return '';}
@@ -937,10 +938,23 @@ function parseCSV(text){
 function detectFmt(rows){
   if(!rows.length)return'reservation';
   const keys=Object.keys(rows[0]);
+  if(keys.includes('総収入'))return'reservation';
   if(COL.status.some(k=>keys.includes(k)))return'reservation';
   if(COL.type.some(k=>keys.includes(k)))return'transaction';
   return'reservation';
 }
+// 日付をどの形式でも読み取る（09/15/2026 / 2026/9/15 / 2026-09-15）
+function parseAnyDate(s){
+  if(!s)return null;
+  s=String(s).trim();
+  let m;
+  if(m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))return new Date(+m[3],+m[1]-1,+m[2]);
+  if(m=s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/))return new Date(+m[1],+m[2]-1,+m[3]);
+  if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);
+  return isNaN(d.getTime())?null:d;
+}
+function fmtSlashDate(d){return d?d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate():'';}
 function matchProp(listing,aid){
   if(aid)return aid;
   const n=normStr(listing);
@@ -955,6 +969,7 @@ async function processCSV(text,fname,aid){
   for(const row of rows){
     const cc=getC(row,COL.cc),listing=getC(row,COL.listing),guest=getC(row,COL.guest),ci=getC(row,COL.ci),co=getC(row,COL.co),nights=toNum(getC(row,COL.nights)),status=getC(row,COL.status),type=getC(row,COL.type);
 
+    if(/^payout$/i.test((type||'').trim())||/送金/.test(getC(row,['詳細'])||'')){skip++;continue;}
     const isCancel=/キャンセル|cancelled|pending|保留/i.test(status);
     let net=0;
     if(fmt==='reservation'){
@@ -977,16 +992,18 @@ async function processCSV(text,fname,aid){
 
     if(net<=0){skip++;continue;}
 
-    const d=ci?new Date(ci.replace(/\//g,'-')):new Date();
+    const ciDate=parseAnyDate(ci),coDate=parseAnyDate(co);
+    const ciS=fmtSlashDate(ciDate),coS=fmtSlashDate(coDate);
+    const d=ciDate||new Date();
     // チェックイン翌日の年月（Airbnbの精算タイミング）
     const d2=new Date(d.getTime()+86400000);
     const yr=isNaN(d2.getTime())?new Date().getFullYear():d2.getFullYear();
     const mo=isNaN(d2.getTime())?new Date().getMonth()+1:d2.getMonth()+1;
     const propId=existing?.propertyId||matchProp(listing,aid);
     const prop=properties.find(p=>p.id===propId);
-    const cleaningFee=getCleaningFee(prop,ci);
+    const cleaningFee=getCleaningFee(prop,ciS);
     const grossAmount=net;
-    const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci,co,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
+    const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci:ciS,co:coS,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
 
     if(existing){
       // 変更チェック：金額・宿泊数・ステータスのいずれかが異なれば上書き
