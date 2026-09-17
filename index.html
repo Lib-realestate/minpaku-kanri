@@ -1003,7 +1003,9 @@ async function processCSV(text,fname,aid){
     const d2=new Date(d.getTime()+86400000);
     const yr=isNaN(d2.getTime())?new Date().getFullYear():d2.getFullYear();
     const mo=isNaN(d2.getTime())?new Date().getMonth()+1:d2.getMonth()+1;
-    const propId=existing?.propertyId||matchProp(listing,aid);
+    const propId=existing?.propertyId||matchProp(listing,aid)
+      ||(cc?(airbnbRows.find(r=>r.cc===cc&&r.propertyId)?.propertyId
+        ||newRows.find(r=>r.cc===cc&&r.propertyId)?.propertyId||''):'');
     const prop=properties.find(p=>p.id===propId);
     const cleaningFee=getCleaningFee(prop,ciS);
     const grossAmount=net;
@@ -2623,7 +2625,15 @@ function migrateAirbnbToExpenses(){
 
 function rematch(){
   let u=0;
-  airbnbRows=airbnbRows.map(r=>{const m=matchProp(r.listing||'','');if(m&&m!==r.propertyId){u++;return{...r,propertyId:m};}if(!r.propertyId&&m){u++;return{...r,propertyId:m};}return r;});
+  airbnbRows=airbnbRows.map(r=>{
+    const m=matchProp(r.listing||'','');
+    if(m&&m!==r.propertyId){u++;return{...r,propertyId:m};}
+    if(!r.propertyId&&r.cc){
+      const sib=airbnbRows.find(x=>x.cc===r.cc&&x.propertyId);
+      if(sib){u++;return{...r,propertyId:sib.propertyId};}
+    }
+    return r;
+  });
   saveData();renderCurrent();alert('再マッチング完了: '+u+'件を更新しました');
 }
 
