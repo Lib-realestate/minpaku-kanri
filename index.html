@@ -972,6 +972,7 @@ async function processCSV(text,fname,aid){
   const rows=parseCSV(text);if(!rows.length)return{added:0,duplicate:0,skipped:0,fmt:'unknown'};
   const fmt=detectFmt(rows);
   const newRows=[];let dup=0,skip=0,updated=0,cancelled=0;
+  const _keyCount={};
 
   for(const row of rows){
     const cc=getC(row,COL.cc),listing=getC(row,COL.listing),guest=getC(row,COL.guest),ci=getC(row,COL.ci),co=getC(row,COL.co),nights=toNum(getC(row,COL.nights)),status=getC(row,COL.status),type=getC(row,COL.type);
@@ -989,9 +990,10 @@ async function processCSV(text,fname,aid){
 
     // 確認コード＋計上日＋種別で既存データを検索（同一予約の分割入金・調整金を区別）
     const payDate=parseAnyDate(getC(row,COL.paydate));
-    const rowKey=cc?cc+'|'+(fmtSlashDate(payDate)||'')+'|'+(type||''):'';
+    let rowKey=cc?cc+'|'+(fmtSlashDate(payDate)||'')+'|'+(type||''):'';
+    if(rowKey){_keyCount[rowKey]=(_keyCount[rowKey]||0)+1;if(_keyCount[rowKey]>1)rowKey+='#'+_keyCount[rowKey];}
     const existing=(rowKey?airbnbRows.find(r=>r.rowKey===rowKey):null)
-      ||(cc?airbnbRows.find(r=>!r.rowKey&&r.cc===cc):null)||null;
+      ||(cc&&rowKey.indexOf('#')<0?airbnbRows.find(r=>!r.rowKey&&r.cc===cc):null)||null;
 
     if(isCancel){
       // キャンセル：既存データがあれば削除
