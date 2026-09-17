@@ -915,7 +915,8 @@ const COL={
   nights:  ['泊数','宿泊日数','宿泊数','Nights','nights'],
   payout:  ['精算額','Payout','payout','Net amount','受取金額','Host payout'],
   amount:  ['収入','金額','Amount','amount','Gross earnings'],
-  date:    ['予約済み','日付','Date','date','Payout Date'],
+  date:    ['予約済み','Date','date','Payout Date'],
+  paydate: ['日付'],
 };
 function getC(row,als){for(const a of als){if(row[a]!=null&&row[a]!=='')return row[a];}return '';}
 function toNum(s){const n=parseFloat(String(s||'').replace(/[¥$,\s]/g,'').replace(/[^\d.-]/g,''));return isNaN(n)?0:n;}
@@ -980,8 +981,11 @@ async function processCSV(text,fname,aid){
       if(!(/予約|Reservation|Accommodation|Payout|精算/i.test(type)||net>0)||net<=0){skip++;continue;}
     }
 
-    // 確認コードで既存データを検索
-    const existing=cc?airbnbRows.find(r=>r.cc===cc):null;
+    // 確認コード＋計上日＋種別で既存データを検索（同一予約の分割入金・調整金を区別）
+    const payDate=parseAnyDate(getC(row,COL.paydate));
+    const rowKey=cc?cc+'|'+(fmtSlashDate(payDate)||'')+'|'+(type||''):'';
+    const existing=(rowKey?airbnbRows.find(r=>r.rowKey===rowKey):null)
+      ||(cc?airbnbRows.find(r=>!r.rowKey&&r.cc===cc):null)||null;
 
     if(isCancel){
       // キャンセル：既存データがあれば削除
@@ -990,11 +994,11 @@ async function processCSV(text,fname,aid){
       continue;
     }
 
-    if(net<=0){skip++;continue;}
+    if(net===0){skip++;continue;}
 
     const ciDate=parseAnyDate(ci),coDate=parseAnyDate(co);
     const ciS=fmtSlashDate(ciDate),coS=fmtSlashDate(coDate);
-    const d=ciDate||new Date();
+    const d=payDate?new Date(payDate.getTime()-86400000):(ciDate||new Date());
     // チェックイン翌日の年月（Airbnbの精算タイミング）
     const d2=new Date(d.getTime()+86400000);
     const yr=isNaN(d2.getTime())?new Date().getFullYear():d2.getFullYear();
@@ -1003,12 +1007,12 @@ async function processCSV(text,fname,aid){
     const prop=properties.find(p=>p.id===propId);
     const cleaningFee=getCleaningFee(prop,ciS);
     const grossAmount=net;
-    const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci:ciS,co:coS,nights,status,type,src:fname,fmt,at:new Date().toISOString()};
+    const newRow={id:existing?.id||uid(),cc,propertyId:propId,year:yr,month:mo,amount:grossAmount,rawAmount:net,listing,guest,ci:ciS,co:coS,nights,status,type,rowKey,isAdjustment:/調整/.test(type||''),src:fname,fmt,at:new Date().toISOString()};
 
     if(existing){
       // 変更チェック：金額・宿泊数・ステータスのいずれかが異なれば上書き
-      if(existing.amount===net&&existing.nights===nights&&existing.status===status){dup++;continue;}
-      airbnbRows=airbnbRows.map(r=>r.cc===cc?newRow:r);
+      if(existing.amount===net&&existing.nights===nights&&existing.status===status&&existing.ci===ciS&&existing.co===coS&&existing.year===yr&&existing.month===mo){dup++;continue;}
+      airbnbRows=airbnbRows.map(r=>r===existing?{...newRow,adjustments:r.adjustments||null}:r);
       updated++;
     }else{
       // 確認コードなし：複合キーで重複チェック
