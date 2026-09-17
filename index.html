@@ -804,8 +804,14 @@ function ex(pid,y,m){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='
 function exByCat(pid,y,m,cat){return expenses.filter(r=>r.year===y&&r.month===m&&(pid==='all'||r.propertyId===pid)&&r.category===cat&&!r.isInitial&&!INC_CATS.includes(r.category)).reduce((s,r)=>s+r.amount,0);}
 function cm(y,m){return commonExps.filter(r=>r.year===y&&r.month===m).reduce((s,r)=>s+r.amount,0);}
 function ni(pid,y,m){
-  // チェックイン月で集計（従来）＋月跨ぎ分を各月に分配
-  return airbnbRows.filter(r=>(pid==='all'||r.propertyId===pid)).reduce((s,r)=>{
+  // 同一予約が複数行に分かれている場合は1行だけ数える
+  const seen=new Set();
+  return airbnbRows.filter(r=>{
+    if(pid!=='all'&&r.propertyId!==pid)return false;
+    if(r.isAdjustment)return false;
+    if(r.cc){if(seen.has(r.cc))return false;seen.add(r.cc);}
+    return true;
+  }).reduce((s,r)=>{
     if(!r.ci||!r.co){
       // チェックイン日がない場合は従来通り
       if(r.year===y&&r.month===m)return s+(r.nights||0);
