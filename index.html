@@ -1163,9 +1163,17 @@ function renderCashflow(){
   const chartR=chartMonths.map(({year:y,month:m})=>rv(pid,y,m));
   const chartE=chartMonths.map(({year:y,month:m})=>{const d=monthlyData(pid,y).find(r=>r.m===m)||{};return(d.expTotal||0)+(d.rent||0)+(d.propL||0)+(d.C||0)+(d.GL||0);});
   const chartP=chartMonths.map((_,i)=>chartR[i]-chartE[i]);
+  const chartOcc=chartMonths.map(({year:fy,month:m})=>{
+    const n=ni(pid==='all'?'all':pid,fy,m);
+    const daysInM=new Date(fy,m,0).getDate();
+    const ms=new Date(fy,m-1,1),me=new Date(fy,m-1,daysInM);
+    const targets=pid==='all'?properties:properties.filter(p=>p.id===pid);
+    const occD=targets.reduce((s,p)=>{const sd=p.startDate?new Date(p.startDate):ms;if(sd>me)return s;const from=sd>ms?sd:ms;return s+Math.max(0,Math.floor((me-from)/86400000)+1);},0);
+    return occD>0?n/occD*100:0;
+  });
   const allVals=[...chartR,...chartE,...chartP.map(v=>Math.abs(v))].filter(v=>v>0);
   const maxVal=allVals.length?Math.max(...allVals):1;
-  const svgW=700,svgH=200,padL=60,padR=16,padT=16,padB=32;
+  const svgW=700,svgH=200,padL=60,padR=34,padT=16,padB=32;
   const plotW=svgW-padL-padR,plotH=svgH-padT-padB;
   const barW=plotW/chartMonths.length;
   const yScale=v=>padT+plotH*(1-v/maxVal);
@@ -1204,6 +1212,7 @@ function renderCashflow(){
         <span><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#a8d5a2" rx="2"/></svg> 収入</span>
         <span><svg width="12" height="12"><rect x="1" y="1" width="10" height="10" fill="#f4a8a8" rx="2"/></svg> 支出</span>
         <span><svg width="20" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#2563eb" stroke-width="2"/></svg> 利益</span>
+        <span><svg width="20" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3"/></svg> 稼働率</span>
       </div>
     </div>
     <div style="overflow-x:auto">
@@ -1218,6 +1227,9 @@ function renderCashflow(){
       ${barsHtml}
       <!-- 利益折れ線 -->
       <path d="${profitLine}" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round"/>
+      <path d="${chartMonths.map((_,i)=>{const x=padL+i*barW+barW/2;const y=padT+plotH*(1-Math.min(chartOcc[i],100)/100);return i===0?`M${x},${y}`:`L${x},${y}`;}).join(' ')}" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" stroke-linejoin="round"/>
+      ${chartMonths.map((_,i)=>{const x=padL+i*barW+barW/2;const y=padT+plotH*(1-Math.min(chartOcc[i],100)/100);return chartOcc[i]>0?`<circle cx="${x}" cy="${y}" r="2" fill="#f59e0b"/>`:'';}).join('')}
+      ${[0,50,100].map(t=>`<text x="${svgW-padR+3}" y="${padT+plotH*(1-t/100)+3}" font-size="8" fill="#f59e0b">${t}%</text>`).join('')}
       ${chartMonths.map(({month:m},i)=>{
         const x=padL+i*barW+barW/2;
         const y=padT+plotH*(1-chartP[i]/maxVal);
@@ -1253,7 +1265,9 @@ function renderCashflow(){
     const pyt=yearTotal(p.id,year);
     let cumCF=0;
     const cumCFs=pmd.map(r=>{cumCF+=r.profit;return cumCF;});
-    rows.push({type:'cf',label:p.name+' 月間CF',vals:pmd.map(r=>r.profit),totVal:pyt.profit,cls:'',bold:true,pmd});
+    rows.push({type:'data',label:p.name+' 売上',vals:pmd.map(r=>r.R),totVal:pyt.R,cls:'c-grn',bold:true});
+    rows.push({type:'cf',label:'　月間CF',vals:pmd.map(r=>r.profit),totVal:pyt.profit,cls:'',bold:true,pmd});
+    rows.push({type:'pct',label:'　CF率',vals:pmd.map(r=>r.R>0?r.profit/r.R*100:0),totVal:pyt.R>0?pyt.profit/pyt.R*100:null});
     rows.push({type:'cum',label:'　年間CF累計',vals:cumCFs,totVal:null});
     rows.push({type:'occ',label:'　稼働率',vals:getFiscalMonths(year).map(({year:fy,month:m})=>{
       const n=ni(p.id,fy,m);
@@ -1274,7 +1288,9 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
   // 合計行
   let totalCumCF=0;
   const totalCumCFs=md.map(r=>{totalCumCF+=r.profit;return totalCumCF;});
-  rows.push({type:'cf',label:'合計 月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
+  rows.push({type:'data',label:'合計 売上',vals:md.map(r=>r.R),totVal:yt.R,cls:'c-grn',bold:true});
+  rows.push({type:'cf',label:'　月間CF',vals:md.map(r=>r.profit),totVal:yt.profit});
+  rows.push({type:'pct',label:'　CF率',vals:md.map(r=>r.R>0?r.profit/r.R*100:0),totVal:yt.R>0?yt.profit/yt.R*100:null});
   rows.push({type:'cum',label:'　年間CF累計',vals:totalCumCFs,totVal:null});
   rows.push({type:'occ',label:'　稼働率',vals:getFiscalMonths(year).map(({year:fy,month:m})=>{
     const n=ni('all',fy,m);
@@ -1333,6 +1349,7 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
     if(row.vals){
       cells=row.vals.map((v,i)=>{
         if(row.type==='occ')return`<td style="color:#666">${v>0?v.toFixed(0)+'%':'—'}</td>`;
+        if(row.type==='pct')return`<td style="color:${v>0?'#1a7a3c':v<0?'#b71c1c':'#aaa'}">${v!==0?v.toFixed(0)+'%':'—'}</td>`;
         const cls=isProfit?(v>0?'c-grn':v<0?'c-red':''):row.cls||'';
         const bold=row.type==='cf'||row.type==='cum'?'fw7':'';
         const has=md[i].R>0||md[i].expTotal>0||md[i].propL>0||md[i].rent>0||md[i].GL>0||md[i].C>0;
@@ -1347,7 +1364,9 @@ if(hasCommon||hasGL) rows.push({type:'section',label:'▌ 共通経費・運転�
       cells=MONTHS.map(()=>`<td>—</td>`).join('');
     }
 
-    const totCell=row.type==='occ'
+    const totCell=row.type==='pct'
+      ?`<td class="fw7" style="color:${row.totVal>0?'#1a7a3c':row.totVal<0?'#b71c1c':'#aaa'}">${row.totVal===null?'—':row.totVal.toFixed(0)+'%'}</td>`
+      :row.type==='occ'
       ?`<td style="color:#666">${row.propId?(((yearTotal(row.propId,year).nights/daysForOcc(row.propId,year))*100).toFixed(0)+'%'):(((yt.nights/daysForOcc(pid,year))*100).toFixed(0)+'%')}</td>`
       :row.totVal===null
       ?`<td>—</td>`
